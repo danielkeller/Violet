@@ -3,15 +3,14 @@
 
 #include "Resource.hpp"
 
-#include "stdafx.h"
 #include <vector>
 #include <memory>
 
-class Uniforms
+struct Uniforms
 {
 	Uniforms() = default;
 	Uniforms (GLuint program);
-public:
+
 	struct Uniform
 	{
 		std::string name;
@@ -48,8 +47,6 @@ public:
 	{
 		return const_cast<Block&>(const_cast<const Uniforms&>(*this)[name]);
 	}
-
-	friend class ShaderProgram;
 };
 
 //Uniform Buffer Object

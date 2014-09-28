@@ -4,19 +4,19 @@
 #include <fstream>
 #include <vector>
 
-ShaderProgram::ShaderProgram(std::string path)
+ShaderProgram::ShaderResource::ShaderResource(std::string path)
 	: ResourceTy(path)
 {
     init(std::ifstream(path + ".vert"), std::ifstream(path + ".frag"));
 }
 
-ShaderProgram::~ShaderProgram()
+ShaderProgram::ShaderResource::~ShaderResource()
 {
     //the program will be deleted once it is no longer part of an active rendering state
     glDeleteProgram(program);
 }
 
-void ShaderProgram::Ref::use() const
+void ShaderProgram::use() const
 {
     //set this program as current
     glUseProgram(program);
@@ -41,7 +41,7 @@ GLenum ShaderProgram::Ref::GetUniformType(GLint loc) const
 }
 #endif
 
-GLenum ShaderProgram::Ref::GetAttribType(GLint loc) const
+GLenum ShaderProgram::GetAttribType(GLint loc) const
 {
 	GLint size;
 	GLenum ret;
@@ -49,12 +49,12 @@ GLenum ShaderProgram::Ref::GetAttribType(GLint loc) const
 	return ret;
 }
 
-GLint ShaderProgram::Ref::GetAttribLocation(const char* name) const
+GLint ShaderProgram::GetAttribLocation(const char* name) const
 {
     return glGetAttribLocation(program, name);
 }
 
-UBO ShaderProgram::Ref::GetUBO(const std::string& name) const
+UBO ShaderProgram::GetUBO(const std::string& name) const
 {
 	if (name == "Common")
 		return UBO::Create(resource->uniforms[name], UBO::Common);
@@ -96,7 +96,7 @@ GLuint CreateShader(GLenum eShaderType, std::istream &t)
     return shader;
 }
 
-void ShaderProgram::init(std::istream &vert, std::istream &frag)
+void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag)
 {
     //create our empty program Render
     program = glCreateProgram();
@@ -124,7 +124,7 @@ void ShaderProgram::init(std::istream &vert, std::istream &frag)
         std::cerr << "Linker failure: " << infoLog.data() << "\n";
     }
 	else
-		uniforms = Uniforms(program);
+		uniforms = ::Uniforms(program);
 
     //shaders are no longer used now that the program is linked
     glDetachShader(program, vertShdr);

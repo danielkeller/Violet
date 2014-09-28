@@ -14,7 +14,10 @@ private:
 protected:
 	const K key;
 
-	Resource(const Resource&& other)
+	Resource(const Resource&) = delete;
+	Resource& operator=(const Resource&) = delete;
+
+	Resource(Resource&& other)
 		: key(std::move(other.key))
 	{}
 

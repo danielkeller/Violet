@@ -19,6 +19,9 @@
     <Filter Include="Source Files\Rendering">
       <UniqueIdentifier>{3902fd21-2fe5-4a70-a3d8-4941d1c8ca2c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Libs">
+      <UniqueIdentifier>{c3815a18-e4ed-4320-8957-77e2b7e080cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.hpp">
@@ -83,11 +86,14 @@
     <ClCompile Include="Rendering\VAO.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\GL\gl_core_3_3.c">
-      <Filter>Source Files\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\Uniform.cpp">
       <Filter>Source Files\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GL\gl_core_3_3.c">
+      <Filter>Source Files\Libs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Lodepng\lodepng.cpp">
+      <Filter>Source Files\Libs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

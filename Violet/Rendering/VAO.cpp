@@ -5,8 +5,8 @@
 
 #include <fstream>
 
-VAO::VAO(VAO&& other)
-	: ResourceTy(other)
+VAO::VAOResource::VAOResource(VAOResource&& other)
+	: ResourceTy(std::move(other))
 	, vertexArrayObject(other.vertexArrayObject)
 	, indexBufferObject(other.indexBufferObject)
 	, vertexBuffer(std::move(other.vertexBuffer))
@@ -16,20 +16,20 @@ VAO::VAO(VAO&& other)
 	other.vertexArrayObject = 0;
 }
 
-VAO::~VAO()
+VAO::VAOResource::~VAOResource()
 {
 	//delete VAO and buffers
 	glDeleteVertexArrays(1, &vertexArrayObject);
 	glDeleteBuffers(1, &indexBufferObject);
 }
 
-void VAO::Ref::bind() const
+void VAO::bind() const
 {
 	//make the object's VAO current. this brings in all the associated data.
 	glBindVertexArray(vertexArrayObject);
 }
 
-void VAO::Ref::draw(GLsizei instances) const
+void VAO::draw(GLsizei instances) const
 {
 	//draw verteces according to the index and position buffer object
 	//the final argument to this call is an integer offset, cast to pointer type. don't ask me why.

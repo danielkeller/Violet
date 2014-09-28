@@ -8,65 +8,72 @@
 #include <istream>
 #include <memory>
 
-class ShaderProgram : public Resource<ShaderProgram>
+class ShaderProgram
 {
+	struct ShaderResource;
+
 public:
-	class Ref
+	static ShaderProgram create(std::string path)
 	{
-		GLuint program;
-		std::shared_ptr<ShaderProgram> resource;
-	public:
-		Ref(std::shared_ptr<ShaderProgram> ptr)
-			: program(ptr->program)
-			, resource(std::move(ptr))
-		{}
-
-		//Enable this program for rendering
-		void use() const;
-
-		//get an attribute
-		GLint GetAttribLocation(const char* name) const;
-		GLenum GetAttribType(GLint loc) const;
-
-		bool operator==(const Ref& other) const
-			{ return program == other.program; }
-		bool operator!=(const Ref& other) const
-			{ return !(*this == other); }
-
-		std::string Name() const { return resource->key; }
-		Uniforms& Uniforms() const { return resource->uniforms; }
-		UBO GetUBO(const std::string& name) const;
-	};
-	friend Ref;
-
-	static Ref create(std::string path)
-	{
-		return ShaderProgram::FindOrMake(path);
+		return ShaderResource::FindOrMake(path);
 	}
 
-	ShaderProgram(ShaderProgram &&other)
-		: ResourceTy(other), program(other.program)
-		, uniforms(std::move(other.uniforms))
+	//Enable this program for rendering
+	void use() const;
+
+	//get an attribute
+	GLint GetAttribLocation(const char* name) const;
+	GLenum GetAttribType(GLint loc) const;
+
+	bool operator==(const ShaderProgram& other) const
 	{
-		other.program = 0;
+		return program == other.program;
+	}
+	bool operator!=(const ShaderProgram& other) const
+	{
+		return !(*this == other);
 	}
 
-    //free resources associated with this program
-	~ShaderProgram();
-
-	//object is not copyable
-	ShaderProgram(const ShaderProgram&) = delete;
-	ShaderProgram& operator=(const ShaderProgram&) = delete;
-
-	//Construct from given vertex and fragment files
-	ShaderProgram(std::string path);
+	std::string Name() const { return resource->Name(); }
+	Uniforms& Uniforms() const { return resource->uniforms; }
+	UBO GetUBO(const std::string& name) const;
 
 private:
-    //the actual GL program reference
-    GLuint program;
-    void init(std::istream &vert, std::istream &frag);
+	ShaderProgram(std::shared_ptr<ShaderResource> ptr)
+		: program(ptr->program)
+		, resource(std::move(ptr))
+	{}
 
-	Uniforms uniforms;
+	GLuint program;
+	std::shared_ptr<ShaderResource> resource;
+
+	struct ShaderResource : public Resource<ShaderResource>
+	{
+		ShaderResource(ShaderResource &&other)
+			: ResourceTy(std::move(other)), program(other.program)
+			, uniforms(std::move(other.uniforms))
+		{
+			other.program = 0;
+		}
+
+		//free resources associated with this program
+		~ShaderResource();
+
+		//object is not copyable
+		ShaderResource(const ShaderResource&) = delete;
+		ShaderResource& operator=(const ShaderResource&) = delete;
+
+		//Construct from given vertex and fragment files
+		ShaderResource(std::string path);
+
+		std::string Name() const { return key; }
+
+		//the actual GL program reference
+		GLuint program;
+		void init(std::istream &vert, std::istream &frag);
+
+		::Uniforms uniforms;
+	};
 };
 
 #endif

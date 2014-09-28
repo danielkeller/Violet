@@ -17,13 +17,13 @@ Schema ArrayBuffer<WavefrontVert>::schema = {
 	{"texCoord", 2, GL_FLOAT, 6 * sizeof(float), 1},
 };
 
-std::tuple<VAO::Ref, ShaderProgram::Ref> LoadWavefront(std::string filename)
+std::tuple<VAO, ShaderProgram> LoadWavefront(std::string filename)
 {
 	//shader appropriate for wavefront objects
-	ShaderProgram::Ref shader = ShaderProgram::create("assets/simple");
-	if (std::shared_ptr<VAO> vao = VAO::FindResource(filename))
+	ShaderProgram shader = ShaderProgram::create("assets/simple");
+	if (std::shared_ptr<VAO::VAOResource> vao = VAO::VAOResource::FindResource(filename))
 	{
-		return std::make_tuple(vao, shader);
+		return std::make_tuple<VAO, ShaderProgram>(VAO(vao), std::move(shader));
 	}
 
 	std::ifstream obj(filename);
@@ -80,7 +80,7 @@ std::tuple<VAO::Ref, ShaderProgram::Ref> LoadWavefront(std::string filename)
 			norm_it < norms.end() ? *norm_it++ : Vector3f::Zero(),
 			uv_it < uvs.end() ? *uv_it++ : Eigen::Vector2f::Zero() });
 
-	VAO::Ref vao = VAO::MakeShared(
-		VAO(filename, shader, ArrayBuffer<WavefrontVert>(attribs, GL_STATIC_DRAW), indices));
+	VAO vao = VAO::VAOResource::MakeShared(
+		filename, shader, ArrayBuffer<WavefrontVert>(attribs, GL_STATIC_DRAW), indices);
 	return std::make_tuple(vao, shader);
 }

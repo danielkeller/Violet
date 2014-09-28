@@ -73,7 +73,7 @@ public:
 			glBufferSubData(GL_ARRAY_BUFFER, 0, data_len, data.data());
 	}
 
-	void BindToShader(const ShaderProgram::Ref& program) const
+	void BindToShader(const ShaderProgram& program) const
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, bufferObject);
 		for (const auto& props : schema)

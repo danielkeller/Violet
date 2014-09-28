@@ -40,7 +40,7 @@ try
     //load the Render
 	Object teapot;
 	auto teapotData = LoadWavefront("assets/teapot.obj");
-	r.Create(teapot, std::get<1>(teapotData), std::get<0>(teapotData), Matrix4f::Identity());
+	r.Create(teapot, std::move(std::get<1>(teapotData)), std::move(std::get<0>(teapotData)), Matrix4f::Identity());
 
     //clear to black
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
