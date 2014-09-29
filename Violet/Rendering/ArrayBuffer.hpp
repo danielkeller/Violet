@@ -31,7 +31,8 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, data_len, nullptr, usage);
 	}
 
-	ArrayBuffer(const std::vector<T>& data, GLenum usage)
+	template<class Alloc>
+	ArrayBuffer(const std::vector<T, Alloc>& data, GLenum usage)
 		: ArrayBuffer(data.size()*sizeof(T), usage)
 	{
 		glBufferSubData(GL_ARRAY_BUFFER, 0, data_len, data.data());
@@ -61,7 +62,8 @@ public:
 	template<typename U>
 	friend ArrayBuffer<void> EraseType(ArrayBuffer<U>&&);
 
-	void Data(const std::vector<T>& data)
+	template<class Alloc>
+	void Data(const std::vector<T, Alloc>& data)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, bufferObject);
 		if (data.size()*sizeof(T) != data_len)

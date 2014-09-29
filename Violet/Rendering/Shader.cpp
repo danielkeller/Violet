@@ -21,8 +21,7 @@ void ShaderProgram::use() const
     //set this program as current
     glUseProgram(program);
 
-    //set as lines for purposes of this demo
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 #if 0
@@ -59,6 +58,17 @@ UBO ShaderProgram::GetUBO(const std::string& name) const
 	if (name == "Common")
 		return UBO::Create(resource->uniforms[name], UBO::Common);
 	return UBO::Create(resource->uniforms[name], UBO::Material);
+}
+
+//These should stay the same for much of the shader's lifetime
+void ShaderProgram::TextureOrder(const std::vector<std::string>& order)
+{
+	use(); //program needs to be active
+	for (size_t i = 0; i < order.size(); ++i)
+	{
+		//Samplers are not in blocks (so "")
+		glUniform1i(resource->uniforms[""][order[i]].location, i);
+	}
 }
 
 GLuint CreateShader(GLenum eShaderType, std::istream &t)

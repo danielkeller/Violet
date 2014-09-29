@@ -39,8 +39,16 @@ try
 
     //load the Render
 	Object teapot;
-	auto teapotData = LoadWavefront("assets/teapot.obj");
-	r.Create(teapot, std::move(std::get<1>(teapotData)), std::move(std::get<0>(teapotData)), Matrix4f::Identity());
+	VAO teapotVAO;
+	ShaderProgram teapotShader;
+	std::tie(teapotVAO, teapotShader) = LoadWavefront("assets/capsule.obj");
+
+	teapotShader.TextureOrder({ "tex" });
+	std::vector<Tex> texes = { Tex::create("assets/capsule.png") };
+
+	r.Create(teapot, std::move(teapotShader),
+		std::make_tuple(UBO(), std::move(texes)),
+		std::move(teapotVAO), Matrix4f::Identity());
 
     //clear to black
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -72,7 +80,7 @@ try
 
         //set the camera matrix
         Matrix4f cameraMat = lookAt(
-            Vector3f(0.f, 0.f, 5.f),
+            Vector3f(0.f, 0.f, 2.f),
             Vector3f::Zero(),
             Vector3f(0.f, 1.f, 0.f));
 
@@ -96,4 +104,10 @@ catch (const char* mesg)
     std::cerr << mesg << "\nPress enter to exit...\n";
     getchar();
     return EXIT_FAILURE;
+}
+catch (std::exception ex)
+{
+	std::cerr << ex.what() << "\nPress enter to exit...\n";
+	getchar();
+	return EXIT_FAILURE;
 }

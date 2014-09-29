@@ -13,6 +13,12 @@ class VAO
 	struct VAOResource;
 
 public:
+	//initialize to invalid state
+	VAO()
+		: vertexArrayObject(0)
+		, resource(nullptr)
+	{}
+
 	void bind() const;
 	void draw(GLsizei instances) const;
 

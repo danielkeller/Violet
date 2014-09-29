@@ -60,6 +60,9 @@
     <ClInclude Include="Rendering\ArrayBuffer.hpp">
       <Filter>Header Files\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Texture.hpp">
+      <Filter>Header Files\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -94,6 +97,9 @@
     </ClCompile>
     <ClCompile Include="..\Lodepng\lodepng.cpp">
       <Filter>Source Files\Libs</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Texture.cpp">
+      <Filter>Source Files\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

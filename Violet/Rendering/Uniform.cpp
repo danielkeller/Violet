@@ -10,7 +10,7 @@ std::vector<Uniforms::Block> DoQuery(GLuint program)
 	
 	GLint activeUniformBlocks;
 	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &activeUniformBlocks);
-	std::vector<Uniforms::Block> ret(activeUniformBlocks);
+	std::vector<Uniforms::Block> ret(activeUniformBlocks+1);
 	GLint outParam;
 
 	for (GLuint uniformBlockIndex = 0; uniformBlockIndex < (GLuint)activeUniformBlocks; ++uniformBlockIndex)
@@ -35,15 +35,18 @@ std::vector<Uniforms::Block> DoQuery(GLuint program)
 		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_ARRAY_STRIDE, &outParam);
 		unif.stride = outParam;
 		//Hopefully the matrix stride isn't a big deal...
+
 		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_NAME_LENGTH, &outParam);
 		std::vector<char> name(outParam);
 		glGetActiveUniformName(program, uniformIndex, outParam, NULL, name.data());
 		unif.name.assign(name.begin(), name.end()-1); //remove null
 
+		unif.location = glGetUniformLocation(program, name.data());
+
 		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_BLOCK_INDEX, &outParam);
-		if (outParam == -1)
-			std::cerr << "Warning: Uniform '" << unif.name
-				<< "' not in a block; this is not supported\n";
+
+		if (outParam == -1) //last block is default block
+			ret[activeUniformBlocks].uniforms.push_back(std::move(unif));
 		else
 			ret[outParam].uniforms.push_back(std::move(unif));
 	}
@@ -119,13 +122,13 @@ UBO::UBO(std::shared_ptr<UBOResource> r, Type ty)
 	: type(ty), bufferObject(r->bufferObject), resource(r)
 {}
 
-void UBO::Sync()
+void UBO::Sync() const
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, bufferObject);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, resource->storage.size(), resource->storage.data());
 }
 
-void UBO::Bind()
+void UBO::Bind() const
 {
 	//Type allows us to distinguish between UBOs that are shared (ie, camera) with those that
 	//are not (ie, material).

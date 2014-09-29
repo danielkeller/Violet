@@ -18,6 +18,7 @@ struct Uniforms
 		GLuint size;
 		GLuint offset;
 		GLint stride;
+		GLint location;
 
 		bool operator<(const Uniform& other) const;
 		bool operator==(const Uniform& other) const;
@@ -60,16 +61,32 @@ public:
 		Material
 	};
 
+	//It should be possible to call Bind with no ill effects
+	UBO()
+		: type(Material)
+		, bufferObject(0)
+		, resource(nullptr)
+	{}
+
 	static UBO Create(const Uniforms::Block& block, Type ty);
+
+	bool operator==(const UBO& other) const
+	{
+		return bufferObject == other.bufferObject;
+	}
+	bool operator!=(const UBO& other) const
+	{
+		return !(*this == other);
+	}
 
 	Proxy operator[](const std::string& name)
 		{ return Proxy(*this, name); }
 
 	//synchronize with OpenGL. Note that this stalls anything using this UBO.
-	void Sync();
+	void Sync() const;
 
 	//Associates this UBO with its binding point.
-	void Bind();
+	void Bind() const;
 
 	friend struct Proxy;
 

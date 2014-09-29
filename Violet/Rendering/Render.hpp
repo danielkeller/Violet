@@ -6,6 +6,7 @@
 #include "Object.hpp"
 #include "Uniform.hpp"
 #include "VAO.hpp"
+#include "Texture.hpp"
 
 #include <vector>
 #include <map>
@@ -26,7 +27,8 @@ inline void printErr()
 class Render
 {
 public:
-	void Create(Object obj, ShaderProgram&& shader, VAO&& vao, const Matrix4f& loc);
+	void Create(Object obj, ShaderProgram&& shader, std::tuple<UBO, std::vector<Tex>>&& mat,
+		VAO&& vao, const Matrix4f& loc);
 	void Destroy(Object obj);
 	void draw() const;
 	Matrix4f camera;
@@ -42,7 +44,9 @@ private:
 
 	struct ObjectLocation
 	{
-		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+		//Prevent alignment issues from causing asserts
+		using Allocator = Eigen::aligned_allocator<ObjectLocation>;
+
 		Matrix4f loc;
 		Object owner;
 	};
@@ -51,7 +55,7 @@ private:
 	{
 		ArrayBuffer<ObjectLocation> instances;
 		VAO vao;
-		std::vector<ObjectLocation> locations;
+		std::vector<ObjectLocation, ObjectLocation::Allocator> locations;
 		void draw() const;
 
 		Shape(VAO&& vao)
@@ -69,11 +73,28 @@ private:
 	struct Material
 	{
 		std::vector<Shape> shapes;
+		UBO materialProps;
+		std::vector<Tex> textures;
 		void draw() const;
+
+		bool operator==(const std::tuple<UBO, std::vector<Tex>>& t)
+		{
+			return std::tie(materialProps, textures) == t;
+		}
+		bool operator!=(const std::tuple<UBO, std::vector<Tex>>& t)
+		{
+			return !(*this == t);
+		}
 		
-		Material() = default;
+		Material(std::tuple<UBO, std::vector<Tex>>&& t)
+			: materialProps(std::move(std::get<0>(t)))
+			, textures(std::move(std::get<1>(t)))
+		{}
 		Material(const Material&) = delete;
-		Material(Material&& other) : shapes(std::move(other.shapes))
+		Material(Material&& other)
+			: shapes(std::move(other.shapes))
+			, materialProps(std::move(other.materialProps))
+			, textures(std::move(other.textures))
 		{}
 	};
 

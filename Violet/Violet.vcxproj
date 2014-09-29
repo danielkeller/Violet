@@ -76,6 +76,7 @@
     <ClInclude Include="Rendering\ArrayBuffer.hpp" />
     <ClInclude Include="Rendering\Render.hpp" />
     <ClInclude Include="Rendering\Shader.hpp" />
+    <ClInclude Include="Rendering\Texture.hpp" />
     <ClInclude Include="Rendering\Uniform.hpp" />
     <ClInclude Include="Rendering\VAO.hpp" />
     <ClInclude Include="Resource.hpp" />
@@ -96,6 +97,7 @@
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Rendering\Render.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
+    <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\Uniform.cpp" />
     <ClCompile Include="Rendering\VAO.cpp" />
     <ClCompile Include="stdafx.cpp">

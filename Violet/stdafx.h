@@ -8,6 +8,8 @@
 #include "GL/gl_core_3_3.h"
 #include "Eigen/Dense"
 #include "Eigen/Geometry"
+//prevent vectors from breaking things
+#include "Eigen/StdVector"
 
 using Eigen::Matrix3f;
 using Eigen::Matrix4f;

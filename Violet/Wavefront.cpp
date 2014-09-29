@@ -5,6 +5,9 @@
 
 struct WavefrontVert
 {
+	//Prevent alignment issues from causing asserts
+	using Allocator = Eigen::aligned_allocator<WavefrontVert>;
+
 	Vector3f pos;
 	Vector3f norm;
 	Eigen::Vector2f uv;
@@ -30,9 +33,10 @@ std::tuple<VAO, ShaderProgram> LoadWavefront(std::string filename)
 	if (obj.fail())
 		throw "Cannot open Render file";
 
-	std::vector<Vector3f> verts;
-	std::vector<Vector3f> norms;
-	std::vector<Eigen::Vector2f> uvs;
+	using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>;
+	vectorVector3f verts;
+	vectorVector3f norms;
+	std::vector<Vector2f, Eigen::aligned_allocator<Vector2f>> uvs;
     std::vector<GLint> indices;
         
     std::string letter;
@@ -55,11 +59,20 @@ std::tuple<VAO, ShaderProgram> LoadWavefront(std::string filename)
 		else if (letter == "vt")
 		{
 			obj >> x >> y;
-			uvs.push_back(Eigen::Vector2f(x, y));
+			uvs.push_back(Vector2f(x, y));
 		}
         else if (letter == "f")
         {
-            obj >> a >> b >> c;
+			//Obj files can have this notation like
+			//f 2863/2863/2863 2864/2864/2864 2965/2965/2965
+			//where (i guess) you can specify different indices for different attributes.
+			obj >> a;
+			obj.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
+			obj >> b;
+			obj.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
+			obj >> c;
+			obj.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
             //whose brilliant idea was it to make this 1-based
             indices.push_back(a - 1);
             indices.push_back(b - 1);
@@ -73,12 +86,12 @@ std::tuple<VAO, ShaderProgram> LoadWavefront(std::string filename)
 	auto norm_it = norms.begin();
 	auto uv_it = uvs.begin();
 
-	std::vector<WavefrontVert> attribs;
+	std::vector<WavefrontVert, WavefrontVert::Allocator> attribs;
 
 	for (; vert_it != verts.end(); ++vert_it)
 		attribs.emplace_back(WavefrontVert{ *vert_it,
-			norm_it < norms.end() ? *norm_it++ : Vector3f::Zero(),
-			uv_it < uvs.end() ? *uv_it++ : Eigen::Vector2f::Zero() });
+			norm_it < norms.end() ? Vector3f{ *norm_it++ } : Vector3f::Zero(),
+			uv_it < uvs.end() ? Vector2f{ *uv_it++ } : Vector2f::Zero() });
 
 	VAO vao = VAO::VAOResource::MakeShared(
 		filename, shader, ArrayBuffer<WavefrontVert>(attribs, GL_STATIC_DRAW), indices);

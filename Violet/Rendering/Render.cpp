@@ -22,16 +22,12 @@ typename std::vector<T>::iterator createOrAdd(std::vector<T>& vec, U&& val)
 	return it;
 }
 
-void Render::Create(Object obj, ShaderProgram&& shader, VAO&& vao, const Matrix4f& loc)
+void Render::Create(Object obj, ShaderProgram&& shader, std::tuple<UBO, std::vector<Tex>>&& mat, 
+	VAO&& vao, const Matrix4f& loc)
 {
-	auto shaderit = createOrAdd(shaders, shader);
-
-	//dummy materials for now
-	if (shaderit->materials.empty())
-		shaderit->materials.emplace_back();
-	auto materialit = shaderit->materials.begin();
-
-	auto shapeit = createOrAdd(materialit->shapes, std::move(vao));
+	auto shaderit   = createOrAdd(shaders,             std::move(shader));
+	auto materialit = createOrAdd(shaderit->materials, std::move(mat));
+	auto shapeit    = createOrAdd(materialit->shapes,  std::move(vao));
 
 	shapeit->locations.emplace_back(ObjectLocation{ loc, obj });
 
@@ -49,7 +45,7 @@ void Render::Create(Object obj, ShaderProgram&& shader, VAO&& vao, const Matrix4
 void Render::draw() const
 {
 	//clear the color buffer
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	commonUBO["camera"] = camera;
 	commonUBO.Sync();
@@ -71,6 +67,11 @@ void Render::Shader::draw() const
 
 void Render::Material::draw() const
 {
+	for (size_t i = 0; i < textures.size(); ++i)
+		textures[i].Bind(i);
+
+	materialProps.Bind();
+
 	for (auto& shape : shapes) shape.draw();
 }
 

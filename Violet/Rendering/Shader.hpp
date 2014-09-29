@@ -13,6 +13,12 @@ class ShaderProgram
 	struct ShaderResource;
 
 public:
+	//initialize to invalid state
+	ShaderProgram()
+		: program(0)
+		, resource(nullptr)
+	{}
+
 	static ShaderProgram create(std::string path)
 	{
 		return ShaderResource::FindOrMake(path);
@@ -37,6 +43,7 @@ public:
 	std::string Name() const { return resource->Name(); }
 	Uniforms& Uniforms() const { return resource->uniforms; }
 	UBO GetUBO(const std::string& name) const;
+	void TextureOrder(const std::vector<std::string>& order);
 
 private:
 	ShaderProgram(std::shared_ptr<ShaderResource> ptr)

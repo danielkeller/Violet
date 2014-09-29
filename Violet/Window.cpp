@@ -45,6 +45,11 @@ Window::Window()
     //load GL function pointers
     if(ogl_LoadFunctions() == ogl_LOAD_FAILED)
         throw "Error in glLoadGen";
+
+	//Draw the correct sides of things
+	glCullFace(GL_BACK);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 }
 
 Window::~Window()
