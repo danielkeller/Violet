@@ -59,7 +59,10 @@ try
     //clear to black
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     
-    auto then = std::chrono::system_clock::now();
+	using clock = std::chrono::system_clock;
+	auto currentTime = clock::now();
+	const auto dt = std::chrono::milliseconds(30);
+	clock::duration accumulator(0);
 
     double oldX, oldY;
     glfwGetCursorPos(w.window, &oldX, &oldY);
@@ -72,23 +75,35 @@ try
         //set the GL draw surface to the same size as the window
         int width, height;
         glfwGetFramebufferSize(w.window, &width, &height);
-        glViewport(0, 0, (GLsizei) width, (GLsizei) height);
+		glViewport(0, 0, (GLsizei)width, (GLsizei)height);
 
-        float ang = (float)std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now() - then).count() / 1000.f;
-		then = std::chrono::system_clock::now();
+		auto newTime = clock::now();
+		auto frameTime = newTime - currentTime;
+		if (frameTime > std::chrono::milliseconds(250))
+			frameTime = std::chrono::milliseconds(250);
+		currentTime = newTime;
 
-		moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(ang, Vector3f(0, 0, 1)) };
-		m.Update(0);
-		m.Tick();
+		accumulator += frameTime;
 
-        double curX, curY;
-        glfwGetCursorPos(w.window, &curX, &curY);
+		while (accumulator >= dt)
+		{
+			m.Tick();
+			//physics step
+			moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(0.04f, Vector3f(0, 0, 1)) };
 
-        if (glfwGetMouseButton(w.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-            rotMat *= Eigen::Affine3f(Eigen::AngleAxisf(float(curX - oldX)/float(width), Vector3f::UnitY())).matrix();
+			double curX, curY;
+			glfwGetCursorPos(w.window, &curX, &curY);
+			if (glfwGetMouseButton(w.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+				rotMat *= Eigen::Affine3f(Eigen::AngleAxisf(float(curX - oldX) / float(width), Vector3f::UnitY())).matrix();
+			oldX = curX, oldY = curY;
 
-        oldX = curX, oldY = curY;
+			accumulator -= dt;
+		}
+
+		using millifloat = std::chrono::duration<float, std::milli>;
+		float alpha = std::chrono::duration_cast<millifloat>(accumulator).count()
+			/ std::chrono::duration_cast<millifloat>(dt).count();
+		m.Update(alpha);
 
         //set the camera matrix
         Matrix4f cameraMat = lookAt(
@@ -108,6 +123,8 @@ try
 
 		printErr();
     }
+
+	//std::cin.get();
     
     return EXIT_SUCCESS;
 }

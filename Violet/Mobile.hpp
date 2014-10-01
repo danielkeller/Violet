@@ -7,8 +7,6 @@
 
 #include <map>
 
-static const float dt = 0.03f;
-
 struct Transform
 {
 	Vector3f pos;

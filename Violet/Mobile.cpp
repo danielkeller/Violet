@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Mobile.hpp"
 
+#include "Eigen/Core"
+
 Mobile::MoveProxy Mobile::Add(const Transform& loc, Render::LocationProxy target)
 {
 	auto ref = data.emplace_back(ObjData{ target, loc, loc });
