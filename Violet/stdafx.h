@@ -16,5 +16,6 @@ using Eigen::Matrix4f;
 using Eigen::Vector2f;
 using Eigen::Vector3f;
 using Eigen::Vector4f;
+using Eigen::Quaternionf;
 
 #define GLFW_INCLUDE_NONE

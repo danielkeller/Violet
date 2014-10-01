@@ -7,10 +7,11 @@
 #include "Uniform.hpp"
 #include "VAO.hpp"
 #include "Texture.hpp"
+#include "Permavector.hpp"
 
 #include <vector>
-#include <map>
 #include <memory>
+#include <set>
 
 #include <iostream>
 
@@ -27,8 +28,10 @@ inline void printErr()
 class Render
 {
 public:
-	void Create(Object obj, ShaderProgram&& shader, std::tuple<UBO, std::vector<Tex>>&& mat,
-		VAO&& vao, const Matrix4f& loc);
+	class LocationProxy;
+	//Maybe make mobility an option?
+	LocationProxy Create(Object obj, ShaderProgram shader, std::tuple<UBO, std::vector<Tex>> mat,
+		VAO vao, const Matrix4f& loc);
 	void Destroy(Object obj);
 	void draw() const;
 	Matrix4f camera;
@@ -42,6 +45,10 @@ private:
 	ShaderProgram simpleShader;
 	mutable UBO commonUBO;
 
+	//our container of choice
+	template<class... Args>
+	using container = Permavector<Args...>;
+
 	struct ObjectLocation
 	{
 		//Prevent alignment issues from causing asserts
@@ -49,17 +56,18 @@ private:
 
 		Matrix4f loc;
 		Object owner;
+		//std::shared_ptr<bool> alive;
 	};
 
 	struct Shape
 	{
-		ArrayBuffer<ObjectLocation> instances;
 		VAO vao;
-		std::vector<ObjectLocation, ObjectLocation::Allocator> locations;
+		using InstanceBuf = MutableArrayBuffer<ObjectLocation, ObjectLocation::Allocator>;
+		InstanceBuf instances;
 		void draw() const;
 
-		Shape(VAO&& vao)
-			: vao(std::move(vao)), instances(1, GL_DYNAMIC_DRAW) {}
+		Shape(VAO vao)
+			: vao(vao) {}
 
 		Shape(const Shape&) = delete;
 		Shape(Shape&&); //MSVC sucks and can't default this
@@ -72,7 +80,7 @@ private:
 
 	struct Material
 	{
-		std::vector<Shape> shapes;
+		container<Shape> shapes;
 		UBO materialProps;
 		std::vector<Tex> textures;
 		void draw() const;
@@ -86,9 +94,9 @@ private:
 			return !(*this == t);
 		}
 		
-		Material(std::tuple<UBO, std::vector<Tex>>&& t)
-			: materialProps(std::move(std::get<0>(t)))
-			, textures(std::move(std::get<1>(t)))
+		Material(std::tuple<UBO, std::vector<Tex>> t)
+			: materialProps(std::get<0>(t))
+			, textures(std::get<1>(t))
 		{}
 		Material(const Material&) = delete;
 		Material(Material&& other)
@@ -101,11 +109,11 @@ private:
 	struct Shader
 	{
 		ShaderProgram program;
-		std::vector<Material> materials;
+		container<Material> materials;
 		void draw() const;
 
-		Shader(ShaderProgram&& program)
-			: program(std::move(program)) {}
+		Shader(ShaderProgram program)
+			: program(program) {}
 
 		bool operator==(const ShaderProgram& other)
 			{ return program == other; }
@@ -118,7 +126,24 @@ private:
 		{}
 	};
 
-	std::vector<Shader> shaders;
+	container<Shader> shaders;
+	mutable std::set<Shape::InstanceBuf> dirtyBufs;
+
+public:
+	//A thing that we can move the object with
+	class LocationProxy
+	{
+	public:
+		operator Matrix4f() const;
+		void operator=(const Matrix4f&);
+	private:
+		Shape::InstanceBuf buf;
+		Object obj;
+		Render& render;
+		friend class Render;
+		LocationProxy(Shape::InstanceBuf, Object, Render&);
+	};
+	friend class LocationProxy;
 };
 
 #endif

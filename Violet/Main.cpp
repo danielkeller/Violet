@@ -3,6 +3,8 @@
 #include "Window.hpp"
 #include "GLMath.h"
 #include "Rendering/Render.hpp"
+#include "Profiling.hpp"
+#include "Mobile.hpp"
 
 #include "GLFW/glfw3.h"
 
@@ -30,6 +32,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 int main(void)
 try
 {
+	Profile::CalibrateProfiling();
+
     //create the basic window
     Window w;
     //add our keyboard input callback
@@ -44,16 +48,18 @@ try
 	std::tie(teapotVAO, teapotShader) = LoadWavefront("assets/capsule.obj");
 
 	teapotShader.TextureOrder({ "tex" });
-	std::vector<Tex> texes = { Tex::create("assets/capsule.png") };
+	std::vector<Tex> texes;
+		texes.emplace_back(Tex::create("assets/capsule.png"));
 
-	r.Create(teapot, std::move(teapotShader),
-		std::make_tuple(UBO(), std::move(texes)),
-		std::move(teapotVAO), Matrix4f::Identity());
+	auto locProxy = r.Create(teapot, teapotShader, std::make_tuple(UBO(), texes), teapotVAO, Matrix4f::Identity());
+
+	Mobile m;
+	auto moveProxy = m.Add(Transform(), locProxy);
 
     //clear to black
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     
-    //auto then = std::chrono::system_clock::now();
+    auto then = std::chrono::system_clock::now();
 
     double oldX, oldY;
     glfwGetCursorPos(w.window, &oldX, &oldY);
@@ -68,8 +74,14 @@ try
         glfwGetFramebufferSize(w.window, &width, &height);
         glViewport(0, 0, (GLsizei) width, (GLsizei) height);
 
-        //float ang = (float)std::chrono::duration_cast<std::chrono::milliseconds>(
-        //    std::chrono::system_clock::now() - then).count() / 1000.f;
+        float ang = (float)std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now() - then).count() / 1000.f;
+		then = std::chrono::system_clock::now();
+
+		moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(ang, Vector3f(0, 0, 1)) };
+		m.Update(0);
+		m.Tick();
+
         double curX, curY;
         glfwGetCursorPos(w.window, &curX, &curY);
 

@@ -48,7 +48,7 @@ inline void Profile::Print()
 {
 	for (const auto& datapt : data)
 		std::cout << datapt.first << ": "
-			<< std::chrono::duration_cast<std::chrono::nanoseconds>(datapt.second).count() << "ns \n";
+			<< std::chrono::duration_cast<std::chrono::milliseconds>(datapt.second).count() << "ms \n";
 }
 
 #else

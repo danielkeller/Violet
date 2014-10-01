@@ -60,7 +60,7 @@ public:
 
 	//perform type erasure
 	template<typename U>
-	friend ArrayBuffer<void> EraseType(ArrayBuffer<U>&&);
+	friend ArrayBuffer<char> EraseType(ArrayBuffer<U>&&);
 
 	template<class Alloc>
 	void Data(const std::vector<T, Alloc>& data)
@@ -75,7 +75,13 @@ public:
 			glBufferSubData(GL_ARRAY_BUFFER, 0, data_len, data.data());
 	}
 
-	void BindToShader(const ShaderProgram& program) const
+	void SubData(size_t offs, const T& data)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, bufferObject);
+		glBufferSubData(GL_ARRAY_BUFFER, offs, sizeof(T), &data);
+	}
+
+	void BindToShader(const ShaderProgram& program)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, bufferObject);
 		for (const auto& props : schema)
@@ -115,10 +121,42 @@ private:
 	GLenum usage;
 };
 
-template<class T>
-inline ArrayBuffer<void> EraseType(ArrayBuffer<T>&& other)
+template<class T, class Alloc>
+class MutableArrayBuffer
 {
-	ArrayBuffer<void> ret;
+	struct MABResource;
+public:
+	MutableArrayBuffer()
+		: resource(std::make_shared<MABResource>())
+	{}
+
+	std::vector<T, Alloc>& Vector() { return resource->data; }
+	const std::vector<T, Alloc>& Vector() const { return resource->data; }
+
+	void Sync() const { resource->arrayBuf.Data(resource->data); }
+
+	void BindToShader(const ShaderProgram& program) { resource->arrayBuf.BindToShader(program); }
+
+	bool operator==(const MutableArrayBuffer& other) const { return resource == other.resource; }
+	bool operator<(const MutableArrayBuffer& other) const { return resource < other.resource; }
+
+private:
+	mutable std::shared_ptr<MABResource> resource;
+
+	struct MABResource
+	{
+		MABResource()
+			: arrayBuf(0, GL_DYNAMIC_DRAW)
+		{}
+		ArrayBuffer<T> arrayBuf;
+		std::vector<T, Alloc> data;
+	};
+};
+
+template<class T>
+inline ArrayBuffer<char> EraseType(ArrayBuffer<T>&& other)
+{
+	ArrayBuffer<char> ret;
 	ret.bufferObject = other.bufferObject;
 	ret.data_len = other.data_len;
 	ret.usage = other.usage;

@@ -82,7 +82,7 @@ private:
 
 		//GL buffer objects for vertex and vertex index data
 		GLuint indexBufferObject;
-		ArrayBuffer<void> vertexBuffer;
+		ArrayBuffer<char> vertexBuffer;
 
 		//how many vertex indices we have
 		GLsizei numVertecies;
