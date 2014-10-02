@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Window.hpp"
+#include "GLMath.h"
 
 #include "GLFW/glfw3.h"
 
@@ -20,6 +21,21 @@ static void error_callback(int error, const char* description)
     getchar();
 }
 
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (action != GLFW_PRESS)
+		return;
+	switch (key)
+	{
+	case GLFW_KEY_Q:
+	case GLFW_KEY_ESCAPE:
+		glfwSetWindowShouldClose(window, GL_TRUE);
+		break;
+	default:
+		break;
+	}
+}
+
 Window::Window()
 {
     //set up glfw
@@ -35,7 +51,12 @@ Window::Window()
     //create the window
     window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
     if (!window)
-        throw "Could not create window";
+		throw "Could not create window";
+
+	glfwGetCursorPos(window, &mouseOld[0], &mouseOld[1]);
+
+	//add our keyboard input callback
+	glfwSetKeyCallback(window, key_callback);
 
     //set the window as current. note that this won't work right with multiple windows.
     glfwMakeContextCurrent(window);
@@ -50,10 +71,42 @@ Window::Window()
 	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+	//clear to black
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 Window::~Window()
 {
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void Window::GetInput()
+{
+	mouseOld = mouseCur;
+	glfwGetCursorPos(window, &mouseCur[0], &mouseCur[1]);
+}
+
+Eigen::Vector2d Window::mouseDelta()
+{
+	return (mouseCur - mouseOld).array() / Eigen::Vector2d(width, height).array();
+}
+
+void Window::PreDraw()
+{
+	//set the GL draw surface to the same size as the window
+	glfwGetFramebufferSize(window, &width, &height);
+	glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+}
+
+void Window::PostDraw()
+{
+	//swap draw buffer and visible buffer
+	glfwSwapBuffers(window);
+	glfwPollEvents();
+}
+
+Matrix4f Window::PerspMat()
+{
+	return perspective((float)M_PI / 2.f, (float)width / height, .01f, 100.f);
 }

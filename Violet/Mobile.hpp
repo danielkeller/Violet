@@ -47,6 +47,15 @@ public:
 
 	MoveProxy Add(const Transform& loc, Render::LocationProxy target);
 
+	Transform& CameraLoc()
+	{
+		return cameraLoc;
+	}
+	Matrix4f CameraMat()
+	{
+		return cameraMat;
+	}
+
 private:
 	struct ObjData
 	{
@@ -56,7 +65,13 @@ private:
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	};
 
+	static Matrix4f interp(const Transform& before, const Transform& loc, float alpha);
+
 	Permavector<ObjData, Eigen::aligned_allocator<ObjData>> data;
+	//It's an exception anyway
+	Transform cameraBefore;
+	Transform cameraLoc;
+	Matrix4f cameraMat;
 };
 
 #endif
