@@ -59,7 +59,7 @@ std::tuple<VAO, ShaderProgram> LoadWavefront(std::string filename)
 		else if (letter == "vt")
 		{
 			obj >> x >> y;
-			uvs.push_back(Vector2f(x, y));
+			uvs.push_back(Vector2f(1-x, y));
 		}
         else if (letter == "f")
         {

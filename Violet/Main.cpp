@@ -10,9 +10,6 @@
 #include <iostream>
 #include <chrono>
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 int main(void)
 try
 {
@@ -42,7 +39,7 @@ try
 	const auto dt = std::chrono::milliseconds(30);
 	clock::duration accumulator(0);
 
-	m.CameraLoc().pos = Vector3f(0.f, 0.f, -2.f);
+	m.CameraLoc().pos = Vector3f(0.f, -3.f, 0.f);
 
 	m.Tick();
 
@@ -62,12 +59,17 @@ try
 			w.GetInput();
 			m.Tick();
 			//physics step
-			moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(0.04f, Vector3f(0, 0, 1)) };
+			//moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(0.04f, Vector3f(0, 0, 1)) };
 
 			if (glfwGetMouseButton(w.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-				m.CameraLoc().rot *= Quaternionf{ Eigen::AngleAxisf(float(w.mouseDelta().x()), Vector3f::UnitY()) };
-
-			std::cout << w.mouseDelta() << '\n';
+			{
+				m.CameraLoc().rot *= Quaternionf{
+					Eigen::AngleAxisf(-float(w.mouseDelta().x()),
+					Vector3f::UnitZ()) };
+				m.CameraLoc().rot *= Quaternionf{
+					Eigen::AngleAxisf(float(w.mouseDelta().y()),
+					m.CameraLoc().rot.conjugate() * Vector3f::UnitX()) };
+			}
 
 			accumulator -= dt;
 		}

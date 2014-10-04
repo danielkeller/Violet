@@ -108,5 +108,11 @@ void Window::PostDraw()
 
 Matrix4f Window::PerspMat()
 {
-	return perspective((float)M_PI / 2.f, (float)width / height, .01f, 100.f);
+	Matrix4f z_upToY_up;
+	z_upToY_up <<
+		1, 0, 0, 0,
+		0, 0,-1, 0,
+		0, 1, 0, 0,
+		0, 0, 0, 1;
+	return perspective((float)M_PI / 2.f, (float)width / height, .01f, 100.f) * z_upToY_up;
 }
