@@ -2,4 +2,4 @@
 #include "Rendering/Shader.hpp"
 #include <tuple>
 
-std::tuple<VAO, ShaderProgram> LoadWavefront(std::string filename);
+std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename);

@@ -1,0 +1,121 @@
+#ifndef MESH_HPP
+#define MESH_HPP
+#include <vector>
+#include "Resource.hpp"
+#include "Shapes.hpp"
+#include "WrappedIterator.hpp"
+
+class VAO;
+class ShaderProgram;
+
+struct TriInd
+{
+	GLint a, b, c;
+	TriInd(GLint a_, GLint b_, GLint c_)
+		: a(a_), b(b_), c(c_)
+	{}
+	static const int dim = 3;
+	static const GLenum mode = GL_TRIANGLES;
+};
+
+struct TriProxy
+{
+	vectorVector3f& points;
+	TriInd& tri;
+	TriProxy(TriInd& tri_, vectorVector3f& points_)
+		: tri(tri_), points(points_)
+	{}
+	TriProxy& operator=(TriProxy& o) { tri = o.tri; return *this; }
+	TriProxy& operator=(Triangle& o)
+		{ points[tri.a] = o.q; points[tri.b] = o.r; points[tri.c] = o.s; return *this; }
+	operator Triangle() const { return{ points[tri.a], points[tri.b], points[tri.c] }; }
+};
+//hack hack
+struct ConstTriProxy
+{
+	vectorVector3f& points;
+	const TriInd& tri;
+	ConstTriProxy(const TriInd& tri_, vectorVector3f& points_)
+		: tri(tri_), points(points_)
+	{}
+	operator Triangle() const { return{ points[tri.a], points[tri.b], points[tri.c] }; }
+};
+
+/*
+template<>
+inline void std::swap(TriProxy& l, TriProxy& r)
+{
+	std::swap(l.a, r.a);
+	std::swap(l.b, r.b);
+	std::swap(l.c, r.c);
+}*/
+
+template<class IterTy, class ValueTy>
+class MeshIterBase : public WrappedIterator<MeshIterBase<IterTy, ValueTy>, IterTy, ValueTy>
+{
+public:
+	value_type operator*() { return value_type(*it, points); }
+
+	MeshIterBase& operator=(MeshIterBase other) { std::swap(it, other.it); return *this; }
+	friend void swap(MeshIterBase&, MeshIterBase&);
+
+	//operator ConstMeshIter() { return{ it, points }; }
+
+private:
+	vectorVector3f& points;
+	MeshIterBase(IterTy it, vectorVector3f& points)
+		: WrappedIterator(it), points(points)
+	{}
+	friend class Mesh;
+};
+
+using MeshIter = MeshIterBase < std::vector<TriInd>::iterator, TriProxy >;
+using ConstMeshIter = MeshIterBase < std::vector<TriInd>::const_iterator, ConstTriProxy >;
+
+class Mesh
+{
+public:
+	Mesh() = default;
+
+	//the non-const functions assume you will be modifying the mesh,
+	//so they copy the data.
+	MeshIter begin();
+	ConstMeshIter cbegin() const { return begin(); }
+	ConstMeshIter begin() const;
+	MeshIter end();
+	ConstMeshIter cend() const { return end(); }
+	ConstMeshIter end() const;
+
+	Box bound() const;
+
+	size_t size() { return submesh.size() ? submesh.size() : resource->indices.size(); }
+
+	void erase(MeshIter first, MeshIter last) { submesh.erase(first.it, last.it); }
+
+	//Remove all triangles not touching box
+	void Chop(Box box);
+
+	void PrintDataSize();
+	
+private:
+	struct MeshResource : public Resource<MeshResource>
+	{
+		MeshResource(std::string name, vectorVector3f p, std::vector<TriInd> i)
+			: ResourceTy(name), points(p), indices(i)
+		{}
+		vectorVector3f points;
+		std::vector<TriInd> indices;
+	};
+	
+	Mesh(std::shared_ptr<MeshResource> ptr)
+		: resource(ptr)
+		, submesh()
+	{}
+
+	std::shared_ptr<MeshResource> resource;
+	std::vector<TriInd> submesh;
+
+	friend std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename);
+};
+
+#endif

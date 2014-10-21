@@ -1,6 +1,7 @@
 #ifndef PERMAVECTOR_HPP
 #define PERMAVECTOR_HPP
 #include <vector>
+#include <WrappedIterator.hpp>
 
 //Vector with iterator-like objects that can't be invalidated
 template<class T, class Alloc = std::allocator<std::pair<int, T>>>
@@ -22,18 +23,12 @@ public:
 	{}
 
 	template<class Val, class It>
-	class iterator_base
+	class iterator_base : public WrappedIterator<iterator_base<Val, It>, It, Val>
 	{
 	public:
 		Val& operator*() { return it->first; }
-		Val* operator->() { return &it->first; }
-		void operator++() { ++it; }
-		bool operator!=(const iterator_base& other) { return it != other.it; }
-		bool operator==(const iterator_base& other) { return it == other.it; }
-		iterator_base operator-(ptrdiff_t diff) const { return it - diff; }
 	private:
-		iterator_base(It it) : it(it) {}
-		It it;
+		iterator_base(It it) : WrappedIterator(it) {}
 		friend class Permavector;
 	};
 

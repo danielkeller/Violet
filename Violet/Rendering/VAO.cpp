@@ -33,6 +33,6 @@ void VAO::draw(GLsizei instances) const
 {
 	//draw verteces according to the index and position buffer object
 	//the final argument to this call is an integer offset, cast to pointer type. don't ask me why.
-	glDrawElementsInstanced(GL_TRIANGLES, numVertecies, GL_UNSIGNED_INT,
+	glDrawElementsInstanced(mode, numVertecies, GL_UNSIGNED_INT,
 		static_cast<GLvoid*>(0), instances);
 }

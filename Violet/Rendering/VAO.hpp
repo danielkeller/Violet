@@ -1,12 +1,24 @@
 #ifndef VAO_HPP
 #define VAO_HPP
 
-#include "stdafx.h"
-#include "Shader.hpp"
 #include "ArrayBuffer.hpp"
+#include "Geometry/Mesh.hpp"
 
 #include <vector>
 #include <memory>
+
+class ShaderProgram;
+class Mesh;
+
+struct LineInd
+{
+	GLint a, b;
+	LineInd(GLint a_, GLint b_)
+		: a(a_), b(b_)
+	{}
+	static const int dim = 2;
+	static const GLenum mode = GL_LINES;
+};
 
 class VAO
 {
@@ -34,15 +46,18 @@ public:
 private:
 	GLuint vertexArrayObject;
 	GLsizei numVertecies;
+	GLenum mode;
 	std::shared_ptr<VAOResource> resource;
 
 	VAO(std::shared_ptr<VAOResource> ptr)
 		: vertexArrayObject(ptr->vertexArrayObject)
 		, numVertecies(ptr->numVertecies)
+		, mode(ptr->mode)
 		, resource(ptr)
 	{}
 
-	friend std::tuple<VAO, ShaderProgram> LoadWavefront(std::string filename);
+	friend std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename);
+	friend class AABB; // std::tuple<VAO, ShaderProgram> AABB::Show();
 
 	struct VAOResource : public Resource<VAOResource>
 	{
@@ -52,12 +67,12 @@ private:
 		//clear VAO's resources
 		~VAOResource();
 
-		template<class T>
+		template<class T, class I>
 		VAOResource(
 			const std::string name,
 			const ShaderProgram& program,
 			ArrayBuffer<T>&& data,
-			const std::vector<GLint>& indices)
+			const std::vector<I>& indices)
 			: ResourceTy(name), vertexBuffer()
 		{
 			glGenVertexArrays(1, &vertexArrayObject);
@@ -66,15 +81,21 @@ private:
 			//gets saved in the VAO
 			data.BindToShader(program);
 			vertexBuffer = EraseType(std::move(data));
+			BufferIndices(indices);
+		}
 
+		template<class I>
+		void BufferIndices(const std::vector<I>& indices)
+		{
 			glGenBuffers(1, &indexBufferObject);
 
 			//GL_ELEMENT_ARRAY_BUFFER binding is part of the current VAO state, therefore we do not unbind it
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-				indices.size()*sizeof(GLint), indices.data(), GL_STATIC_DRAW);
+				indices.size()*sizeof(GLint) * I::dim, indices.data(), GL_STATIC_DRAW);
 
-			numVertecies = indices.size();
+			numVertecies = indices.size() * I::dim;
+			mode = I::mode;
 		}
 
 		//the GL vertex array Render assocated with this Render
@@ -86,6 +107,9 @@ private:
 
 		//how many vertex indices we have
 		GLsizei numVertecies;
+
+		//draw mode
+		GLenum mode;
 	};
 };
 

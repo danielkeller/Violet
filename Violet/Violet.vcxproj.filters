@@ -15,6 +15,9 @@
     <Filter Include="Source Files\Libs">
       <UniqueIdentifier>{c3815a18-e4ed-4320-8957-77e2b7e080cb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Geometry">
+      <UniqueIdentifier>{3e521d01-afc8-4a40-af25-9d72c805def7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Rendering\ArrayBuffer.hpp">
@@ -62,6 +65,24 @@
     <ClInclude Include="Permavector.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Geometry\Shapes.hpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Collide.hpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\AABB.hpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Mesh.hpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="BinTree.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WrappedIterator.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -106,6 +127,12 @@
     <ClCompile Include="Mobile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Geometry\AABB.cpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\Mesh.cpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\GLFW\glfw3.lib">
@@ -117,6 +144,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\assets\simple.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\color.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\color.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

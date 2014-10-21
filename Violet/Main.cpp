@@ -2,6 +2,8 @@
 #include "Wavefront.hpp"
 #include "Window.hpp"
 #include "Rendering/Render.hpp"
+#include "Geometry/Mesh.hpp"
+#include "Geometry/AABB.hpp"
 #include "Profiling.hpp"
 #include "Mobile.hpp"
 
@@ -23,14 +25,22 @@ try
     //load the Render
 	Object teapot;
 	VAO teapotVAO;
+	Mesh teapotMesh;
 	ShaderProgram teapotShader;
-	std::tie(teapotVAO, teapotShader) = LoadWavefront("assets/capsule.obj");
+	std::tie(teapotVAO, teapotMesh, teapotShader) = LoadWavefront("assets/capsule.obj");
+
+	AABB teapotAabb(teapotMesh);
+	Object aabb;
+	VAO aabbVAO;
+	ShaderProgram aabbShader;
+	std::tie(aabbVAO, aabbShader) = teapotAabb.Show();
 
 	teapotShader.TextureOrder({ "tex" });
 	std::vector<Tex> texes;
 		texes.emplace_back(Tex::create("assets/capsule.png"));
 
 	auto locProxy = r.Create(teapot, teapotShader, std::make_tuple(UBO(), texes), teapotVAO, Matrix4f::Identity());
+	r.Create(aabb, aabbShader, std::make_tuple(UBO(), std::vector<Tex>()), aabbVAO, Matrix4f::Identity());
 
 	auto moveProxy = m.Add(Transform(), locProxy);
     
@@ -64,10 +74,10 @@ try
 			if (glfwGetMouseButton(w.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 			{
 				m.CameraLoc().rot *= Quaternionf{
-					Eigen::AngleAxisf(-float(w.mouseDelta().x()),
+					Eigen::AngleAxisf(-float(w.mouseDelta().x()*3.f),
 					Vector3f::UnitZ()) };
 				m.CameraLoc().rot *= Quaternionf{
-					Eigen::AngleAxisf(float(w.mouseDelta().y()),
+					Eigen::AngleAxisf(float(w.mouseDelta().y()*3.f),
 					m.CameraLoc().rot.conjugate() * Vector3f::UnitX()) };
 			}
 
