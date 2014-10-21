@@ -59,3 +59,22 @@ void Mesh::PrintDataSize()
 		<< (resource->points.size() * sizeof(Vector3f) +
 		resource->indices.size() * sizeof(TriInd)) / 1024 << "kb total\n";
 }
+
+Box Mesh::bound() const
+{
+	float maxflt = std::numeric_limits<float>::max();
+	float minflt = std::numeric_limits<float>::min();
+	Vector3f min{ maxflt, maxflt, maxflt };
+	Vector3f max{ minflt, minflt, minflt };
+
+	for (const auto& tri : *this)
+	{
+		min = min.cwiseMin(tri.Triangle().q);
+		min = min.cwiseMin(tri.Triangle().r);
+		min = min.cwiseMin(tri.Triangle().s);
+		max = max.cwiseMax(tri.Triangle().q);
+		max = max.cwiseMax(tri.Triangle().r);
+		max = max.cwiseMax(tri.Triangle().s);
+	}
+	return{ min, max };
+}

@@ -13,9 +13,6 @@ class Mesh;
 struct LineInd
 {
 	GLint a, b;
-	LineInd(GLint a_, GLint b_)
-		: a(a_), b(b_)
-	{}
 	static const int dim = 2;
 	static const GLenum mode = GL_LINES;
 };

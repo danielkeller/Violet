@@ -11,9 +11,7 @@ class ShaderProgram;
 struct TriInd
 {
 	GLint a, b, c;
-	TriInd(GLint a_, GLint b_, GLint c_)
-		: a(a_), b(b_), c(c_)
-	{}
+
 	static const int dim = 3;
 	static const GLenum mode = GL_TRIANGLES;
 };
@@ -39,6 +37,7 @@ struct ConstTriProxy
 		: tri(tri_), points(points_)
 	{}
 	operator Triangle() const { return{ points[tri.a], points[tri.b], points[tri.c] }; }
+	Triangle Triangle() const { return *this; }
 };
 
 /*

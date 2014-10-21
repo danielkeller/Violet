@@ -3,21 +3,6 @@
 //#include <boost/range/algorithm.hpp>
 #include <numeric>
 
-Box Mesh::bound() const
-{
-	float maxflt = std::numeric_limits<float>::max();
-	float minflt = std::numeric_limits<float>::min();
-	Vector3f min{ maxflt, maxflt, maxflt };
-	Vector3f max{ minflt, minflt, minflt };
-
-	for (const auto& tri : resource->points)
-	{
-		min = min.array().min(tri.array());
-		max = max.array().max(tri.array());
-	}
-	return{ min, max };
-}
-
 AABB::AABB(Mesh m)
 	: tree(m.bound())
 {
@@ -64,8 +49,8 @@ void AABB::build(Mesh mLeft, Box cur, size_t depth, TreeTy::iterator it)
 	//remove all non-intersecting elements
 	mLeft.Chop(left);
 	mRight.Chop(right);
-	build(mLeft, left, depth + 1, it.Left());
-	build(mRight, right, depth + 1, it.Right());
+	build(mLeft, left & mLeft.bound(), depth + 1, it.Left());
+	build(mRight, right & mRight.bound(), depth + 1, it.Right());
 
 	//dq += (mLeft.size() + mRight.size() - origSize)/origSize
 }
@@ -77,9 +62,6 @@ struct AABBVert
 
 	Vector3f pos;
 	Vector3f color;
-	AABBVert(Vector3f pos_, Vector3f color_)
-		: pos(pos_), color(color_)
-	{}
 };
 
 template<>
