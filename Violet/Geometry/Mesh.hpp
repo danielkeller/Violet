@@ -21,7 +21,7 @@ struct TriProxy
 	vectorVector3f& points;
 	TriInd& tri;
 	TriProxy(TriInd& tri_, vectorVector3f& points_)
-		: tri(tri_), points(points_)
+		: points(points_), tri(tri_)
 	{}
 	TriProxy& operator=(TriProxy& o) { tri = o.tri; return *this; }
 	TriProxy& operator=(Triangle& o)
@@ -34,7 +34,7 @@ struct ConstTriProxy
 	vectorVector3f& points;
 	const TriInd& tri;
 	ConstTriProxy(const TriInd& tri_, vectorVector3f& points_)
-		: tri(tri_), points(points_)
+		: points(points_), tri(tri_)
 	{}
 	operator Triangle() const { return{ points[tri.a], points[tri.b], points[tri.c] }; }
 	Triangle Triangle() const { return *this; }
@@ -52,10 +52,11 @@ inline void std::swap(TriProxy& l, TriProxy& r)
 template<class IterTy, class ValueTy>
 class MeshIterBase : public WrappedIterator<MeshIterBase<IterTy, ValueTy>, IterTy, ValueTy>
 {
+    using Base = WrappedIterator<MeshIterBase<IterTy, ValueTy>, IterTy, ValueTy>;
 public:
-	value_type operator*() { return value_type(*it, points); }
+	typename Base::value_type operator*() { return typename Base::value_type(*Base::it, points); }
 
-	MeshIterBase& operator=(MeshIterBase other) { std::swap(it, other.it); return *this; }
+	MeshIterBase& operator=(MeshIterBase other) { std::swap(Base::it, other.it); return *this; }
 	friend void swap(MeshIterBase&, MeshIterBase&);
 
 	//operator ConstMeshIter() { return{ it, points }; }
@@ -63,7 +64,7 @@ public:
 private:
 	vectorVector3f& points;
 	MeshIterBase(IterTy it, vectorVector3f& points)
-		: WrappedIterator(it), points(points)
+		: Base(it), points(points)
 	{}
 	friend class Mesh;
 };

@@ -2,6 +2,7 @@
 
 #include "Texture.hpp"
 
+#include "MappedFile.hpp"
 #include "Lodepng/lodepng.hpp"
 #include <iostream>
 #include <fstream>
@@ -34,8 +35,8 @@ Tex Tex::create(std::string path)
 }
 
 Tex::Tex(std::shared_ptr<TexResource> ptr)
-	: resource(ptr)
-	, textureObject(ptr->textureObject)
+	: textureObject(ptr->textureObject)
+	, resource(ptr)
 {}
 
 std::vector<unsigned char> PNGmagic = { 0x89, 0x50, 0x4e, 0x47 };
@@ -43,28 +44,21 @@ std::vector<unsigned char> PNGmagic = { 0x89, 0x50, 0x4e, 0x47 };
 Tex::TexResource::TexResource(std::string path)
 	: ResourceTy(path)
 {
-	std::basic_ifstream<unsigned char> file(path, std::ios::binary);
+    MappedFile file;
+    file.Throws(true);
+    file.Open(path);
 
 	if (!file)
 		throw std::runtime_error("Could not open texture '" + path + "'");
-	
-	std::vector<unsigned char> magic(4);
-	file.read(&*magic.begin(), 4);
-	file.seekg(0);
 
-	if (!file)
-		throw std::runtime_error("Not an image file '" + path + "'");
+	std::vector<unsigned char> magic(file.Data<unsigned char>(), file.Data<unsigned char>() + 4);
 
 	std::vector<unsigned char> image;
 	unsigned int width, height;
 
 	if (magic == PNGmagic)
 	{
-		const std::vector<unsigned char> data {
-			std::istreambuf_iterator<unsigned char>(file),
-			std::istreambuf_iterator<unsigned char>() };
-
-		unsigned int error = lodepng::decode(image, width, height, data);
+		unsigned int error = lodepng::decode(image, width, height, file.Data<unsigned char>(), file.Size());
 		if (error)
 			throw std::runtime_error(std::string("PNG decoding error: ") + lodepng_error_text(error));
 	}
@@ -85,6 +79,8 @@ Tex::TexResource::TexResource(std::string path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+    file.Close();
 }
 
 Tex::TexResource::~TexResource()

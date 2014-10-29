@@ -25,7 +25,7 @@ private:
 	GLuint textureObject;
 	std::shared_ptr<TexResource> resource;
 
-	Tex::Tex(std::shared_ptr<TexResource> ptr);
+	Tex(std::shared_ptr<TexResource> ptr);
 };
 
 #endif

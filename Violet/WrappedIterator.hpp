@@ -11,10 +11,14 @@ class WrappedIterator
 {
 public:
 	using value_type = ValueTy;
+    using iterator_category = std::random_access_iterator_tag;
+    using difference_type = ptrdiff_t;
+    using pointer = value_type*;
+    using reference = value_type&;
 
 	template<class dummy = void> //Don't compile this if it doesn't make sense
-	value_type& operator*() { return *it; }
-	value_type* operator->() { return &**DerivedThis(); }
+	reference operator*() { return *it; }
+	pointer operator->() { return &**DerivedThis(); }
 	
 	Derived& operator++() { ++it; return *DerivedThis(); }
 	Derived operator++(int) const { auto ret = *DerivedThis(); ++ret; return ret; }
@@ -23,11 +27,11 @@ public:
 	Derived& operator+=(ptrdiff_t o) { it += o; return *DerivedThis(); }
 	Derived operator+(ptrdiff_t o) const { auto ret(*DerivedThis()); ret.it = it + o; return ret; }
 	Derived operator-(ptrdiff_t o) const { auto ret(*DerivedThis()); ret.it = it - o; return ret; }
-	int operator-(Derived& other) const { return it - other.it; }
+	ptrdiff_t operator-(const Derived& other) const { return it - other.it; }
 	
-	bool operator==(Derived& other) const { return it == other.it; }
-	bool operator!=(Derived& other) const { return it != other.it; }
-	bool operator<(Derived& other) const { return it < other.it; }
+	bool operator==(const Derived& other) const { return it == other.it; }
+	bool operator!=(const Derived& other) const { return it != other.it; }
+	bool operator<(const Derived& other) const { return it < other.it; }
 
 protected:
 	IterTy it;
@@ -40,19 +44,23 @@ private:
 };
 
 template<class IterTy, class Func>
-class MapIter : public WrappedIterator <
+class MapIter : public WrappedIterator<
 	MapIter<IterTy, Func>, IterTy,
 	typename std::result_of<Func(typename IterTy::value_type)>::type>
 {
+    //work around dependent base lookup rules (C++FAQ 35.19)
+    using Base = WrappedIterator<MapIter<IterTy, Func>, IterTy,
+	typename std::result_of<Func(typename IterTy::value_type)>::type>;
 public:
 	MapIter(IterTy it, Func f)
-		: WrappedIterator(it), func(f)
+		: Base(it), func(f)
 	{}
 
-	value_type operator*() { return func(*it); }
+	typename Base::value_type operator*() { return func(*Base::it); }
 
-	template<class dummy = void>
-	value_type* operator->() { static_assert(false, "MapIter::operator-> is undefined"); }
+    // ???
+	//template<class dummy = void>
+	//typename Base::value_type* operator->() { static_assert(false, "MapIter::operator-> is undefined"); }
 
 private:
 	Func func;

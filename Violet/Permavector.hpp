@@ -25,10 +25,11 @@ public:
 	template<class Val, class It>
 	class iterator_base : public WrappedIterator<iterator_base<Val, It>, It, Val>
 	{
+        using Base = WrappedIterator<iterator_base<Val, It>, It, Val>;
 	public:
-		Val& operator*() { return it->first; }
+		Val& operator*() { return Base::it->first; }
 	private:
-		iterator_base(It it) : WrappedIterator(it) {}
+		iterator_base(It it) : Base(it) {}
 		friend class Permavector;
 	};
 

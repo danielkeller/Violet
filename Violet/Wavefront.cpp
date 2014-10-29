@@ -33,7 +33,7 @@ std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename)
 
 	std::ifstream obj(filename);
 	if (obj.fail())
-		throw "Cannot open Render file";
+		throw std::runtime_error("Cannot open object file '" + filename + "'");
 
 	vectorVector3f verts;
 	vectorVector3f norms;

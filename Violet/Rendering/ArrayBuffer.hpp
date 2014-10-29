@@ -39,7 +39,7 @@ public:
 	}
 
 	ArrayBuffer(ArrayBuffer<T>&& other)
-		: data_len(other.data_len), bufferObject(other.bufferObject), usage(usage)
+		: data_len(other.data_len), bufferObject(other.bufferObject), usage(other.usage)
 	{
 		other.bufferObject = 0;
 	}
@@ -116,8 +116,8 @@ public:
 private:
 	//Must be specialized by class user
 	static Schema schema;
-	GLuint bufferObject;
 	size_t data_len;
+	GLuint bufferObject;
 	GLenum usage;
 };
 

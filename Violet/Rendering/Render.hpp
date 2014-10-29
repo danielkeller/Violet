@@ -40,15 +40,6 @@ public:
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-private:
-	//UBO shared with all shaders
-	ShaderProgram simpleShader;
-	mutable UBO commonUBO;
-
-	//our container of choice
-	template<class... Args>
-	using container = Permavector<Args...>;
-
 	struct ObjectLocation
 	{
 		//Prevent alignment issues from causing asserts
@@ -58,6 +49,15 @@ private:
 		Object owner;
 		//std::shared_ptr<bool> alive;
 	};
+
+private:
+	//UBO shared with all shaders
+	ShaderProgram simpleShader;
+	mutable UBO commonUBO;
+
+	//our container of choice
+	template<class... Args>
+	using container = Permavector<Args...>;
 
 	struct Shape
 	{
@@ -122,7 +122,7 @@ private:
 
 		Shader(const Shader&) = delete;
 		Shader(Shader&& other)
-			: materials(std::move(other.materials)), program(std::move(other.program))
+			: program(std::move(other.program)), materials(std::move(other.materials))
 		{}
 	};
 

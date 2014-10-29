@@ -7,7 +7,9 @@
 ShaderProgram::ShaderResource::ShaderResource(std::string path)
 	: ResourceTy(path)
 {
-    init(std::ifstream(path + ".vert"), std::ifstream(path + ".frag"));
+    std::ifstream vert(path + ".vert");
+    std::ifstream frag(path + ".frag");
+    init(vert, frag);
 }
 
 ShaderProgram::ShaderResource::~ShaderResource()

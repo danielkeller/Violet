@@ -42,7 +42,7 @@ try
 	auto locProxy = r.Create(teapot, teapotShader, std::make_tuple(UBO(), texes), teapotVAO, Matrix4f::Identity());
 	r.Create(aabb, aabbShader, std::make_tuple(UBO(), std::vector<Tex>()), aabbVAO, Matrix4f::Identity());
 
-	auto moveProxy = m.Add(Transform(), locProxy);
+	//auto moveProxy = m.Add(Transform(), locProxy);
     
 	using clock = std::chrono::system_clock;
 	auto currentTime = clock::now();
@@ -106,7 +106,7 @@ catch (const char* mesg)
     getchar();
     return EXIT_FAILURE;
 }
-catch (std::exception ex)
+catch (std::exception &ex)
 {
 	std::cerr << ex.what() << "\nPress enter to exit...\n";
 	getchar();

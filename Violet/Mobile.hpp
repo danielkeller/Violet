@@ -27,7 +27,6 @@ class Mobile
 	using PermaRef = Permavector<ObjData, Eigen::aligned_allocator<ObjData>>::perma_ref;
 
 public:
-	class ObjData;
 	void Update(float alpha);
 	void Tick();
 

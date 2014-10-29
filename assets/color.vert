@@ -1,4 +1,5 @@
-#version 330
+#version 130
+#extension GL_ARB_uniform_buffer_object : require
 
 uniform Common
 {

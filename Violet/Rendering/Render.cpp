@@ -83,8 +83,8 @@ void Render::draw() const
 }
 
 Render::Shape::Shape(Shape&& other)
-	: instances(std::move(other.instances))
-	, vao(std::move(other.vao))
+	: vao(std::move(other.vao))
+	, instances(std::move(other.instances))
 {}
 
 void Render::Shader::draw() const

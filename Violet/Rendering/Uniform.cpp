@@ -141,7 +141,7 @@ T UBO::Proxy::ConvertOpHelper() const
 	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
 	assert(unif.type == ty);
 	T ret;
-	const T::Scalar* store = ubo.resource->storage.data();
+	const typename T::Scalar* store = ubo.resource->storage.data();
 	std::copy(store + unif.offset,
 		store + unif.offset + ret.size(),
 		ret.data());
@@ -153,7 +153,7 @@ UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 {
 	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
 	assert(unif.type == ty);
-	T::Scalar* store = ubo.resource->storage.data();
+	typename T::Scalar* store = ubo.resource->storage.data();
 	std::copy(val.data(),
 		val.data() + val.size(),
 		store + unif.offset);

@@ -79,9 +79,9 @@ std::tuple<VAO, ShaderProgram> AABB::Show()
 	{
 		auto depth = static_cast<float>(it.Depth());
 		Vector3f color = {
-			std::sinf(2.f*PI_F*depth / 6.f) / 2.f + .5f,
-			std::sinf(2.f*PI_F*depth / 6.f + 2) / 2.f + .5f,
-			std::sinf(2.f*PI_F*depth / 6.f + 4) / 2.f + .5f
+			std::sin(2.f*PI_F*depth / 6.f) / 2.f + .5f,
+			std::sin(2.f*PI_F*depth / 6.f + 2) / 2.f + .5f,
+			std::sin(2.f*PI_F*depth / 6.f + 4) / 2.f + .5f
 		};
 
 		GLint ind = attribs.size();

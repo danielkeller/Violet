@@ -9,6 +9,9 @@ template<class NodeTy, class LeafTy, class ContTy>
 class BinTreeIterBase :
 	public WrappedIterator < BinTreeIterBase<NodeTy, LeafTy, ContTy>, size_t, NodeTy >
 {
+    using Base = WrappedIterator<BinTreeIterBase<NodeTy, LeafTy, ContTy>, size_t, NodeTy>;
+    using Base::it;
+    friend Base;
 public:
 	NodeTy& operator*()
 	{
@@ -37,7 +40,7 @@ private:
 	ContTy& tree;
 
 	BinTreeIterBase(size_t pos, ContTy& t)
-		: WrappedIterator(pos), tree(t)
+		: Base(pos), tree(t)
 	{}
 
 	size_t Leaf() const { return it - tree.inner.size() / 2; }
@@ -84,8 +87,8 @@ public:
 	}
 
 private:
-	friend class iterator;
-	friend class const_iterator;
+	friend iterator;
+	friend const_iterator;
 
 	std::vector<NodeTy, NodeAlloc> inner;
 	std::vector<LeafTy, LeafAlloc> leaves;
