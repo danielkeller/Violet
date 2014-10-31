@@ -187,3 +187,6 @@ FakesAssemblies/
 *.pyc
 sums
 violet
+
+# Generated sources
+GL/gl_*

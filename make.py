@@ -5,6 +5,10 @@ import subprocess
 import cPickle as pickle
 import hashlib
 
+glLoadGenFlags = ['-style=pointer_c', '-spec=gl', '-version=3.3', '-profile=core', '-stdext=gl_ubiquitous.txt']
+glLoadGenOutput = 'GL/core_3_3'
+glLoadGenExts = []
+
 cflags = ['-g', '-Wall', '-Wno-missing-braces', '-Werror', '-pedantic', '-I.', '-IViolet', '-ferror-limit=3', '-O2']
 cppflags = ['-std=c++11']
 sourcedirs = ['Violet', 'GL', 'Lodepng']
@@ -39,6 +43,11 @@ if not os.path.isfile('sums'):
 
 with open('sums','rb') as hdl:
     oldsums = pickle.load(hdl)
+
+glLoadGenCmd = (['lua', 'glLoadGen_2_0_2/LoadGen.lua'] + glLoadGenFlags + [glLoadGenOutput] + 
+    (['-exts'] + glLoadGenExts if glLoadGenExts else []))
+print ' '.join(glLoadGenCmd)
+subprocess.check_call(glLoadGenCmd, stderr=subprocess.STDOUT)
 
 sums = {}
 procs = {}
