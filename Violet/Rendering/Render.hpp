@@ -15,16 +15,6 @@
 
 #include <iostream>
 
-//Instead of including window's GLU, just define the one useful function
-//and link against it
-extern "C" const GLubyte* APIENTRY gluErrorString(GLenum errCode);
-
-inline void printErr()
-{
-	if (GLenum err = glGetError())
-		std::cerr << "GL Error '" << gluErrorString(err) << "'\n";
-}
-
 class Render
 {
 public:

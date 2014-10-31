@@ -6,14 +6,26 @@
 
 #include <iostream>
 
+//Instead of including windows' GLU, just define the one useful function
+//and link against it
+extern "C" const GLubyte* APIENTRY gluErrorString(GLenum errCode);
+
 void CheckGLError()
 {
     GLenum err = glGetError();
     while (err != GL_NO_ERROR) {
-        std::cerr << "Gl error [" << err << "] " << (err) << std::endl; //gluErrorString
+		std::cerr << "GL Error '" << gluErrorString(err) << "'\n";
         err = glGetError();
     }
 }
+
+/*
+void APIENTRY glDebugProc(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+    const char* message, const void* userParam)
+{
+    std::cerr << "GL Error caught '" << message << "'\n";
+}
+*/
 
 static void error_callback(int error, const char* description)
 {
@@ -64,8 +76,18 @@ Window::Window()
     //glfwSwapInterval(1);
 
     //load GL function pointers
-    if(ogl_LoadFunctions() == ogl_LOAD_FAILED)
-        throw "Error in glLoadGen";
+    int numFailed = ogl_LoadFunctions() - ogl_LOAD_SUCCEEDED;
+    std::cerr << numFailed << " GL functions failed to load\n";
+    //if(ogl_LoadFunctions() != ogl_LOAD_FAILED)
+    //    throw "Error in glLoadGen";
+
+    CheckGLError();
+    /*
+    std::cerr << "setting debug callback\n";
+    glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+    glDebugMessageCallbackARB(glDebugProc, nullptr);
+    */
 
 	//Draw the correct sides of things
 	glCullFace(GL_BACK);
@@ -104,6 +126,7 @@ void Window::PostDraw()
 	//swap draw buffer and visible buffer
 	glfwSwapBuffers(window);
 	glfwPollEvents();
+    CheckGLError();
 }
 
 Matrix4f Window::PerspMat()

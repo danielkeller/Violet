@@ -94,8 +94,6 @@ try
 		w.PreDraw();
 		r.draw();
 		w.PostDraw();
-
-		printErr();
     }
     
     return EXIT_SUCCESS;

@@ -7,7 +7,7 @@ import hashlib
 
 glLoadGenFlags = ['-style=pointer_c', '-spec=gl', '-version=3.3', '-profile=core', '-stdext=gl_ubiquitous.txt']
 glLoadGenOutput = 'GL/core_3_3'
-glLoadGenExts = []
+glLoadGenExts = ['ARB_debug_output']
 
 cflags = ['-g', '-Wall', '-Wno-missing-braces', '-Werror', '-pedantic', '-I.', '-IViolet', '-ferror-limit=3', '-O2']
 cppflags = ['-std=c++11']
@@ -63,6 +63,9 @@ for fname in sources:
 
 sums = {fname:cksum for (fname,cksum) in sums.iteritems() if not fname in procs or procs[fname].wait() == 0}
 #print sums
+
+if not all([proc.wait() == 0 for (_,proc) in procs.iteritems()]):
+    exit(-1)
 
 with open('sums','wb') as hdl:
     pickle.dump(sums, hdl, -1)
