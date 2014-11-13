@@ -70,15 +70,15 @@ Tex::TexResource::TexResource(std::string path)
 	glGenTextures(1, &textureObject);
 	glBindTexture(GL_TEXTURE_2D, textureObject);
 	//Ideally this would be GL_BGRA for performance, but lodepng doesn't support it
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_RGBA), width, height, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, image.data());
 
 	//set some reasonable defaults
 	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(GL_LINEAR_MIPMAP_LINEAR));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(GL_LINEAR));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(GL_MIRRORED_REPEAT));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(GL_MIRRORED_REPEAT));
 
     file.Close();
 }
@@ -88,8 +88,8 @@ Tex::TexResource::~TexResource()
 	glDeleteTextures(1, &textureObject);
 }
 
-void Tex::Bind(GLenum texUnit) const
+void Tex::Bind(GLuint texUnit) const
 {
-	glActiveTexture(GL_TEXTURE0 + texUnit);
+	glActiveTexture(static_cast<GLenum>(static_cast<GLuint>(GL_TEXTURE0) + texUnit));
 	glBindTexture(GL_TEXTURE_2D, textureObject);
 }

@@ -27,7 +27,7 @@ std::vector<Uniforms::Block> DoQuery(GLuint program)
 	{
 		Uniforms::Uniform unif;
 		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_TYPE, &outParam);
-		unif.type = outParam;
+		unif.type = static_cast<GLenum>(outParam);
 		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_SIZE, &outParam);
 		unif.size = outParam;
 		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_OFFSET, &outParam);

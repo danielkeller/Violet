@@ -8,7 +8,7 @@ struct AttribProperties
 {
 	std::string name;
 	GLint numComponents;
-	GLint glType;
+	GLenum glType;
 	size_t offset;
 	GLint numMatrixComponents;
 	size_t matrixStride;

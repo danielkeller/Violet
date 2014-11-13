@@ -10,7 +10,7 @@ class Tex
 public:
 	static Tex create(std::string path);
 
-	void Bind(GLenum texUnit) const;
+	void Bind(GLuint texUnit) const;
 
 	bool operator==(const Tex& other) const
 	{

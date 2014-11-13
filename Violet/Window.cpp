@@ -3,8 +3,11 @@
 #include "GLMath.h"
 
 #include "GLFW/glfw3.h"
+#include <glbinding/Binding.h>
 
 #include <iostream>
+
+#include "posixStackTrace.hpp"
 
 //Instead of including windows' GLU, just define the one useful function
 //and link against it
@@ -19,13 +22,14 @@ void CheckGLError()
     }
 }
 
-/*
+#ifdef GL_DEBUG
 void APIENTRY glDebugProc(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
     const char* message, const void* userParam)
 {
     std::cerr << "GL Error caught '" << message << "'\n";
+    printStackTrace();
 }
-*/
+#endif
 
 static void error_callback(int error, const char* description)
 {
@@ -41,7 +45,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	{
 	case GLFW_KEY_Q:
 	case GLFW_KEY_ESCAPE:
-		glfwSetWindowShouldClose(window, GL_TRUE);
+		glfwSetWindowShouldClose(window, true);
 		break;
 	default:
 		break;
@@ -59,6 +63,9 @@ Window::Window()
     //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef GL_DEBUG
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+#endif
 
     //create the window
     window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
@@ -76,18 +83,21 @@ Window::Window()
     //glfwSwapInterval(1);
 
     //load GL function pointers
-    int numFailed = ogl_LoadFunctions() - ogl_LOAD_SUCCEEDED;
-    std::cerr << numFailed << " GL functions failed to load\n";
-    //if(ogl_LoadFunctions() != ogl_LOAD_FAILED)
-    //    throw "Error in glLoadGen";
+    glbinding::Binding::initialize();
 
-    CheckGLError();
-    /*
-    std::cerr << "setting debug callback\n";
+#ifdef GL_DEBUG
+    setCallbackMask(glbinding::CallbackMask::Unresolved);
+    glbinding::setUnresolvedCallback([](const glbinding::AbstractFunction& function)
+    {
+        std::cerr << function.name() << " is unresolved\n";
+    });
+
+    //enable for all errors
     glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    //get stacktrace in correct thread & function
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
     glDebugMessageCallbackARB(glDebugProc, nullptr);
-    */
+#endif
 
 	//Draw the correct sides of things
 	glCullFace(GL_BACK);
@@ -126,7 +136,10 @@ void Window::PostDraw()
 	//swap draw buffer and visible buffer
 	glfwSwapBuffers(window);
 	glfwPollEvents();
+#ifndef GL_DEBUG
+    //Check errors normally
     CheckGLError();
+#endif
 }
 
 Matrix4f Window::PerspMat()

@@ -7,12 +7,12 @@ import hashlib
 
 glLoadGenFlags = ['-style=pointer_c', '-spec=gl', '-version=3.3', '-profile=core', '-stdext=gl_ubiquitous.txt']
 glLoadGenOutput = 'GL/core_3_3'
-glLoadGenExts = ['ARB_debug_output']
+glLoadGenExts = [] #['ARB_debug_output']
 
 cflags = ['-g', '-Wall', '-Wno-missing-braces', '-Werror', '-pedantic', '-I.', '-IViolet', '-ferror-limit=3', '-O2']
 cppflags = ['-std=c++11']
-sourcedirs = ['Violet', 'GL', 'Lodepng']
-libs = ['-lGL', '-lGLU', 'GLFW/libglfw3.a', '-lX11', '-lXxf86vm', '-lpthread', '-lXrandr', '-lXi', '-lXinerama', '-lXcursor']
+sourcedirs = ['Violet', 'Lodepng']
+libs = ['-lGL', '-lGLU', 'GLFW/libglfw3.a', 'glbinding/libglbinding.a', '-lX11', '-lXxf86vm', '-lpthread', '-lXrandr', '-lXi', '-lXinerama', '-lXcursor'] + ['-rdynamic']
 executable = 'violet'
 
 def makedir(dir):
@@ -44,10 +44,10 @@ if not os.path.isfile('sums'):
 with open('sums','rb') as hdl:
     oldsums = pickle.load(hdl)
 
-glLoadGenCmd = (['lua', 'glLoadGen_2_0_2/LoadGen.lua'] + glLoadGenFlags + [glLoadGenOutput] + 
-    (['-exts'] + glLoadGenExts if glLoadGenExts else []))
-print ' '.join(glLoadGenCmd)
-subprocess.check_call(glLoadGenCmd, stderr=subprocess.STDOUT)
+#glLoadGenCmd = (['lua', 'glLoadGen_2_0_2/LoadGen.lua'] + glLoadGenFlags + [glLoadGenOutput] + 
+#    (['-exts'] + glLoadGenExts if glLoadGenExts else []))
+#print ' '.join(glLoadGenCmd)
+#subprocess.check_call(glLoadGenCmd, stderr=subprocess.STDOUT)
 
 sums = {}
 procs = {}
@@ -64,11 +64,11 @@ for fname in sources:
 sums = {fname:cksum for (fname,cksum) in sums.iteritems() if not fname in procs or procs[fname].wait() == 0}
 #print sums
 
-if not all([proc.wait() == 0 for (_,proc) in procs.iteritems()]):
-    exit(-1)
-
 with open('sums','wb') as hdl:
     pickle.dump(sums, hdl, -1)
+
+if not all([proc.wait() == 0 for (_,proc) in procs.iteritems()]):
+    exit(-1)
 
 cmd = [cxx(''), '-o', executable] + [obj(src) for src in sources] + cflags + libs
 print ' '.join(cmd)

@@ -5,7 +5,9 @@
 #define APIENTRY __stdcall
 #endif
 
-#include "GL/gl_core_3_3.h"
+#include "glbinding/gl/gl.h"
+//Everything is prefixed by GL anyway
+using namespace gl;
 #include "Eigen/Dense"
 #include "Eigen/Geometry"
 //prevent vectors from breaking things
@@ -23,3 +25,6 @@ using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>
 #define PI_F 3.14159265358979f
 
 #define GLFW_INCLUDE_NONE
+
+//enable stack traces on GL errors
+#define GL_DEBUG

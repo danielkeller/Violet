@@ -94,7 +94,7 @@ GLuint CreateShader(GLenum eShaderType, std::istream &t)
     
     GLint status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if (status == GL_FALSE) //compile failed
+    if (!status) //compile failed
     {
         GLint infoLogLength;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
@@ -126,7 +126,7 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag)
     //check for linker errors
     GLint status;
     glGetProgramiv (program, GL_LINK_STATUS, &status);
-    if (status == GL_FALSE)
+    if (!status)
     {
         GLint infoLogLength;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
