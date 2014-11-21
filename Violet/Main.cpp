@@ -36,13 +36,12 @@ try
 	std::tie(aabbVAO, aabbShader) = teapotAabb.Show();
 
 	teapotShader.TextureOrder({ "tex" });
-	std::vector<Tex> texes;
-		texes.emplace_back(Tex::create("assets/capsule.png"));
+	std::vector<Tex> texes({Tex::create("assets/capsule.png")});
 
 	auto locProxy = r.Create(teapot, teapotShader, std::make_tuple(UBO(), texes), teapotVAO, Matrix4f::Identity());
-	r.Create(aabb, aabbShader, std::make_tuple(UBO(), std::vector<Tex>()), aabbVAO, Matrix4f::Identity());
+	auto locProxyAabb = r.Create(aabb, aabbShader, std::make_tuple(UBO(), std::vector<Tex>()), aabbVAO, Matrix4f::Identity());
 
-	//auto moveProxy = m.Add(Transform(), locProxy);
+	auto moveProxy = m.Add(Transform(), {locProxy, locProxyAabb});
     
 	using clock = std::chrono::system_clock;
 	auto currentTime = clock::now();
@@ -69,7 +68,7 @@ try
 			w.GetInput();
 			m.Tick();
 			//physics step
-			//moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(0.04f, Vector3f(0, 0, 1)) };
+			moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(0.04f, Vector3f(0, 0, 1)) };
 
 			if (glfwGetMouseButton(w.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 			{

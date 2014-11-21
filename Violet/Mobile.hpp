@@ -45,6 +45,7 @@ public:
 	};
 
 	MoveProxy Add(const Transform& loc, Render::LocationProxy target);
+	MoveProxy Add(const Transform& loc, std::vector<Render::LocationProxy> targets);
 
 	Transform& CameraLoc()
 	{
@@ -58,7 +59,7 @@ public:
 private:
 	struct ObjData
 	{
-		Render::LocationProxy target;
+		std::vector<Render::LocationProxy> targets;
 		Transform before;
 		Transform loc;
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW

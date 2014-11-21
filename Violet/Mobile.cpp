@@ -5,7 +5,13 @@
 
 Mobile::MoveProxy Mobile::Add(const Transform& loc, Render::LocationProxy target)
 {
-	auto ref = data.emplace_back(ObjData{ target, loc, loc });
+	auto ref = data.emplace_back(ObjData{ {target}, loc, loc });
+	return MoveProxy{ ref, *this };
+}
+
+Mobile::MoveProxy Mobile::Add(const Transform& loc, std::vector<Render::LocationProxy> targets)
+{
+	auto ref = data.emplace_back(ObjData{ targets, loc, loc });
 	return MoveProxy{ ref, *this };
 }
 
@@ -21,9 +27,8 @@ Matrix4f Mobile::interp(const Transform& before, const Transform& loc, float alp
 void Mobile::Update(float alpha)
 {
 	for (auto& dat : data)
-	{
-		dat.target = interp(dat.before, dat.loc, alpha);
-	}
+        for (auto& target : dat.targets)
+            target = interp(dat.before, dat.loc, alpha);
 	cameraMat = interp(cameraBefore, cameraLoc, alpha);
 }
 

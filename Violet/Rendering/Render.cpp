@@ -50,7 +50,7 @@ Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, std::tupl
 {
 	auto shaderit   = createOrAdd(shaders,             std::move(shader));
 	auto materialit = createOrAdd(shaderit->materials, std::move(mat));
-	auto shapeit   = createOrAdd(materialit->shapes, std::move(vao));
+	auto shapeit    = createOrAdd(materialit->shapes, std::move(vao));
 
 	shapeit->instances.Vector().emplace_back(ObjectLocation{ loc, obj });
 
