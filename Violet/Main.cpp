@@ -35,11 +35,9 @@ try
 	ShaderProgram aabbShader;
 	std::tie(aabbVAO, aabbShader) = teapotAabb.Show();
 
-	teapotShader.TextureOrder({ "tex" });
-	std::vector<Tex> texes({Tex::create("assets/capsule.png")});
-
-	auto locProxy = r.Create(teapot, teapotShader, std::make_tuple(UBO(), texes), teapotVAO, Matrix4f::Identity());
-	auto locProxyAabb = r.Create(aabb, aabbShader, std::make_tuple(UBO(), std::vector<Tex>()), aabbVAO, Matrix4f::Identity());
+	auto locProxy = r.Create(teapot, teapotShader, {}, {Tex::create("assets/capsule.png")},
+        teapotVAO, Matrix4f::Identity());
+	auto locProxyAabb = r.Create(aabb, aabbShader, {}, {}, aabbVAO, Matrix4f::Identity());
 
 	auto moveProxy = m.Add(Transform(), {locProxy, locProxyAabb});
     
@@ -88,9 +86,8 @@ try
 			/ std::chrono::duration_cast<millifloat>(dt).count();
 		m.Update(alpha);
 
-		r.camera = w.PerspMat() * m.CameraMat();
-
 		w.PreDraw();
+		r.camera = w.PerspMat() * m.CameraMat();
 		r.draw();
 		w.PostDraw();
     }

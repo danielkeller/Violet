@@ -25,6 +25,8 @@ std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename)
 {
 	//shader appropriate for wavefront objects
 	ShaderProgram shader = ShaderProgram::create("assets/simple");
+	shader.TextureOrder({ "tex" });
+
 	std::shared_ptr<VAO::VAOResource> vao = VAO::VAOResource::FindResource(filename);
 	std::shared_ptr<Mesh::MeshResource> mesh = Mesh::MeshResource::FindResource(filename);
 	

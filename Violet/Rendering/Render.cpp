@@ -45,11 +45,11 @@ typename Cont::iterator createOrAdd(Cont& vec, Val&& val)
 	return it;
 }
 
-Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, std::tuple<UBO, std::vector<Tex>> mat,
+Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo, std::vector<Tex> texes,
 	VAO vao, const Matrix4f& loc)
 {
 	auto shaderit   = createOrAdd(shaders,             std::move(shader));
-	auto materialit = createOrAdd(shaderit->materials, std::move(mat));
+	auto materialit = createOrAdd(shaderit->materials, std::move(std::forward_as_tuple(ubo, texes)));
 	auto shapeit    = createOrAdd(materialit->shapes, std::move(vao));
 
 	shapeit->instances.Vector().emplace_back(ObjectLocation{ loc, obj });

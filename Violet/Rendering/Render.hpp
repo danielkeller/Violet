@@ -20,7 +20,7 @@ class Render
 public:
 	class LocationProxy;
 	//Maybe make mobility an option?
-	LocationProxy Create(Object obj, ShaderProgram shader, std::tuple<UBO, std::vector<Tex>> mat,
+	LocationProxy Create(Object obj, ShaderProgram shader, UBO ubo, std::vector<Tex> texes,
 		VAO vao, const Matrix4f& loc);
 	void Destroy(Object obj);
 	void draw() const;
