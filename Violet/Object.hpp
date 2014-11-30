@@ -2,6 +2,7 @@
 #define OBJECT_H
 
 #include <vector>
+#include <ostream>
 
 class Object
 {
@@ -17,6 +18,11 @@ public:
 
 	bool operator<(const Object& other) const
 	{ return id < other.id;	}
+
+    friend std::ostream & operator<<(std::ostream &os, const Object& p)
+    {
+        return os << '[' << p.id << ']';
+    }
 };
 
 template <typename T>

@@ -14,7 +14,7 @@ public:
 
 	bool operator==(const Tex& other) const
 	{
-		return false;
+		return false; //FIXME
 	}
 	bool operator!=(const Tex& other) const
 	{
