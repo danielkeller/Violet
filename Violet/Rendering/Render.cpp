@@ -33,6 +33,11 @@ void Render::LocationProxy::operator=(const Matrix4f& l)
 	render.dirtyBufs.insert(buf);
 }
 
+Render::Shape::Shape(Shape&& other)
+	: vao(std::move(other.vao))
+	, instances(std::move(other.instances))
+{}
+
 template<typename Cont, typename Val>
 typename Cont::iterator createOrAdd(Cont& vec, Val&& val)
 {
@@ -58,6 +63,12 @@ Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo, 
 	if (shaderit->materials.size() == 1 && materialit->shapes.size() == 1)
 	{
 		//This info is part of VAO state
+        //FIXME - If this VAO is shared with another one, this all breaks
+        //So the design mistake here is that the state change that happens in
+        //this second call is actually part of the VAO's state, which is shared
+        //with all its users. Ideally the VAO would be somehow const at this
+        //point to prevent us from doing this
+        //Another problem is that class VAO has the semantics of a non-const reference
 		shapeit->vao.bind();
 		shapeit->instances.BindToShader(shader);
 	}
@@ -81,11 +92,6 @@ void Render::draw() const
 
 	for (auto& shader : shaders) shader.draw();
 }
-
-Render::Shape::Shape(Shape&& other)
-	: vao(std::move(other.vao))
-	, instances(std::move(other.instances))
-{}
 
 void Render::Shader::draw() const
 {

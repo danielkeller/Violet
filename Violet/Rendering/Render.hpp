@@ -51,8 +51,8 @@ private:
 
 	struct Shape
 	{
-		VAO vao;
 		using InstanceBuf = MutableArrayBuffer<ObjectLocation, ObjectLocation::Allocator>;
+		VAO vao;
 		InstanceBuf instances;
 		void draw() const;
 

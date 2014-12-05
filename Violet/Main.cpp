@@ -37,13 +37,13 @@ try
 
 	auto locProxy = r.Create(teapot, teapotShader, {}, {Tex::create("assets/capsule.png")},
         teapotVAO, Matrix4f::Identity());
-	auto locProxyAabb = r.Create(aabb, aabbShader, {}, {}, aabbVAO, Matrix4f::Identity());
+	//auto locProxyAabb = r.Create(aabb, aabbShader, {}, {}, aabbVAO, Matrix4f::Identity());
 
-	r.Create(teapot2, teapotShader, {}, {Tex::create("assets/capsule.png")},
-        teapotVAO, Matrix4f::Identity());
-//Eigen::Affine3f(Eigen::Translation3f{0,0,1}).matrix());
+	/*r.Create(teapot2, teapotShader, {}, {Tex::create("assets/capsule.png")},
+        teapotVAO, //Matrix4f::Identity());
+        Eigen::Affine3f(Eigen::Translation3f{0,0,1}).matrix());*/
 
-	auto moveProxy = m.Add(Transform(), {locProxy, locProxyAabb});
+	auto moveProxy = m.Add(Transform(), {locProxy}); //{locProxy, locProxyAabb});
     
 	using clock = std::chrono::system_clock;
 	auto currentTime = clock::now();
