@@ -3,6 +3,10 @@
 
 #include <string>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 class MappedFile
 {
 public:
@@ -20,11 +24,10 @@ public:
     MappedFile& operator=(MappedFile f);
 
     ~MappedFile()
-    try
     {
+		dothrow = false; //Close can throw
         Close();
     }
-    catch(...) {} //Close can throw
 
     void Throws(bool dothrow_)
     {
@@ -60,7 +63,7 @@ private:
     size_t length;
 #ifdef _WIN32
 #else
-    int fd;
+    int fd; //TODO: this isn't actually needed
 #endif
 
     void ThrowErrno(const std::string& text);

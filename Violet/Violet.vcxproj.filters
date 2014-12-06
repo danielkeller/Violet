@@ -83,6 +83,9 @@
     <ClInclude Include="WrappedIterator.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="MappedFile.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -112,9 +115,6 @@
     <ClCompile Include="Rendering\Uniform.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\GL\gl_core_3_3.c">
-      <Filter>Source Files\Libs</Filter>
-    </ClCompile>
     <ClCompile Include="..\Lodepng\lodepng.cpp">
       <Filter>Source Files\Libs</Filter>
     </ClCompile>
@@ -133,9 +133,15 @@
     <ClCompile Include="Geometry\Mesh.cpp">
       <Filter>Source Files\Geometry</Filter>
     </ClCompile>
+    <ClCompile Include="MappedFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\GLFW\glfw3.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
+    <Library Include="..\glbinding\glbinding.lib">
       <Filter>Resource Files</Filter>
     </Library>
   </ItemGroup>
@@ -150,6 +156,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\assets\color.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\glbinding.dll">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

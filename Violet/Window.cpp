@@ -7,7 +7,9 @@
 
 #include <iostream>
 
+#ifndef _WIN32
 #include "posixStackTrace.hpp"
+#endif
 
 //Instead of including windows' GLU, just define the one useful function
 //and link against it
@@ -26,8 +28,10 @@ void CheckGLError()
 void APIENTRY glDebugProc(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
     const char* message, const void* userParam)
 {
-    std::cerr << "GL Error caught '" << message << "'\n";
-    printStackTrace();
+	std::cerr << "GL Error caught '" << message << "'\n";
+#ifndef _WIN32
+	printStackTrace();
+#endif
 }
 #endif
 
@@ -93,7 +97,9 @@ Window::Window()
     });
 
     //enable for all errors
-    glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW_ARB,
+		0, nullptr, GL_FALSE);
     //get stacktrace in correct thread & function
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
     glDebugMessageCallbackARB(glDebugProc, nullptr);
