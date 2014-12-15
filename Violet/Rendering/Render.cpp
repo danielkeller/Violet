@@ -10,32 +10,22 @@ Render::Render()
 	commonUBO.Bind();
 }
 
-Render::LocationProxy::LocationProxy(Shape::InstanceBuf buf, Object obj, Render& r)
-	: buf(buf), obj(obj), render(r)
+Render::LocationProxy::LocationProxy(
+	std::shared_ptr<VAO::InstanceBuf> buf, VAO::InstanceBuf::perma_ref obj)
+	: buf(buf), obj(obj)
 {}
 
-Render::LocationProxy::operator Matrix4f() const
+Render::LocationProxy::LocationProxy(const LocationProxy&& other)
+	: buf(other.buf), obj(other.obj)
+{}
+
+Matrix4f& Render::LocationProxy::operator*()
 {
-	auto it = std::find_if(buf.Vector().begin(), buf.Vector().end(), [this](const ObjectLocation& loc) {
-		return loc.owner == obj;
-	});
-
-	return it->loc;
-}
-
-void Render::LocationProxy::operator=(const Matrix4f& l)
-{
-	auto it = std::find_if(buf.Vector().begin(), buf.Vector().end(), [this](const ObjectLocation& loc) {
-		return loc.owner == obj;
-	});
-
-	it->loc = l;
-	render.dirtyBufs.insert(buf);
+	return *obj.get(*buf);
 }
 
 Render::Shape::Shape(Shape&& other)
 	: vao(std::move(other.vao))
-	, instances(std::move(other.instances))
 {}
 
 template<typename Cont, typename Val>
@@ -57,35 +47,16 @@ Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo, 
 	auto materialit = createOrAdd(shaderit->materials, std::move(std::forward_as_tuple(ubo, texes)));
 	auto shapeit    = createOrAdd(materialit->shapes, std::move(vao));
 
-	shapeit->instances.Vector().emplace_back(ObjectLocation{ loc, obj });
+	auto objRef = shapeit->vao.InstanceBuffer().Container().emplace_back(loc);
+	shapeit->vao.InstanceBuffer().Sync();
 
-	//Have we just added this shape?
-	if (shaderit->materials.size() == 1 && materialit->shapes.size() == 1)
-	{
-		//This info is part of VAO state
-        //FIXME - If this VAO is shared with another one, this all breaks
-        //So the design mistake here is that the state change that happens in
-        //this second call is actually part of the VAO's state, which is shared
-        //with all its users. Ideally the VAO would be somehow const at this
-        //point to prevent us from doing this
-        //Another problem is that class VAO has the semantics of a non-const reference
-		shapeit->vao.bind();
-		shapeit->instances.BindToShader(shader);
-	}
-
-	shapeit->instances.Sync();
-
-	return LocationProxy{ shapeit->instances, obj, *this };
+	return LocationProxy{ shapeit->vao.InstanceBuffer().ContainerPtr(), objRef };
 }
 
 void Render::draw() const
 {
 	//clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//Sync array buffers
-	for (const auto& buf : dirtyBufs) buf.Sync();
-	dirtyBufs.clear();
 
 	commonUBO["camera"] = camera;
 	commonUBO.Sync();
@@ -101,7 +72,7 @@ void Render::Shader::draw() const
 
 void Render::Material::draw() const
 {
-	for (size_t i = 0; i < textures.size(); ++i)
+	for (GLuint i = 0; i < textures.size(); ++i)
 		textures[i].Bind(i);
 
 	materialProps.Bind();
@@ -111,15 +82,7 @@ void Render::Material::draw() const
 
 void Render::Shape::draw() const
 {
-	//this only causes a cache miss if it has to sync.
-	//Also, it should never need to drain the pipeline.
-	instances.Sync();
-
-	vao.bind();
-	vao.draw(instances.Vector().size());
+	//FIXME: Performance!
+	vao.InstanceBuffer().Sync();
+	vao.draw(static_cast<GLuint>(vao.InstanceBuffer().Container().size()));
 }
-
-template<>
-Schema ArrayBuffer<Render::ObjectLocation>::schema = {
-		{ "transform", 4, GL_FLOAT, 0, 4, 4 * sizeof(float) },
-};

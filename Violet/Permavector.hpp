@@ -7,13 +7,17 @@
 template<class T, class Alloc = std::allocator<std::pair<int, T>>>
 class Permavector
 {
-	using storety = std::vector < std::pair<T, int>, Alloc > ;
 public:
+	using value_type = std::pair<T, int>;
+private:
+	using storety = std::vector<value_type, Alloc>;
+public:
+
 	Permavector() = default;
 	Permavector(std::initializer_list<T> init)
 	{
 		for (auto& v : init)
-			push_back(v);
+			emplace_back(v);
 	}
 	Permavector(Permavector&& other)
 		: store(std::move(other.store))
@@ -26,9 +30,9 @@ public:
 	class iterator_base : public WrappedIterator<iterator_base<Val, It>, It, Val>
 	{
         using Base = WrappedIterator<iterator_base<Val, It>, It, Val>;
-	public:
+public:
 		Val& operator*() { return Base::it->first; }
-	private:
+private:
 		iterator_base(It it) : Base(it) {}
 		friend class Permavector;
 	};
@@ -58,16 +62,31 @@ public:
 
 	using size_type = typename storety::size_type;
 	size_type size() const { return store.size(); }
+	value_type* data() { return store.data(); }
+	const value_type* data() const { return store.data(); }
 
 	class perma_ref
 	{
 	public:
 		iterator get(Permavector& vec)
 		{
-			auto iter = std::lower_bound(vec.store.begin(), vec.store.end(), it, [](const typename storety::value_type& elem, int val){
+			auto iter = std::lower_bound(vec.store.begin(), vec.store.end(), it,
+				[](const typename storety::value_type& elem, int val){
 				return elem.second < val;
 			});
 			return iterator{ iter };
+		}
+
+		const_iterator get(Permavector& vec) const
+		{
+			return const_cast<perma_ref*>(this)->get(vec);
+		}
+
+		perma_ref(const perma_ref& other) : it(other.it) {}
+		perma_ref& operator=(perma_ref other)
+		{
+			it = other.it;
+			return *this;
 		}
 
 	private:
@@ -80,7 +99,8 @@ public:
 	perma_ref emplace_back(Args&&... args)
 	{
 		int next = store.empty() ? 0 : store.back().second + 1;
-		store.emplace_back(std::piecewise_construct, std::forward_as_tuple(args...), std::make_tuple(next));
+		store.emplace_back(std::piecewise_construct,
+			std::forward_as_tuple(args...), std::make_tuple(next));
 		return perma_ref{ next };
 	}
 

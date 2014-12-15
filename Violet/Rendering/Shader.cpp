@@ -66,7 +66,7 @@ UBO ShaderProgram::GetUBO(const std::string& name) const
 void ShaderProgram::TextureOrder(const std::vector<std::string>& order)
 {
 	use(); //program needs to be active
-	for (size_t i = 0; i < order.size(); ++i)
+	for (GLint i = 0; i < order.size(); ++i)
 	{
 		//Samplers are not in blocks (so "")
 		glUniform1i(resource->uniforms[""][order[i]].location, i);

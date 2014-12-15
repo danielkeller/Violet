@@ -65,7 +65,7 @@ struct AABBVert
 };
 
 template<>
-Schema ArrayBuffer<AABBVert>::schema = {
+const Schema ArrayBuffer<AABBVert>::schema = {
 		{ "position", 3, GL_FLOAT, 0, 1 },
 		{ "color", 3, GL_FLOAT, 3 * sizeof(float), 1 },
 };
@@ -84,7 +84,7 @@ std::tuple<VAO, ShaderProgram> AABB::Show()
 			std::sin(2.f*PI_F*depth / 6.f + 4) / 2.f + .5f
 		};
 
-		GLint ind = attribs.size();
+		auto ind = static_cast<GLint>(attribs.size());
 
 		attribs.emplace_back(AABBVert{ it->a, color });
 		attribs.emplace_back(AABBVert{ { it->a[0], it->a[1], it->b[2] }, color });

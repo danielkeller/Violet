@@ -22,7 +22,7 @@ void Mobile::Update(float alpha)
 {
 	for (auto& dat : data)
         for (auto& target : dat.targets)
-            target = interp(dat.before, dat.loc, alpha);
+            *target = interp(dat.before, dat.loc, alpha);
 	cameraMat = interp(cameraBefore, cameraLoc, alpha);
 }
 

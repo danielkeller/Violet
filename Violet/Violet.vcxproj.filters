@@ -136,14 +136,9 @@
     <ClCompile Include="MappedFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\GLFW\glfw3.lib">
-      <Filter>Resource Files</Filter>
-    </Library>
-    <Library Include="..\glbinding\glbinding.lib">
-      <Filter>Resource Files</Filter>
-    </Library>
+    <ClCompile Include="..\GL\gl_core_3_3.c">
+      <Filter>Source Files\Libs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\simple.frag">
@@ -158,8 +153,13 @@
     <None Include="..\assets\color.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\glbinding.dll">
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\GLFW\glfw3_32.lib">
       <Filter>Resource Files</Filter>
-    </None>
+    </Library>
+    <Library Include="..\GLFW\glfw3_64.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
   </ItemGroup>
 </Project>

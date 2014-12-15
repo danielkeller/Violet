@@ -31,8 +31,9 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, data_len, nullptr, usage);
 	}
 
-	template<class Alloc>
-	ArrayBuffer(const std::vector<T, Alloc>& data, GLenum usage)
+	template<class Container>
+	ArrayBuffer(const Container& data, GLenum usage,
+		typename Container::size_type sfinae = 0)
 		: ArrayBuffer(data.size()*sizeof(T), usage)
 	{
 		glBufferSubData(GL_ARRAY_BUFFER, 0, data_len, data.data());
@@ -62,10 +63,10 @@ public:
 	template<typename U>
 	friend ArrayBuffer<char> EraseType(ArrayBuffer<U>&&);
 
-	template<class Alloc>
-	void Data(const std::vector<T, Alloc>& data)
+	template<class Container>
+	void Data(const Container& data)
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, bufferObject);
+		Bind();
 		if (data.size()*sizeof(T) != data_len)
 		{
 			data_len = data.size()*sizeof(T);
@@ -77,80 +78,54 @@ public:
 
 	void SubData(size_t offs, const T& data)
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, bufferObject);
+		Bind();
 		glBufferSubData(GL_ARRAY_BUFFER, offs, sizeof(T), &data);
 	}
 
-	void BindToShader(const ShaderProgram& program)
+	//Is this bad?
+	void Bind() const
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, bufferObject);
-		for (const auto& props : schema)
-		{
-			//enable generic attribute array vertAttrib in the current vertex array object (VAO)
-			GLint vertAttrib = program.GetAttribLocation(props.name.c_str());
-			if (vertAttrib == -1)
-			{
-				std::cerr << "Warning: Vertex attribute '" << props.name << "' is not defined or active in '"
-					<< program.Name() << "'\n";
-				continue;
-			}
-			
-			//GL makes you specify matrices in this goofball way
-			for (int offs = 0; offs < props.numMatrixComponents; ++offs)
-			{
-				glEnableVertexAttribArray(vertAttrib + offs);
-
-				//associate the buffer data bound to GL_ARRAY_BUFFER with the attribute in index 0
-				//the final argument to this call is an integer offset, cast to pointer type. don't ask me why.
-				glVertexAttribPointer(
-					vertAttrib + offs, props.numComponents, props.glType, GL_FALSE, sizeof(T),
-					static_cast<const char*>(nullptr) + props.offset + offs*props.matrixStride);
-
-				//This attribute is hardwired for instancing
-				if (props.name == "transform")
-					glVertexAttribDivisor(vertAttrib + offs, 1);
-			}
-		}
 	}
 
-private:
 	//Must be specialized by class user
-	static Schema schema;
+	static const Schema schema;
+private:
 	size_t data_len;
 	GLuint bufferObject;
 	GLenum usage;
 };
 
-template<class T, class Alloc>
+template<class T>
 class MutableArrayBuffer
 {
 	struct MABResource;
 public:
+	using container = T;
+
 	MutableArrayBuffer()
-		: resource(std::make_shared<MABResource>())
+		: data(std::make_shared<container>())
+		, arrayBuf(0, GL_DYNAMIC_DRAW)
+	{}
+	MutableArrayBuffer(const MutableArrayBuffer& other)
+		: arrayBuf(*other.data, GL_DYNAMIC_DRAW),
+		, data(std::make_shared<container>(*other.data))
+	{}
+	MutableArrayBuffer(MutableArrayBuffer&& other)
+		: arrayBuf(std::move(other.arrayBuf)), data(std::move(other.data))
 	{}
 
-	std::vector<T, Alloc>& Vector() { return resource->data; }
-	const std::vector<T, Alloc>& Vector() const { return resource->data; }
+	container& Container() { return *data; }
+	const container& Container() const { return *data; }
+	std::shared_ptr<container> ContainerPtr() { return data; }
 
-	void Sync() const { resource->arrayBuf.Data(resource->data); }
-
-	void BindToShader(const ShaderProgram& program) { resource->arrayBuf.BindToShader(program); }
-
-	bool operator==(const MutableArrayBuffer& other) const { return resource == other.resource; }
-	bool operator<(const MutableArrayBuffer& other) const { return resource < other.resource; }
+	void Sync() const { arrayBuf.Data(*data); }
+	ArrayBuffer<typename container::value_type>& ArrayBuf()
+		{ return arrayBuf; }
 
 private:
-	mutable std::shared_ptr<MABResource> resource;
-
-	struct MABResource
-	{
-		MABResource()
-			: arrayBuf(0, GL_DYNAMIC_DRAW)
-		{}
-		ArrayBuffer<T> arrayBuf;
-		std::vector<T, Alloc> data;
-	};
+	mutable ArrayBuffer<typename container::value_type> arrayBuf;
+	std::shared_ptr<container> data;
 };
 
 template<class T>

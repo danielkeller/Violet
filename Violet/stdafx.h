@@ -1,13 +1,6 @@
 //Big headers go here
 
-//keep gl from including windows.h garbage
-#if (_MSC_VER >= 800) || defined(_STDCALL_SUPPORTED)
-#define APIENTRY __stdcall
-#endif
-
-#include "glbinding/gl/gl.h"
-//Everything is prefixed by GL anyway
-using namespace gl;
+#include "GL/gl_core_3_3.h"
 #include "Eigen/Dense"
 #include "Eigen/Geometry"
 //prevent vectors from breaking things
@@ -27,4 +20,4 @@ using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>
 #define GLFW_INCLUDE_NONE
 
 //enable stack traces on GL errors
-#define GL_DEBUG
+//#define GL_DEBUG

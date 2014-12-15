@@ -5,9 +5,9 @@ import subprocess
 import cPickle as pickle
 import hashlib
 
-glLoadGenFlags = ['-style=pointer_c', '-spec=gl', '-version=3.3', '-profile=core', '-stdext=gl_ubiquitous.txt']
-glLoadGenOutput = 'GL/core_3_3'
-glLoadGenExts = [] #['ARB_debug_output']
+#glLoadGenFlags = ['-style=pointer_c', '-spec=gl', '-version=3.3', '-profile=core', '-stdext=gl_ubiquitous.txt']
+#glLoadGenOutput = 'GL/core_3_3'
+#glLoadGenExts = [] #['ARB_debug_output']
 
 cflags = ['-g', '-Wall', '-Wno-missing-braces', '-Werror', '-pedantic', '-I.', '-IViolet', '-ferror-limit=3', '-O2']
 cppflags = ['-std=c++11']

@@ -3,7 +3,6 @@
 #include "GLMath.h"
 
 #include "GLFW/glfw3.h"
-#include <glbinding/Binding.h>
 
 #include <iostream>
 
@@ -87,7 +86,7 @@ Window::Window()
     //glfwSwapInterval(1);
 
     //load GL function pointers
-    glbinding::Binding::initialize();
+	ogl_LoadFunctions();
 
 #ifdef GL_DEBUG
     setCallbackMask(glbinding::CallbackMask::Unresolved);

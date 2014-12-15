@@ -27,18 +27,10 @@ public:
 	Matrix4f camera;
 
 	Render();
+	Render(const Render&) = delete;
+	void operator=(const Render&) = delete;
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-	struct ObjectLocation
-	{
-		//Prevent alignment issues from causing asserts
-		using Allocator = Eigen::aligned_allocator<ObjectLocation>;
-
-		Matrix4f loc;
-		Object owner;
-		//std::shared_ptr<bool> alive;
-	};
 
 private:
 	//UBO shared with all shaders
@@ -51,9 +43,7 @@ private:
 
 	struct Shape
 	{
-		using InstanceBuf = MutableArrayBuffer<ObjectLocation, ObjectLocation::Allocator>;
 		VAO vao;
-		InstanceBuf instances;
 		void draw() const;
 
 		Shape(VAO vao)
@@ -117,21 +107,22 @@ private:
 	};
 
 	container<Shader> shaders;
-	mutable std::set<Shape::InstanceBuf> dirtyBufs;
+	mutable std::set<container<Shape>::perma_ref> dirty;
 
 public:
 	//A thing that we can move the object with
 	class LocationProxy
 	{
 	public:
-		operator Matrix4f() const;
-		void operator=(const Matrix4f&);
+		Matrix4f& operator*();
+		Matrix4f* operator->() { return &**this; }
+		LocationProxy(const LocationProxy& other) = default;
+		LocationProxy(const LocationProxy&& other); //= default
 	private:
-		Shape::InstanceBuf buf;
-		Object obj;
-		Render& render;
+		std::shared_ptr<VAO::InstanceBuf> buf;
+		VAO::InstanceBuf::perma_ref obj;
 		friend class Render;
-		LocationProxy(Shape::InstanceBuf, Object, Render&);
+		LocationProxy(std::shared_ptr<VAO::InstanceBuf>, VAO::InstanceBuf::perma_ref);
 	};
 	friend class LocationProxy;
 };

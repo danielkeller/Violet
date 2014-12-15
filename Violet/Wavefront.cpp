@@ -15,7 +15,7 @@ struct WavefrontVert
 };
 
 template<>
-Schema ArrayBuffer<WavefrontVert>::schema = {
+const Schema ArrayBuffer<WavefrontVert>::schema = {
 	{"position", 3, GL_FLOAT, 0,                 1},
 	{"normal",   3, GL_FLOAT, 3 * sizeof(float), 1},
 	{"texCoord", 2, GL_FLOAT, 6 * sizeof(float), 1},
