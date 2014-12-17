@@ -57,9 +57,7 @@ GLint ShaderProgram::GetAttribLocation(const char* name) const
 
 UBO ShaderProgram::GetUBO(const std::string& name) const
 {
-	if (name == "Common")
-		return UBO::Create(resource->uniforms[name], UBO::Common);
-	return UBO::Create(resource->uniforms[name], UBO::Material);
+	return UBO::Create(resource->uniforms[name]);
 }
 
 //These should stay the same for much of the shader's lifetime

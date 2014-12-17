@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "VAO.hpp"
+#include "Shader.hpp"
+#include <iostream>
 
 void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schema,
 	GLsizei stride, GLsizei offset, bool instanced)

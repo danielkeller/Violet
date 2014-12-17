@@ -2,6 +2,7 @@
 #define UNIFORM_HPP
 
 #include "Resource.hpp"
+#include "BufferObject.hpp"
 
 #include <vector>
 #include <memory>
@@ -63,21 +64,15 @@ public:
 
 	//It should be possible to call Bind with no ill effects
 	UBO()
-		: type(Material)
-		, bufferObject(0)
-		, resource(nullptr)
+		: bindProxy(Material)
 	{}
 
-	static UBO Create(const Uniforms::Block& block, Type ty);
+	static UBO Create(const Uniforms::Block& block);
 
 	bool operator==(const UBO& other) const
-	{
-		return bufferObject == other.bufferObject;
-	}
+	{ return bindProxy == other.bindProxy; }
 	bool operator!=(const UBO& other) const
-	{
-		return !(*this == other);
-	}
+	{ return !(*this == other);	}
 
 	Proxy operator[](const std::string& name)
 		{ return Proxy(*this, name); }
@@ -91,19 +86,22 @@ public:
 	friend struct Proxy;
 
 private:
+	using BufferTy = float; //for alignment
+	using BufferObjTy = MutableBufferObject<std::vector<BufferTy>, GL_UNIFORM_BUFFER>;
+
 	struct UBOResource : public Resource<UBOResource, Uniforms::Block>
 	{
-		std::vector<float> storage;
-		GLuint bufferObject;
+		BufferObjTy bufferObject;
+		//Type allows us to distinguish between UBOs that are shared (ie, camera)
+		//with those that are not (ie, material).
+		Type type;
 		const Uniforms::Block& Block() {return key;}
 		UBOResource(const Uniforms::Block& block);
-		~UBOResource();
 	};
 
-	UBO(std::shared_ptr<UBOResource>, Type);
+	UBO(std::shared_ptr<UBOResource>);
 
-	Type type; //should this be in the resource?
-	GLuint bufferObject;
+	BufferObjTy::BufferObjTy::IndexedBindProxy bindProxy;
 	std::shared_ptr<UBOResource> resource;
 
 	struct Proxy

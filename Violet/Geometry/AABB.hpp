@@ -4,11 +4,8 @@
 #include "BinTree.hpp"
 
 //#ifdef SOMETHING
-
-#include <tuple>
 #include "Rendering/VertexData.hpp"
 #include "Rendering/Shader.hpp"
-
 //#endif
 
 class AABB

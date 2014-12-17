@@ -96,43 +96,29 @@ const Uniforms::Block& Uniforms::operator[](const std::string& n) const
 	return *it;
 }
 
-UBO UBO::Create(const Uniforms::Block& block, Type ty)
+UBO UBO::Create(const Uniforms::Block& block)
 {
-	return UBO(UBOResource::FindOrMake(block), ty);
+	return UBO(UBOResource::FindOrMake(block));
 }
 
 UBO::UBOResource::UBOResource(const Uniforms::Block& block)
-	: Resource(block), storage(block.byte_size)
-{
-	//generate a new buffer object for bufferObject
-	glGenBuffers(1, &bufferObject);
+	: Resource(block), bufferObject(block.byte_size / sizeof(BufferTy))
+	, type(block.name == "Common" ? UBO::Common : UBO::Material)
+{}
 
-	//bind the newly-created buffer object bufferObject as the current GL_UNIFORM_BUFFER
-	glBindBuffer(GL_UNIFORM_BUFFER, bufferObject);
-	//allocate the buffer, but don't upload anything
-	glBufferData(GL_UNIFORM_BUFFER, block.byte_size, NULL, GL_DYNAMIC_DRAW);
-}
-
-UBO::UBOResource::~UBOResource()
-{
-	glDeleteBuffers(1, &bufferObject);
-}
-
-UBO::UBO(std::shared_ptr<UBOResource> r, Type ty)
-	: type(ty), bufferObject(r->bufferObject), resource(r)
+UBO::UBO(std::shared_ptr<UBOResource> r)
+	: bindProxy(r->bufferObject.BufferObj().GetIndexedBindProxy(r->type))
+	, resource(r)
 {}
 
 void UBO::Sync() const
 {
-	glBindBuffer(GL_UNIFORM_BUFFER, bufferObject);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, resource->storage.size(), resource->storage.data());
+	resource->bufferObject.Sync();
 }
 
 void UBO::Bind() const
 {
-	//Type allows us to distinguish between UBOs that are shared (ie, camera) with those that
-	//are not (ie, material).
-	glBindBufferBase(GL_UNIFORM_BUFFER, type, bufferObject);
+	bindProxy.Bind();
 }
 
 template<typename T, GLenum ty>
@@ -141,7 +127,7 @@ T UBO::Proxy::ConvertOpHelper() const
 	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
 	assert(unif.type == ty);
 	T ret;
-	const typename T::Scalar* store = ubo.resource->storage.data();
+	const typename T::Scalar* store = ubo.resource->bufferObject.Container().data();
 	std::copy(store + unif.offset,
 		store + unif.offset + ret.size(),
 		ret.data());
@@ -153,7 +139,7 @@ UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 {
 	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
 	assert(unif.type == ty);
-	typename T::Scalar* store = ubo.resource->storage.data();
+	typename T::Scalar* store = ubo.resource->bufferObject.Container().data();
 	std::copy(val.data(),
 		val.data() + val.size(),
 		store + unif.offset);

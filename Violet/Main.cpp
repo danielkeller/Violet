@@ -26,14 +26,14 @@ try
 	Object teapotObj, teapot2Obj;
 	Wavefront teapot = "assets/capsule.obj";
 
-	AABB teapotAabb(teapot.mesh);
-	Object aabbObj;
-	ShowAABB aabb(teapotAabb);
+	//AABB teapotAabb(teapot.mesh);
+	//Object aabbObj;
+	//ShowAABB aabb(teapotAabb);
 
 	auto locProxy = r.Create(teapotObj, teapot.shaderProgram, {}, {Tex::create("assets/capsule.png")},
         teapot.vertexData, Matrix4f::Identity());
-	auto locProxyAabb = r.Create(aabbObj, aabb.shaderProgram, {}, {},
-		aabb.vertData, Matrix4f::Identity());
+	//auto locProxyAabb = r.Create(aabbObj, aabb.shaderProgram, {}, {},
+	//	aabb.vertData, Matrix4f::Identity());
 
 	r.Create(teapot2Obj, teapot.shaderProgram, {}, { Tex::create("assets/capsule.png") },
         teapot.vertexData, //Matrix4f::Identity());
