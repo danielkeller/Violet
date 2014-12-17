@@ -12,7 +12,6 @@ struct TriInd
 {
 	GLint a, b, c;
 
-	static const int dim = 3;
 	static const GLenum mode = GL_TRIANGLES;
 };
 
@@ -75,8 +74,6 @@ using ConstMeshIter = MeshIterBase < std::vector<TriInd>::const_iterator, ConstT
 class Mesh
 {
 public:
-	Mesh() = default;
-
 	//the non-const functions assume you will be modifying the mesh,
 	//so they copy the data.
 	MeshIter begin();
@@ -98,6 +95,8 @@ public:
 	void PrintDataSize();
 	
 private:
+	Mesh() = default;
+
 	struct MeshResource : public Resource<MeshResource>
 	{
 		MeshResource(std::string name, vectorVector3f p, std::vector<TriInd> i)
@@ -115,7 +114,7 @@ private:
 	std::shared_ptr<MeshResource> resource;
 	std::vector<TriInd> submesh;
 
-	friend std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename);
+	friend struct Wavefront;
 };
 
 #endif

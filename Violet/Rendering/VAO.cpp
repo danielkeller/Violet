@@ -1,31 +1,69 @@
 #include "stdafx.h"
 #include "VAO.hpp"
-#include "Shader.hpp"
-#include "Rendering/Render.hpp"
 
-#include <fstream>
+void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schema,
+	GLsizei stride, GLsizei offset, bool instanced)
+{
+	auto bound = Bind();
+	for (const auto& props : schema)
+	{
+		//enable generic attribute array vertAttrib in the current vertex array object (VAO)
+		GLint vertAttrib = program.GetAttribLocation(props.name.c_str());
+		if (vertAttrib == -1)
+		{
+			std::cerr << "Warning: Vertex attribute '" << props.name << "' is not defined or active in '"
+				<< program.Name() << "'\n";
+			continue;
+		}
 
-ConstVAO::VAOResource::VAOResource(VAOResource&& other)
-	: ResourceTy(std::move(other))
+		//GL makes you specify matrices in this goofball way
+		for (int column = 0; column < props.numMatrixComponents; ++column)
+		{
+			glEnableVertexAttribArray(vertAttrib + column);
+
+			//associate the buffer data bound to GL_ARRAY_BUFFER with the attribute in index 0
+			//the final argument to this call is an integer offset, cast to pointer type. don't ask me why.
+			glVertexAttribPointer(
+				vertAttrib + column, props.numComponents, props.glType, GL_FALSE, stride,
+				static_cast<const char*>(nullptr)
+				+ offset*stride + props.offset + column*props.matrixStride);
+
+			if (instanced)
+				glVertexAttribDivisor(vertAttrib + column, 1);
+		}
+	}
+}
+
+VAO::VAO(const ShaderProgram& program, const VertexData& vertdata)
+	: vertexData(vertdata),
+	numVertecies(vertdata.resource->numVertecies),
+	mode(vertdata.resource->mode)
+{
+	glGenVertexArrays(1, &vertexArrayObject);
+	auto bound = Bind();
+	auto& res = *vertexData.resource;
+	res.indexBuffer.Bind();
+	res.vertexBuffer.Bind();
+	BindArrayBufToShader(program, res.vertexBufferSchema, res.vertexBufferStride);
+}
+
+VAO::VAO(VAO&& other)
+	: vertexData(std::move(other.vertexData))
 	, vertexArrayObject(other.vertexArrayObject)
-	, indexBufferObject(other.indexBufferObject)
-	, vertexBuffer(std::move(other.vertexBuffer))
+	, mode(other.mode)
 	, numVertecies(other.numVertecies)
 {
-	other.indexBufferObject = 0;
 	other.vertexArrayObject = 0;
 }
 
-ConstVAO::VAOResource::~VAOResource()
+VAO::~VAO()
 {
-	//delete VAO and buffers
 	glDeleteVertexArrays(1, &vertexArrayObject);
-	glDeleteBuffers(1, &indexBufferObject);
 }
 
-GLuint ConstVAO::VAOBinding::current;
+GLuint VAO::Binding::current;
 
-ConstVAO::VAOBinding::VAOBinding(GLuint next)
+VAO::Binding::Binding(GLuint next)
 	: prev(current)
 {
 	if (current != next)
@@ -35,7 +73,7 @@ ConstVAO::VAOBinding::VAOBinding(GLuint next)
 	}
 }
 
-ConstVAO::VAOBinding::~VAOBinding()
+VAO::Binding::~Binding()
 {
 	if (prev != current)
 	{
@@ -44,16 +82,11 @@ ConstVAO::VAOBinding::~VAOBinding()
 	}
 }
 
-void ConstVAO::draw(GLsizei instances) const
+void VAO::Draw() const
 {
-	auto bound = bind();
+	auto bound = Bind();
 	//draw verteces according to the index and position buffer object
 	//the final argument to this call is an integer offset, cast to pointer type. don't ask me why.
 	glDrawElementsInstanced(mode, numVertecies, GL_UNSIGNED_INT,
-		static_cast<GLvoid*>(0), instances);
+		static_cast<GLvoid*>(0), numInstances);
 }
-
-template<>
-const Schema ArrayBuffer<VAO::InstanceBuf::value_type>::schema = {
-	{ "transform", 4, GL_FLOAT, 0, 4, 4 * sizeof(float) },
-};

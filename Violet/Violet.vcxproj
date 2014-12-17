@@ -142,12 +142,13 @@
     <ClInclude Include="Object.hpp" />
     <ClInclude Include="Permavector.hpp" />
     <ClInclude Include="Profiling.hpp" />
-    <ClInclude Include="Rendering\ArrayBuffer.hpp" />
+    <ClInclude Include="Rendering\BufferObject.hpp" />
     <ClInclude Include="Rendering\Render.hpp" />
     <ClInclude Include="Rendering\Shader.hpp" />
     <ClInclude Include="Rendering\Texture.hpp" />
     <ClInclude Include="Rendering\Uniform.hpp" />
     <ClInclude Include="Rendering\VAO.hpp" />
+    <ClInclude Include="Rendering\VertexData.hpp" />
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Wavefront.hpp" />
@@ -189,6 +190,7 @@
     <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\Uniform.cpp" />
     <ClCompile Include="Rendering\VAO.cpp" />
+    <ClCompile Include="Rendering\VertexData.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

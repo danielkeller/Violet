@@ -18,6 +18,7 @@ public:
 		tree.ReserveNodes(it);
 		return tree.inner[it];
 	}
+	using Base::operator*;
 
 	void ToLeft() { it = 2 * it + 1; }
 	void ToRight() { it = 2 * it + 2; }
@@ -57,14 +58,14 @@ public:
 	}
 
 	using iterator = BinTreeIterBase < NodeTy, LeafTy, BinTree >;
-	using const_iterator = BinTreeIterBase <const NodeTy, const LeafTy, const BinTree>;
+	using const_iterator = BinTreeIterBase <const NodeTy, const LeafTy, BinTree>;
 
 	iterator begin() { return{ 0, *this }; }
-	const_iterator begin() const { return{ 0, *this }; }
+	const_iterator begin() const { return{ 0, *const_cast<BinTree*>(this) }; }
 	const_iterator cbegin() { return begin(); }
 
 	iterator end() { return{ inner.size(), *this }; }
-	const_iterator end() const { return{ inner.size(), *this }; }
+	const_iterator end() const { return{ inner.size(), *const_cast<BinTree*>(this) }; }
 	const_iterator cend() { return end(); }
 
 	//Only guaranteed to work if the tree is being built preorder

@@ -6,7 +6,7 @@
 //#ifdef SOMETHING
 
 #include <tuple>
-#include "Rendering/VAO.hpp"
+#include "Rendering/VertexData.hpp"
 #include "Rendering/Shader.hpp"
 
 //#endif
@@ -15,11 +15,19 @@ class AABB
 {
 public:
 	AABB(Mesh m);
-	std::tuple<VAO, ShaderProgram> Show();
+
 private:
 	using TreeTy = BinTree<Box, Mesh, Eigen::aligned_allocator<Box>>;
 	void build(Mesh mLeft, Box cur, size_t depth, TreeTy::iterator it);
 	TreeTy tree;
+	friend struct ShowAABB;
+};
+
+struct ShowAABB
+{
+	VertexData vertData;
+	ShaderProgram shaderProgram;
+	ShowAABB(const AABB& aabb);
 };
 
 #endif

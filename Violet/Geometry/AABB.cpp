@@ -62,20 +62,21 @@ struct AABBVert
 
 	Vector3f pos;
 	Vector3f color;
+	static const Schema schema;
 };
 
-template<>
-const Schema ArrayBuffer<AABBVert>::schema = {
+const Schema AABBVert::schema = {
 		{ "position", 3, GL_FLOAT, 0, 1 },
 		{ "color", 3, GL_FLOAT, 3 * sizeof(float), 1 },
 };
 
-std::tuple<VAO, ShaderProgram> AABB::Show()
+ShowAABB::ShowAABB(const AABB& aabb)
+	: shaderProgram (ShaderProgram::create("assets/color"))
 {
 	std::vector<AABBVert, AABBVert::Allocator> attribs;
 	std::vector<LineInd> indices;
 
-	for (auto it = tree.begin(); it != tree.end(); ++it)
+	for (auto it = aabb.tree.begin(); it != aabb.tree.end(); ++it)
 	{
 		auto depth = static_cast<float>(it.Depth());
 		Vector3f color = {
@@ -103,9 +104,7 @@ std::tuple<VAO, ShaderProgram> AABB::Show()
 		});
 	}
 
-	ShaderProgram shader = ShaderProgram::create("assets/color");
-	VAO vao = VAO::VAOResource::MakeShared(
-		"#debug#", shader, ArrayBuffer<AABBVert>(attribs, GL_STATIC_DRAW), indices);
-
-	return std::make_tuple(vao, shader);
+	vertData = VertexData_detail::VertexDataResource::MakeShared(
+		"#debug#", BufferObject<AABBVert, GL_ARRAY_BUFFER, GL_STATIC_DRAW>(attribs),
+		BufferObject<LineInd, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(indices));
 }

@@ -20,9 +20,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Rendering\ArrayBuffer.hpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Render.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
@@ -86,6 +83,12 @@
     <ClInclude Include="MappedFile.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\VertexData.hpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\BufferObject.hpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -138,6 +141,9 @@
     </ClCompile>
     <ClCompile Include="..\GL\gl_core_3_3.c">
       <Filter>Source Files\Libs</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\VertexData.cpp">
+      <Filter>Source Files\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

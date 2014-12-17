@@ -12,26 +12,31 @@ struct WavefrontVert
 	Vector3f pos;
 	Vector3f norm;
 	Eigen::Vector2f uv;
+	static const Schema schema;
 };
 
-template<>
-const Schema ArrayBuffer<WavefrontVert>::schema = {
+const Schema WavefrontVert::schema = {
 	{"position", 3, GL_FLOAT, 0,                 1},
 	{"normal",   3, GL_FLOAT, 3 * sizeof(float), 1},
 	{"texCoord", 2, GL_FLOAT, 6 * sizeof(float), 1},
 };
 
-std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename)
-{
+Wavefront::Wavefront(std::string filename)
 	//shader appropriate for wavefront objects
-	ShaderProgram shader = ShaderProgram::create("assets/simple");
-	shader.TextureOrder({ "tex" });
+	: shaderProgram(ShaderProgram::create("assets/simple"))
+{
+	shaderProgram.TextureOrder({ "tex" });
 
-	std::shared_ptr<VAO::VAOResource> vao = VAO::VAOResource::FindResource(filename);
-	std::shared_ptr<Mesh::MeshResource> mesh = Mesh::MeshResource::FindResource(filename);
+	std::shared_ptr<VertexData_detail::VertexDataResource> vertptr
+		= VertexData_detail::VertexDataResource::FindResource(filename);
+	std::shared_ptr<Mesh::MeshResource> meshptr = Mesh::MeshResource::FindResource(filename);
 	
-	if (vao && mesh)
-		return std::make_tuple(VAO(vao), Mesh(mesh), std::move(shader));
+	if (vertptr && meshptr)
+	{
+		vertexData = vertptr;
+		mesh = meshptr;
+		return;
+	}
 
 	std::ifstream obj(filename);
 	if (obj.fail())
@@ -54,12 +59,12 @@ std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename)
             obj >> x >> y >> z;
             verts.push_back(Vector3f(x, y, z));
 		}
-		else if (!vao && letter == "vn")
+		else if (!vertptr && letter == "vn")
 		{
 			obj >> x >> y >> z;
 			norms.push_back(Vector3f(x, y, z));
 		}
-		else if (!vao && letter == "vt")
+		else if (!vertptr && letter == "vt")
 		{
 			obj >> x >> y;
 			uvs.push_back(Vector2f(1-x, y));
@@ -83,7 +88,7 @@ std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename)
 			obj.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
-	if (!vao)
+	if (!vertptr)
 	{
 		auto vert_it = verts.begin();
 		auto norm_it = norms.begin();
@@ -96,12 +101,11 @@ std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename)
 				norm_it < norms.end() ? Vector3f{ *norm_it++ } : Vector3f::Zero(),
 				uv_it < uvs.end() ? Vector2f{ *uv_it++ } : Vector2f::Zero() });
 
-		vao = VAO::VAOResource::MakeShared(
-			filename, shader, ArrayBuffer<WavefrontVert>(attribs, GL_STATIC_DRAW), indices);
+		vertexData = VertexData_detail::VertexDataResource::MakeShared(
+			filename, BufferObject<WavefrontVert, GL_ARRAY_BUFFER, GL_STATIC_DRAW>(attribs),
+			BufferObject<TriInd, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(indices));
 	}
 
-	if (!mesh)
+	if (!meshptr)
 		mesh = Mesh::MeshResource::MakeShared(filename, verts, indices);
-
-	return std::make_tuple(VAO(vao), Mesh(mesh), std::move(shader));
 }

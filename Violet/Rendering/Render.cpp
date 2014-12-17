@@ -5,13 +5,14 @@
 Render::Render()
 	: simpleShader(ShaderProgram::create("assets/simple"))
 	, commonUBO(simpleShader.GetUBO("Common"))
+	, instanceBuffer()
 {
 	//Assumes no one binds over UBO::Common
 	commonUBO.Bind();
 }
 
 Render::LocationProxy::LocationProxy(
-	std::shared_ptr<VAO::InstanceBuf> buf, VAO::InstanceBuf::perma_ref obj)
+	std::weak_ptr<Shape::InstanceVec> buf, Shape::InstanceVec::perma_ref obj)
 	: buf(buf), obj(obj)
 {}
 
@@ -21,7 +22,7 @@ Render::LocationProxy::LocationProxy(const LocationProxy&& other)
 
 Matrix4f& Render::LocationProxy::operator*()
 {
-	return *obj.get(*buf);
+	return *obj.get(*buf.lock());
 }
 
 Render::Shape::Shape(Shape&& other)
@@ -40,19 +41,30 @@ typename Cont::iterator createOrAdd(Cont& vec, Val&& val)
 	return it;
 }
 
-Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo, std::vector<Tex> texes,
-	VAO vao, const Matrix4f& loc)
+Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo,
+	std::vector<Tex> texes, VertexData vertData, const Matrix4f& loc)
 {
 	auto shaderit   = createOrAdd(shaders,             std::move(shader));
 	auto materialit = createOrAdd(shaderit->materials, std::move(std::forward_as_tuple(ubo, texes)));
-	auto shapeit    = createOrAdd(materialit->shapes, std::move(vao));
+	auto shapeit = createOrAdd(materialit->shapes,
+		std::move(std::forward_as_tuple(vertData, shader)));
 
-	auto objRef = shapeit->vao.InstanceBuffer().Container().emplace_back(loc);
-	shapeit->vao.InstanceBuffer().Sync();
+	auto objRef = shapeit->instances->emplace_back(loc);
 
-	return LocationProxy{ shapeit->vao.InstanceBuffer().ContainerPtr(), objRef };
+	size_t offset = 0;
+	for (auto& shader : shaders)
+		for (auto& material : shader.materials)
+			for (auto& shape : material.shapes)
+			{
+				shape.vao.BindInstanceData(shader.program, instanceBuffer, offset,
+					shapeit->instances->size());
+				offset += shapeit->instances->size();
+			}
+
+	instanceBuffer.Data(offset);
+
+	return LocationProxy{ shapeit->instances, objRef };
 }
-
 void Render::draw() const
 {
 	//clear the color buffer
@@ -60,6 +72,15 @@ void Render::draw() const
 
 	commonUBO["camera"] = camera;
 	commonUBO.Sync();
+
+	{
+		auto mapping = instanceBuffer.Map(GL_WRITE_ONLY);
+		auto mapit = mapping.begin();
+		for (auto& shader : shaders)
+			for (auto& material : shader.materials)
+				for (auto& shape : material.shapes)
+					mapit = std::copy(shape.instances->begin(), shape.instances->end(), mapit);
+	} //unmap
 
 	for (auto& shader : shaders) shader.draw();
 }
@@ -82,7 +103,9 @@ void Render::Material::draw() const
 
 void Render::Shape::draw() const
 {
-	//FIXME: Performance!
-	vao.InstanceBuffer().Sync();
-	vao.draw(static_cast<GLuint>(vao.InstanceBuffer().Container().size()));
+	vao.Draw();
 }
+
+const Schema Render::InstData::schema = {
+	{ "transform", 4, GL_FLOAT, 0, 4, 4 * sizeof(float) },
+};

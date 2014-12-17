@@ -13,12 +13,6 @@ class ShaderProgram
 	struct ShaderResource;
 
 public:
-	//initialize to invalid state
-	ShaderProgram()
-		: program(0)
-		, resource(nullptr)
-	{}
-
 	static ShaderProgram create(std::string path)
 	{
 		return ShaderResource::FindOrMake(path);
@@ -46,6 +40,12 @@ public:
 	void TextureOrder(const std::vector<std::string>& order);
 
 private:
+	//initialize to invalid state
+	ShaderProgram()
+		: program(0)
+		, resource(nullptr)
+	{}
+
 	ShaderProgram(std::shared_ptr<ShaderResource> ptr)
 		: program(ptr->program)
 		, resource(std::move(ptr))

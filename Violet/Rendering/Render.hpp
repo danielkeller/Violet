@@ -21,7 +21,7 @@ public:
 	class LocationProxy;
 	//Maybe make mobility an option?
 	LocationProxy Create(Object obj, ShaderProgram shader, UBO ubo, std::vector<Tex> texes,
-		VAO vao, const Matrix4f& loc);
+		VertexData vertData, const Matrix4f& loc);
 	void Destroy(Object obj);
 	void draw() const;
 	Matrix4f camera;
@@ -44,18 +44,22 @@ private:
 	struct Shape
 	{
 		VAO vao;
+		using InstanceVec = Permavector<Matrix4f, Eigen::aligned_allocator<Matrix4f>>;
+		std::shared_ptr<InstanceVec> instances;
 		void draw() const;
 
-		Shape(VAO vao)
-			: vao(vao) {}
+		Shape(std::tuple<VertexData, ShaderProgram&> t)
+			: vao(std::get<1>(t), std::get<0>(t))
+			, instances(std::make_shared<InstanceVec>())
+		{}
 
 		Shape(const Shape&) = delete;
 		Shape(Shape&&); //MSVC sucks and can't default this
 
-		bool operator==(const VAO& other)
-			{ return vao == other; }
-		bool operator!=(const VAO& other)
-			{ return !(vao == other); }
+		bool operator==(const std::tuple<VertexData, ShaderProgram&>& t)
+		{ return vao == std::get<0>(t);	}
+		bool operator!=(const std::tuple<VertexData, ShaderProgram&>& t)
+		{ return !(vao == std::get<0>(t)); }
 	};
 
 	struct Material
@@ -107,7 +111,14 @@ private:
 	};
 
 	container<Shader> shaders;
-	mutable std::set<container<Shape>::perma_ref> dirty;
+	struct InstData
+	{
+		Matrix4f mat;
+		InstData& operator=(const Matrix4f& m) { mat = m; return *this; }
+		static const Schema schema;
+	};
+
+	mutable BufferObject<InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
 
 public:
 	//A thing that we can move the object with
@@ -119,10 +130,10 @@ public:
 		LocationProxy(const LocationProxy& other) = default;
 		LocationProxy(const LocationProxy&& other); //= default
 	private:
-		std::shared_ptr<VAO::InstanceBuf> buf;
-		VAO::InstanceBuf::perma_ref obj;
+		std::weak_ptr<Shape::InstanceVec> buf;
+		Shape::InstanceVec::perma_ref obj;
 		friend class Render;
-		LocationProxy(std::shared_ptr<VAO::InstanceBuf>, VAO::InstanceBuf::perma_ref);
+		LocationProxy(std::weak_ptr<Shape::InstanceVec>, Shape::InstanceVec::perma_ref);
 	};
 	friend class LocationProxy;
 };

@@ -23,24 +23,20 @@ try
 	Mobile m;
 
     //load the Render
-	Object teapot, teapot2;
-	VAO teapotVAO;
-	Mesh teapotMesh;
-	ShaderProgram teapotShader;
-	std::tie(teapotVAO, teapotMesh, teapotShader) = LoadWavefront("assets/capsule.obj");
+	Object teapotObj, teapot2Obj;
+	Wavefront teapot = "assets/capsule.obj";
 
-	AABB teapotAabb(teapotMesh);
-	Object aabb;
-	VAO aabbVAO;
-	ShaderProgram aabbShader;
-	std::tie(aabbVAO, aabbShader) = teapotAabb.Show();
+	AABB teapotAabb(teapot.mesh);
+	Object aabbObj;
+	ShowAABB aabb(teapotAabb);
 
-	auto locProxy = r.Create(teapot, teapotShader, {}, {Tex::create("assets/capsule.png")},
-        teapotVAO, Matrix4f::Identity());
-	auto locProxyAabb = r.Create(aabb, aabbShader, {}, {}, aabbVAO, Matrix4f::Identity());
+	auto locProxy = r.Create(teapotObj, teapot.shaderProgram, {}, {Tex::create("assets/capsule.png")},
+        teapot.vertexData, Matrix4f::Identity());
+	auto locProxyAabb = r.Create(aabbObj, aabb.shaderProgram, {}, {},
+		aabb.vertData, Matrix4f::Identity());
 
-	r.Create(teapot2, teapotShader, {}, {Tex::create("assets/capsule.png")},
-        teapotVAO, //Matrix4f::Identity());
+	r.Create(teapot2Obj, teapot.shaderProgram, {}, { Tex::create("assets/capsule.png") },
+        teapot.vertexData, //Matrix4f::Identity());
         Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix());
 
 	auto moveProxy = m.Add(Transform(), {locProxy}); //{locProxy, locProxyAabb});

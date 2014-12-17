@@ -18,7 +18,9 @@ public:
 
 	template<class dummy = void> //Don't compile this if it doesn't make sense
 	reference operator*() { return *it; }
+	const reference operator*() const { return *DerivedThisUnconst(); }
 	pointer operator->() { return &**DerivedThis(); }
+	const pointer operator->() const { return &**DerivedThisUnconst(); }
 	
 	Derived& operator++() { ++it; return *DerivedThis(); }
 	Derived operator++(int) const { auto ret = *DerivedThis(); ++ret; return ret; }
@@ -41,6 +43,7 @@ protected:
 private:
 	Derived* DerivedThis() { return static_cast<Derived*>(this); }
 	const Derived* DerivedThis() const { return static_cast<const Derived*>(this); }
+	Derived* DerivedThisUnconst() const { return const_cast<Derived*>(this); }
 };
 
 template<class IterTy, class Func>

@@ -1,5 +1,12 @@
-#include "Rendering/VAO.hpp"
+#include "Rendering/VertexData.hpp"
 #include "Rendering/Shader.hpp"
+#include "Geometry/Mesh.hpp"
 #include <tuple>
 
-std::tuple<VAO, Mesh, ShaderProgram> LoadWavefront(std::string filename);
+struct Wavefront
+{
+	VertexData vertexData;
+	Mesh mesh;
+	ShaderProgram shaderProgram;
+	Wavefront(std::string filename);
+};
