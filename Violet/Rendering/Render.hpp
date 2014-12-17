@@ -4,7 +4,6 @@
 #include "stdafx.h"
 #include "Shader.hpp"
 #include "Object.hpp"
-#include "Uniform.hpp"
 #include "VAO.hpp"
 #include "Texture.hpp"
 #include "Permavector.hpp"

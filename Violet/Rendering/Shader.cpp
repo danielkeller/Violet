@@ -4,6 +4,42 @@
 #include <fstream>
 #include <vector>
 
+struct Uniforms
+{
+	Uniforms() = default;
+	Uniforms(GLuint program);
+
+	struct Uniform
+	{
+		std::string name;
+		GLenum type;
+		GLuint size;
+		GLuint offset;
+		GLint stride;
+		GLint location;
+	};
+
+	struct Block
+	{
+		std::string name;
+		size_t byte_size;
+		std::vector<Uniform> uniforms;
+
+		const Uniform& operator[](const std::string& name) const;
+		Uniform& operator[](const std::string& name)
+		{
+			return const_cast<Uniform&>(const_cast<const Block&>(*this)[name]);
+		}
+	};
+	std::vector<Block> blocks;
+
+	const Block& operator[](const std::string& name) const;
+	Block& operator[](const std::string& name)
+	{
+		return const_cast<Block&>(const_cast<const Uniforms&>(*this)[name]);
+	}
+};
+
 struct ShaderProgram::ShaderResource : public Resource<ShaderResource>
 {
 	ShaderResource(ShaderResource &&other);
@@ -24,7 +60,18 @@ struct ShaderProgram::ShaderResource : public Resource<ShaderResource>
 	GLuint program;
 	void init(std::istream &vert, std::istream &frag);
 
-	::Uniforms uniforms;
+	Uniforms uniforms;
+};
+
+struct UBO::UBOResource : public Resource<UBOResource>
+{
+	BufferObjTy bufferObject;
+	//Type allows us to distinguish between UBOs that are shared (ie, camera)
+	//with those that are not (ie, material).
+	Type type;
+	Uniforms::Block block;
+	const Uniforms::Block& Block() { return block; }
+	UBOResource(const std::string& name, const Uniforms::Block& block);
 };
 
 ShaderProgram::ShaderResource::ShaderResource(std::string path)
@@ -86,11 +133,6 @@ std::string ShaderProgram::Name() const
 	return resource->Name();
 }
 
-Uniforms& ShaderProgram::Uniforms() const
-{
-	return resource->uniforms;
-}
-
 GLenum ShaderProgram::GetAttribType(GLint loc) const
 {
 	GLint size;
@@ -104,9 +146,12 @@ GLint ShaderProgram::GetAttribLocation(const char* name) const
     return glGetAttribLocation(program, name);
 }
 
-UBO ShaderProgram::GetUBO(const std::string& name) const
+UBO ShaderProgram::MakeUBO(const std::string& block, const std::string& name) const
 {
-	return resource->uniforms[name];
+	auto res = UBO::UBOResource::FindResource(name);
+	if (res)
+		return res;
+	return UBO::UBOResource::MakeShared(name, resource->uniforms[block]);
 }
 
 //These should stay the same for much of the shader's lifetime
@@ -183,11 +228,147 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag)
         std::cerr << "Linker failure: " << infoLog.data() << "\n";
     }
 	else
-		uniforms = ::Uniforms(program);
+		uniforms = Uniforms(program);
 
     //shaders are no longer used now that the program is linked
     glDetachShader(program, vertShdr);
     glDeleteShader(vertShdr);
     glDetachShader(program, fragShdr);
     glDeleteShader(fragShdr);
+}
+
+std::vector<Uniforms::Block> DoQuery(GLuint program)
+{
+	GLint activeUniforms;
+	glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &activeUniforms);
+
+	GLint activeUniformBlocks;
+	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &activeUniformBlocks);
+	std::vector<Uniforms::Block> ret(activeUniformBlocks + 1);
+	GLint outParam;
+
+	for (GLuint uniformBlockIndex = 0; uniformBlockIndex < (GLuint)activeUniformBlocks; ++uniformBlockIndex)
+	{
+		glGetActiveUniformBlockiv(program, uniformBlockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &outParam);
+		ret[uniformBlockIndex].byte_size = outParam;
+		glGetActiveUniformBlockiv(program, uniformBlockIndex, GL_UNIFORM_BLOCK_NAME_LENGTH, &outParam);
+		std::vector<char> name(outParam);
+		glGetActiveUniformBlockName(program, uniformBlockIndex, outParam, NULL, name.data());
+		ret[uniformBlockIndex].name.assign(name.begin(), name.end() - 1); //remove null
+	}
+
+	for (GLuint uniformIndex = 0; uniformIndex < (GLuint)activeUniforms; ++uniformIndex)
+	{
+		Uniforms::Uniform unif;
+		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_TYPE, &outParam);
+		unif.type = static_cast<GLenum>(outParam);
+		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_SIZE, &outParam);
+		unif.size = outParam;
+		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_OFFSET, &outParam);
+		unif.offset = outParam;
+		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_ARRAY_STRIDE, &outParam);
+		unif.stride = outParam;
+		//Hopefully the matrix stride isn't a big deal...
+
+		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_NAME_LENGTH, &outParam);
+		std::vector<char> name(outParam);
+		glGetActiveUniformName(program, uniformIndex, outParam, NULL, name.data());
+		unif.name.assign(name.begin(), name.end() - 1); //remove null
+
+		unif.location = glGetUniformLocation(program, name.data());
+
+		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_BLOCK_INDEX, &outParam);
+
+		if (outParam == -1) //last block is default block
+			ret[activeUniformBlocks].uniforms.push_back(std::move(unif));
+		else
+			ret[outParam].uniforms.push_back(std::move(unif));
+	}
+
+	return ret;
+}
+
+Uniforms::Uniforms(GLuint program)
+	: blocks(DoQuery(program))
+{}
+
+const Uniforms::Uniform& Uniforms::Block::operator[](const std::string& n) const
+{
+	auto it = std::find_if(uniforms.begin(), uniforms.end(), [&n](const Uniforms::Uniform& u)
+	{return u.name == n; });
+	assert(it != uniforms.end());
+	return *it;
+}
+
+const Uniforms::Block& Uniforms::operator[](const std::string& n) const
+{
+	auto it = std::find_if(blocks.begin(), blocks.end(), [&n](const Uniforms::Block& u)
+	{return u.name == n; });
+	assert(it != blocks.end());
+	return *it;
+}
+
+UBO::UBOResource::UBOResource(const std::string& name, const Uniforms::Block& block)
+	: Resource(name), bufferObject(block.byte_size / sizeof(BufferTy))
+	, type(block.name == "Common" ? UBO::Common : UBO::Material), block(block)
+{}
+
+UBO::UBO(std::shared_ptr<UBOResource> r)
+	: bindProxy(r->bufferObject.BufferObj().GetIndexedBindProxy(r->type))
+	, resource(r)
+{}
+
+void UBO::Sync() const
+{
+	resource->bufferObject.Sync();
+}
+
+void UBO::Bind() const
+{
+	bindProxy.Bind();
+}
+
+template<typename T, GLenum ty>
+T UBO::Proxy::ConvertOpHelper() const
+{
+	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
+	assert(unif.type == ty);
+	T ret;
+	const typename T::Scalar* store = ubo.resource->bufferObject.Container().data();
+	std::copy(store + unif.offset,
+		store + unif.offset + ret.size(),
+		ret.data());
+	return ret;
+}
+
+template<GLenum ty, typename T>
+UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
+{
+	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
+	assert(unif.type == ty);
+	typename T::Scalar* store = ubo.resource->bufferObject.Container().data();
+	std::copy(val.data(),
+		val.data() + val.size(),
+		store + unif.offset);
+	return *this;
+}
+
+UBO::Proxy::operator Matrix3f() const
+{
+	return ConvertOpHelper<Matrix3f, GL_FLOAT_MAT3>();
+}
+
+UBO::Proxy& UBO::Proxy::operator=(const Matrix3f& v)
+{
+	return AssignOpHelper<GL_FLOAT_MAT3>(v);
+}
+
+UBO::Proxy::operator Matrix4f() const
+{
+	return ConvertOpHelper<Matrix4f, GL_FLOAT_MAT4>();
+}
+
+UBO::Proxy& UBO::Proxy::operator=(const Matrix4f& v)
+{
+	return AssignOpHelper<GL_FLOAT_MAT4>(v);
 }

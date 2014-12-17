@@ -4,7 +4,7 @@
 
 Render::Render()
 	: simpleShader("assets/simple")
-	, commonUBO(simpleShader.GetUBO("Common"))
+	, commonUBO(simpleShader.MakeUBO("Common", "Common"))
 	, instanceBuffer()
 {
 	//Assumes no one binds over UBO::Common

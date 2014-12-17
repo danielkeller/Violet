@@ -29,9 +29,6 @@
     <ClInclude Include="Rendering\Texture.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Uniform.hpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\VAO.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
@@ -113,9 +110,6 @@
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\VAO.cpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Uniform.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\Lodepng\lodepng.cpp">
