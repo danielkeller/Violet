@@ -22,3 +22,15 @@ using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>
 
 //enable stack traces on GL errors
 //#define GL_DEBUG
+
+#define BASIC_EQUALITY(Class, Member) \
+	bool operator==(const Class& other) const \
+	{ return Member == other.Member; }\
+	bool operator!=(const Class& other) const \
+	{ return !(*this == other); }
+
+#define MEMBER_EQUALITY(MemberTy, Member) \
+	bool operator==(const MemberTy& other) const \
+	{ return Member == other; }\
+	bool operator!=(const MemberTy& other) const \
+	{ return !(*this == other); }

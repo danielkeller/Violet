@@ -42,14 +42,8 @@ public:
 
 	GLsizei NumInstances() const { return numInstances; };
 
-	bool operator==(const VertexData& other) const
-	{ return vertexData == other; }
-	bool operator!=(const VertexData& other) const
-	{ return !(*this == other); }
-	bool operator==(const VAO& other) const
-	{ return vertexArrayObject == other.vertexArrayObject; }
-	bool operator!=(const VAO& other) const
-	{ return !(*this == other);	}
+	BASIC_EQUALITY(VAO, vertexArrayObject)
+	MEMBER_EQUALITY(VertexData, vertexData)
 
 private:
 	void BindArrayBufToShader(const ShaderProgram& program, const Schema& schema,

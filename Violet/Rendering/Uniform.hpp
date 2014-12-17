@@ -67,7 +67,7 @@ public:
 		: bindProxy(Material)
 	{}
 
-	static UBO Create(const Uniforms::Block& block);
+	UBO(const Uniforms::Block& block);
 
 	bool operator==(const UBO& other) const
 	{ return bindProxy == other.bindProxy; }

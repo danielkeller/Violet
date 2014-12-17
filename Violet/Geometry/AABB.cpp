@@ -71,7 +71,7 @@ const Schema AABBVert::schema = {
 };
 
 ShowAABB::ShowAABB(const AABB& aabb)
-	: shaderProgram (ShaderProgram::create("assets/color"))
+	: shaderProgram ("assets/color")
 {
 	std::vector<AABBVert, AABBVert::Allocator> attribs;
 	std::vector<LineInd> indices;

@@ -29,10 +29,9 @@ struct Tex::TexResource : public Resource<TexResource>
 	GLuint textureObject;
 };
 
-Tex Tex::create(std::string path)
-{
-	return TexResource::FindOrMake(path);
-}
+Tex::Tex(std::string path)
+	: Tex(TexResource::FindOrMake(path))
+{}
 
 Tex::Tex(std::shared_ptr<TexResource> ptr)
 	: textureObject(ptr->textureObject)

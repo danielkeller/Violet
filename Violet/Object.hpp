@@ -10,11 +10,7 @@ class Object
 public:
 	Object();
 
-	bool operator==(const Object& other) const
-	{ return other.id == id; }
-
-	bool operator!=(const Object& other) const
-	{ return !(*this == other); }
+	BASIC_EQUALITY(Object, id)
 
 	bool operator<(const Object& other) const
 	{ return id < other.id;	}

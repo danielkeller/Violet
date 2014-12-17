@@ -96,10 +96,9 @@ const Uniforms::Block& Uniforms::operator[](const std::string& n) const
 	return *it;
 }
 
-UBO UBO::Create(const Uniforms::Block& block)
-{
-	return UBO(UBOResource::FindOrMake(block));
-}
+UBO::UBO(const Uniforms::Block& block)
+	: UBO(UBOResource::FindOrMake(block))
+{}
 
 UBO::UBOResource::UBOResource(const Uniforms::Block& block)
 	: Resource(block), bufferObject(block.byte_size / sizeof(BufferTy))

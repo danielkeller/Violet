@@ -8,18 +8,11 @@ class Tex
 	struct TexResource;
 
 public:
-	static Tex create(std::string path);
+	Tex(std::string path);
 
 	void Bind(GLuint texUnit) const;
 
-	bool operator==(const Tex& other) const
-	{
-		return false; //FIXME
-	}
-	bool operator!=(const Tex& other) const
-	{
-		return !(*this == other);
-	}
+	BASIC_EQUALITY(Tex, textureObject)
 
 private:
 	GLuint textureObject;

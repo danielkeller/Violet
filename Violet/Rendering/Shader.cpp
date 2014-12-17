@@ -4,6 +4,29 @@
 #include <fstream>
 #include <vector>
 
+struct ShaderProgram::ShaderResource : public Resource<ShaderResource>
+{
+	ShaderResource(ShaderResource &&other);
+
+	//free resources associated with this program
+	~ShaderResource();
+
+	//object is not copyable
+	ShaderResource(const ShaderResource&) = delete;
+	ShaderResource& operator=(const ShaderResource&) = delete;
+
+	//Construct from given vertex and fragment files
+	ShaderResource(std::string path);
+
+	std::string Name() const { return key; }
+
+	//the actual GL program reference
+	GLuint program;
+	void init(std::istream &vert, std::istream &frag);
+
+	::Uniforms uniforms;
+};
+
 ShaderProgram::ShaderResource::ShaderResource(std::string path)
 	: ResourceTy(path)
 {
@@ -12,11 +35,27 @@ ShaderProgram::ShaderResource::ShaderResource(std::string path)
     init(vert, frag);
 }
 
+ShaderProgram::ShaderResource::ShaderResource(ShaderResource &&other)
+	: ResourceTy(std::move(other)), program(other.program)
+	, uniforms(std::move(other.uniforms))
+{
+	other.program = 0;
+}
+
 ShaderProgram::ShaderResource::~ShaderResource()
 {
     //the program will be deleted once it is no longer part of an active rendering state
     glDeleteProgram(program);
 }
+
+ShaderProgram::ShaderProgram(std::string path)
+	: ShaderProgram(ShaderResource::FindOrMake(path))
+{}
+
+ShaderProgram::ShaderProgram(std::shared_ptr<ShaderResource> ptr)
+	: program(ptr->program)
+	, resource(std::move(ptr))
+{}
 
 void ShaderProgram::use() const
 {
@@ -42,6 +81,16 @@ GLenum ShaderProgram::Ref::GetUniformType(GLint loc) const
 }
 #endif
 
+std::string ShaderProgram::Name() const
+{
+	return resource->Name();
+}
+
+Uniforms& ShaderProgram::Uniforms() const
+{
+	return resource->uniforms;
+}
+
 GLenum ShaderProgram::GetAttribType(GLint loc) const
 {
 	GLint size;
@@ -57,7 +106,7 @@ GLint ShaderProgram::GetAttribLocation(const char* name) const
 
 UBO ShaderProgram::GetUBO(const std::string& name) const
 {
-	return UBO::Create(resource->uniforms[name]);
+	return resource->uniforms[name];
 }
 
 //These should stay the same for much of the shader's lifetime

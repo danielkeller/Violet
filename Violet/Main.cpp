@@ -30,12 +30,12 @@ try
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-	auto locProxy = r.Create(teapotObj, teapot.shaderProgram, {}, {Tex::create("assets/capsule.png")},
+	auto locProxy = r.Create(teapotObj, teapot.shaderProgram, {}, { { "assets/capsule.png" } },
         teapot.vertexData, Matrix4f::Identity());
 	//auto locProxyAabb = r.Create(aabbObj, aabb.shaderProgram, {}, {},
 	//	aabb.vertData, Matrix4f::Identity());
 
-	r.Create(teapot2Obj, teapot.shaderProgram, {}, { Tex::create("assets/capsule.png") },
+	r.Create(teapot2Obj, teapot.shaderProgram, {}, { { "assets/capsule.png" } },
         teapot.vertexData, //Matrix4f::Identity());
         Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix());
 

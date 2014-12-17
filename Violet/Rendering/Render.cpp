@@ -3,7 +3,7 @@
 #include <algorithm>
 
 Render::Render()
-	: simpleShader(ShaderProgram::create("assets/simple"))
+	: simpleShader("assets/simple")
 	, commonUBO(simpleShader.GetUBO("Common"))
 	, instanceBuffer()
 {

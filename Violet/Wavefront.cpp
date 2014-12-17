@@ -23,7 +23,7 @@ const Schema WavefrontVert::schema = {
 
 Wavefront::Wavefront(std::string filename)
 	//shader appropriate for wavefront objects
-	: shaderProgram(ShaderProgram::create("assets/simple"))
+	: shaderProgram("assets/simple")
 {
 	shaderProgram.TextureOrder({ "tex" });
 

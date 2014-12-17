@@ -99,10 +99,7 @@ private:
 		Shader(ShaderProgram program)
 			: program(program) {}
 
-		bool operator==(const ShaderProgram& other)
-			{ return program == other; }
-		bool operator!=(const ShaderProgram& other)
-			{ return !(program == other); }
+		MEMBER_EQUALITY(ShaderProgram, program)
 
 		Shader(const Shader&) = delete;
 		Shader(Shader&& other)
