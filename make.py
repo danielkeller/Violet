@@ -11,8 +11,8 @@ import hashlib
 
 cflags = ['-g', '-Wall', '-Wno-missing-braces', '-Werror', '-pedantic', '-I.', '-IViolet', '-ferror-limit=3', '-O2']
 cppflags = ['-std=c++11']
-sourcedirs = ['Violet', 'Lodepng']
-libs = ['-lGL', '-lGLU', 'GLFW/libglfw3.a', 'glbinding/libglbinding.a', '-lX11', '-lXxf86vm', '-lpthread', '-lXrandr', '-lXi', '-lXinerama', '-lXcursor'] + ['-rdynamic']
+sourcedirs = ['Violet', 'Lodepng', 'GL']
+libs = ['-lGL', '-lGLU', 'GLFW/libglfw3.a', '-lX11', '-lXxf86vm', '-lpthread', '-lXrandr', '-lXi', '-lXinerama', '-lXcursor'] + ['-rdynamic']
 executable = 'violet'
 
 def makedir(dir):

@@ -102,8 +102,7 @@ Wavefront::Wavefront(std::string filename)
 				uv_it < uvs.end() ? Vector2f{ *uv_it++ } : Vector2f::Zero() });
 
 		vertexData = VertexData_detail::VertexDataResource::MakeShared(
-			filename, BufferObject<WavefrontVert, GL_ARRAY_BUFFER, GL_STATIC_DRAW>(attribs),
-			BufferObject<TriInd, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(indices));
+			filename, attribs, indices);
 	}
 
 	if (!meshptr)

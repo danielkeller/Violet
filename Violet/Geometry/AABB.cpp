@@ -105,6 +105,5 @@ ShowAABB::ShowAABB(const AABB& aabb)
 	}
 
 	vertData = VertexData_detail::VertexDataResource::MakeShared(
-		"#debug#", BufferObject<AABBVert, GL_ARRAY_BUFFER, GL_STATIC_DRAW>(attribs),
-		BufferObject<LineInd, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(indices));
+		"#debug#", attribs, indices);
 }

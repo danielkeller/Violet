@@ -65,6 +65,7 @@ struct ShaderProgram::ShaderResource : public Resource<ShaderResource>
 
 struct UBO::UBOResource : public Resource<UBOResource>
 {
+    std::vector<BufferTy> data;
 	BufferObjTy bufferObject;
 	//Type allows us to distinguish between UBOs that are shared (ie, camera)
 	//with those that are not (ie, material).
@@ -309,18 +310,19 @@ const Uniforms::Block& Uniforms::operator[](const std::string& n) const
 }
 
 UBO::UBOResource::UBOResource(const std::string& name, const Uniforms::Block& block)
-	: Resource(name), bufferObject(block.byte_size / sizeof(BufferTy))
+	: Resource(name), data(block.byte_size / sizeof(BufferTy))
+    , bufferObject(block.byte_size / sizeof(BufferTy))
 	, type(block.name == "Common" ? UBO::Common : UBO::Material), block(block)
 {}
 
 UBO::UBO(std::shared_ptr<UBOResource> r)
-	: bindProxy(r->bufferObject.BufferObj().GetIndexedBindProxy(r->type))
+	: bindProxy(r->bufferObject.GetIndexedBindProxy(r->type))
 	, resource(r)
 {}
 
 void UBO::Sync() const
 {
-	resource->bufferObject.Sync();
+	resource->bufferObject.Data(resource->data);
 }
 
 void UBO::Bind() const
@@ -334,7 +336,7 @@ T UBO::Proxy::ConvertOpHelper() const
 	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
 	assert(unif.type == ty);
 	T ret;
-	const typename T::Scalar* store = ubo.resource->bufferObject.Container().data();
+	const typename T::Scalar* store = ubo.resource->data.data();
 	std::copy(store + unif.offset,
 		store + unif.offset + ret.size(),
 		ret.data());
@@ -346,7 +348,7 @@ UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 {
 	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
 	assert(unif.type == ty);
-	typename T::Scalar* store = ubo.resource->bufferObject.Container().data();
+	typename T::Scalar* store = ubo.resource->data.data();
 	std::copy(val.data(),
 		val.data() + val.size(),
 		store + unif.offset);

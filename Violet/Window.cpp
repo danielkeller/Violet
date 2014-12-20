@@ -85,16 +85,7 @@ Window::Window()
     //set vsync
     //glfwSwapInterval(1);
 
-    //load GL function pointers
-	ogl_LoadFunctions();
-
 #ifdef GL_DEBUG
-    setCallbackMask(glbinding::CallbackMask::Unresolved);
-    glbinding::setUnresolvedCallback([](const glbinding::AbstractFunction& function)
-    {
-        std::cerr << function.name() << " is unresolved\n";
-    });
-
     //enable for all errors
 	glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW_ARB,

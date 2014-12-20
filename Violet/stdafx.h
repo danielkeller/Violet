@@ -21,7 +21,7 @@ using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>
 #define GLFW_INCLUDE_NONE
 
 //enable stack traces on GL errors
-//#define GL_DEBUG
+#define GL_DEBUG
 
 #define BASIC_EQUALITY(Class, Member) \
 	bool operator==(const Class& other) const \

@@ -4,6 +4,8 @@
 #include "BufferObject.hpp"
 #include "Rendering/VertexData.hpp"
 
+class ShaderProgram;
+
 class VAO
 {
 public:

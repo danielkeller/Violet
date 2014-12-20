@@ -24,7 +24,7 @@ try
 
     //load the Render
 	Object teapotObj, teapot2Obj;
-	Wavefront teapot = "assets/capsule.obj";
+	Wavefront teapot{"assets/capsule.obj"};
 
 	//AABB teapotAabb(teapot.mesh);
 	//Object aabbObj;

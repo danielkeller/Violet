@@ -8,6 +8,13 @@
 class VAO;
 class ShaderProgram;
 
+struct LineInd
+{
+	GLint a, b;
+
+	static const GLenum mode = GL_LINES;
+};
+
 struct TriInd
 {
 	GLint a, b, c;

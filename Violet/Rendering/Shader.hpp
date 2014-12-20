@@ -33,7 +33,6 @@ public:
 
 private:
 	ShaderProgram(std::shared_ptr<ShaderResource> ptr);
-	struct ShaderResource;
 
 	GLuint program;
 	std::shared_ptr<ShaderResource> resource;
@@ -73,13 +72,13 @@ public:
 
 private:
 	using BufferTy = float; //for alignment
-	using BufferObjTy = MutableBufferObject<std::vector<BufferTy>, GL_UNIFORM_BUFFER>;
+	using BufferObjTy = BufferObject<BufferTy, GL_UNIFORM_BUFFER, GL_STREAM_DRAW>;
 
 	struct UBOResource;
 
 	UBO(std::shared_ptr<UBOResource>);
 
-	BufferObjTy::BufferObjTy::IndexedBindProxy bindProxy;
+	BufferObjTy::IndexedBindProxy bindProxy;
 	std::shared_ptr<UBOResource> resource;
 
 	struct Proxy

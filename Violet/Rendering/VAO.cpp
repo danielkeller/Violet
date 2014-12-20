@@ -50,10 +50,10 @@ VAO::VAO(const ShaderProgram& program, const VertexData& vertdata)
 }
 
 VAO::VAO(VAO&& other)
-	: vertexData(std::move(other.vertexData))
-	, vertexArrayObject(other.vertexArrayObject)
-	, mode(other.mode)
+	: vertexArrayObject(other.vertexArrayObject)
+	, vertexData(std::move(other.vertexData))
 	, numVertecies(other.numVertecies)
+	, mode(other.mode)
 {
 	other.vertexArrayObject = 0;
 }
