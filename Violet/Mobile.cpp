@@ -35,7 +35,7 @@ void Mobile::Tick()
 
 Transform& Mobile::MoveProxy::operator*()
 {
-	return ref.get(mobile.data)->loc;
+	return mobile.data.get(ref)->loc;
 }
 
 Mobile::MoveProxy::MoveProxy(PermaRef ref, Mobile& mobile)

@@ -47,17 +47,18 @@ private:
 		std::shared_ptr<InstanceVec> instances;
 		void draw() const;
 
-		Shape(std::tuple<VertexData, ShaderProgram&> t)
+		Shape(std::tuple<VertexData, ShaderProgram> t)
 			: vao(std::get<1>(t), std::get<0>(t))
 			, instances(std::make_shared<InstanceVec>())
 		{}
 
+        Shape& operator=(Shape&&) = default;
 		Shape(const Shape&) = delete;
 		Shape(Shape&&); //MSVC sucks and can't default this
 
-		bool operator==(const std::tuple<VertexData, ShaderProgram&>& t)
+		bool operator==(const std::tuple<VertexData, ShaderProgram>& t)
 		{ return vao == std::get<0>(t);	}
-		bool operator!=(const std::tuple<VertexData, ShaderProgram&>& t)
+		bool operator!=(const std::tuple<VertexData, ShaderProgram>& t)
 		{ return !(vao == std::get<0>(t)); }
 	};
 
@@ -77,6 +78,8 @@ private:
 			return !(*this == t);
 		}
 		
+        Material& operator=(Material&&) = default;
+
 		Material(std::tuple<UBO, std::vector<Tex>> t)
 			: materialProps(std::get<0>(t))
 			, textures(std::get<1>(t))
@@ -100,6 +103,7 @@ private:
 
 		MEMBER_EQUALITY(ShaderProgram, program)
 
+        Shader& operator=(Shader&&) = default;
 		Shader(const Shader&) = delete;
 		Shader(Shader&& other)
 			: program(std::move(other.program)), materials(std::move(other.materials))

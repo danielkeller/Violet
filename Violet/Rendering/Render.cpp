@@ -22,7 +22,7 @@ Render::LocationProxy::LocationProxy(const LocationProxy&& other)
 
 Matrix4f& Render::LocationProxy::operator*()
 {
-	return *obj.get(*buf.lock());
+	return *buf.lock()->get(obj);
 }
 
 Render::Shape::Shape(Shape&& other)
@@ -35,7 +35,7 @@ typename Cont::iterator createOrAdd(Cont& vec, Val&& val)
 	auto it = std::find(vec.begin(), vec.end(), val);
 	if (it == vec.end())
 	{
-		vec.emplace_back(std::move(val));
+		vec.emplace_back(std::forward<Val>(val));
 		it = vec.end() - 1;
 	}
 	return it;
@@ -44,10 +44,9 @@ typename Cont::iterator createOrAdd(Cont& vec, Val&& val)
 Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo,
 	std::vector<Tex> texes, VertexData vertData, const Matrix4f& loc)
 {
-	auto shaderit   = createOrAdd(shaders,             std::move(shader));
-	auto materialit = createOrAdd(shaderit->materials, std::move(std::forward_as_tuple(ubo, texes)));
-	auto shapeit = createOrAdd(materialit->shapes,
-		std::move(std::forward_as_tuple(vertData, shader)));
+	auto shaderit   = createOrAdd(shaders,             shader);
+	auto materialit = createOrAdd(shaderit->materials, std::make_tuple(ubo, texes));
+	auto shapeit    = createOrAdd(materialit->shapes,  std::make_tuple(vertData, shader));
 
 	auto objRef = shapeit->instances->emplace_back(loc);
 

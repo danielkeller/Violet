@@ -15,6 +15,8 @@ public:
 
 	VAO(const ShaderProgram& program, const VertexData& vertdata);
 
+    VAO& operator=(const VAO&) = default;
+
 	class Binding
 	{
 	public:

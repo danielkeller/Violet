@@ -34,3 +34,7 @@ using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>
 	{ return Member == other; }\
 	bool operator!=(const MemberTy& other) const \
 	{ return !(*this == other); }
+
+#include <utility>
+//combine std and :: overload set for swap
+using std::swap;
