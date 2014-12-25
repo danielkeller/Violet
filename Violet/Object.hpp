@@ -3,10 +3,11 @@
 
 #include <vector>
 #include <ostream>
+#include <cstdint>
 
 class Object
 {
-	unsigned int id;
+	std::uint32_t id;
 public:
 	Object();
 

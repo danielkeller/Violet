@@ -44,7 +44,7 @@ public:
 		friend class Mobile;
 	};
 
-	MoveProxy Add(const Transform& loc, std::vector<Render::LocationProxy> targets);
+	MoveProxy Create(const Transform& loc, std::vector<Render::LocationProxy> targets);
 
 	Transform& CameraLoc()
 	{

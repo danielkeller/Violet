@@ -13,8 +13,8 @@ void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schem
 		GLint vertAttrib = program.GetAttribLocation(props.name.c_str());
 		if (vertAttrib == -1)
 		{
-			std::cerr << "Warning: Vertex attribute '" << props.name << "' is not defined or active in '"
-				<< program.Name() << "'\n";
+			//std::cerr << "Warning: Vertex attribute '" << props.name << "' is not defined or active in '"
+			//	<< program.Name() << "'\n";
 			continue;
 		}
 
@@ -63,7 +63,7 @@ VAO::~VAO()
 	glDeleteVertexArrays(1, &vertexArrayObject);
 }
 
-GLuint VAO::Binding::current;
+GLuint VAO::Binding::current = 0;
 
 VAO::Binding::Binding(GLuint next)
 	: prev(current)

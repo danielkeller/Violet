@@ -12,7 +12,7 @@ Render::Render()
 }
 
 Render::LocationProxy::LocationProxy(
-	std::weak_ptr<Shape::InstanceVec> buf, Shape::InstanceVec::perma_ref obj)
+	std::weak_ptr<InstanceVec> buf, InstanceVec::perma_ref obj)
 	: buf(buf), obj(obj)
 {}
 
@@ -22,89 +22,115 @@ Render::LocationProxy::LocationProxy(const LocationProxy&& other)
 
 Matrix4f& Render::LocationProxy::operator*()
 {
-	return *buf.lock()->get(obj);
+	return buf.lock()->get(obj)->mat;
 }
 
-Render::Shape::Shape(Shape&& other)
-	: vao(std::move(other.vao))
-{}
-
-template<typename Cont, typename Val>
-typename Cont::iterator createOrAdd(Cont& vec, Val&& val)
+template<class PerShader, class PerMaterial, class PerShape>
+void Render::Iterate(PerShader psh, PerMaterial pm, PerShape ps)
 {
-	auto it = std::find(vec.begin(), vec.end(), val);
-	if (it == vec.end())
-	{
-		vec.emplace_back(std::forward<Val>(val));
-		it = vec.end() - 1;
-	}
-	return it;
+    auto materialit = materials.begin();
+    auto shapeit = shapes.begin();
+    for (auto shaderit = shaders.begin(); shaderit != shaders.end(); ++shaderit)
+    {
+        psh(*shaderit);
+        auto nextshader = shaderit + 1 == shaders.end() ? materials.end() : materials.get(shaderit[1].begin);
+        for(; materialit != nextshader; ++materialit)
+        {
+            pm(*materialit);
+            auto nextmaterial = materialit + 1 == materials.end() ? shapes.end() : shapes.get(materialit[1].begin);
+            for (; shapeit != nextmaterial; ++shapeit)
+            {
+                ps(*shapeit);
+            }
+        }
+    }
 }
 
 Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo,
 	std::vector<Tex> texes, VertexData vertData, const Matrix4f& loc)
 {
-	auto shaderit   = createOrAdd(shaders,             shader);
-	auto materialit = createOrAdd(shaderit->materials, std::make_tuple(ubo, texes));
-	auto shapeit    = createOrAdd(materialit->shapes,  std::make_tuple(vertData, shader));
+    auto shaderit = std::find(shaders.begin(), shaders.end(), shader);
+    //special case: shaderit is, or will be, the last one
+    auto matend = shaderit + 1 >= shaders.end() ? materials.get_perma(materials.end()) : shaderit[1].begin;
+    if (shaderit == shaders.end())
+    {
+        //material range is empty
+        shaderit = shaders.get(shaders.emplace_back(shader, matend));
+    } //shaderit is now valid
 
-	auto objRef = shapeit->instances->emplace_back(loc);
+    auto matbegin = materials.get(shaderit->begin);
+    auto materialit = std::find(matbegin, materials.get(matend), std::make_tuple(ubo, texes));
+    //special case: materialit is, or will be, the last one
+    auto shapeend = materialit + 1 >= materials.end() ? shapes.get_perma(shapes.end()) : materialit[1].begin;
+    if (materialit == materials.get(matend))
+    {
+        //put it at the beginning of the shader's range
+        shaderit->begin = materials.emplace(matbegin, ubo, texes, shapeend);
+        materialit = materials.get(shaderit->begin);
+    } //materialit is now valid
+
+    auto shapebegin = shapes.get(materialit->begin);
+    auto shapeit = std::find(shapebegin, shapes.get(shapeend), vertData);
+    if (shapeit == shapes.get(shapeend))
+    {
+        //put it at the beginning of the material's range
+        materialit->begin = shapes.emplace(shapebegin, vertData, shader);
+        shapeit = shapes.get(materialit->begin);
+    } //shapeit is now valid
+
+	auto objRef = shapeit->instances->emplace_back(loc, obj);
 
 	size_t offset = 0;
-	for (auto& shader : shaders)
-		for (auto& material : shader.materials)
-			for (auto& shape : material.shapes)
-			{
-				shape.vao.BindInstanceData(shader.program, instanceBuffer, offset,
-					shapeit->instances->size());
-				offset += shapeit->instances->size();
-			}
+    Shader* curShader;
+    Iterate(
+    [&](Shader& shader)
+    {
+        curShader = &shader;
+    },
+    [](Material& m) {},
+    [&](Shape& shape)
+    {
+        shape.vao.BindInstanceData(curShader->program, instanceBuffer, offset,
+            shapeit->instances->size());
+        offset += shapeit->instances->size();
+    });
 
 	instanceBuffer.Data(offset);
 
 	return LocationProxy{ shapeit->instances, objRef };
 }
-void Render::draw() const
+void Render::Draw()
 {
-	//clear the color buffer
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	commonUBO["camera"] = camera;
 	commonUBO.Sync();
 
 	{
 		auto mapping = instanceBuffer.Map(GL_WRITE_ONLY);
 		auto mapit = mapping.begin();
-		for (auto& shader : shaders)
-			for (auto& material : shader.materials)
-				for (auto& shape : material.shapes)
-					mapit = std::copy(shape.instances->begin(), shape.instances->end(), mapit);
+        for (auto& shape : shapes)
+            mapit = std::copy(shape.instances->begin(), shape.instances->end(), mapit);
 	} //unmap
+    
+    Iterate(
+    [](Shader& shader)
+    {
+        shader.program.use();
+    },
+    [](Material& material)
+    {
+        for (GLuint i = 0; i < material.textures.size(); ++i)
+            material.textures[i].Bind(i);
 
-	for (auto& shader : shaders) shader.draw();
-}
+        material.materialProps.Bind();
+    },
+    [](Shape& shape)
+    {
+        shape.vao.Draw();
+    });
 
-void Render::Shader::draw() const
-{
-	program.use();
-	for (auto& material : materials) material.draw();
-}
-
-void Render::Material::draw() const
-{
-	for (GLuint i = 0; i < textures.size(); ++i)
-		textures[i].Bind(i);
-
-	materialProps.Bind();
-
-	for (auto& shape : shapes) shape.draw();
-}
-
-void Render::Shape::draw() const
-{
-	vao.Draw();
 }
 
 const Schema Render::InstData::schema = {
 	{ "transform", 4, GL_FLOAT, 0, 4, 4 * sizeof(float) },
+	{ "object", 1, GL_UNSIGNED_INT, 16 * sizeof(float), 1, 0 },
 };

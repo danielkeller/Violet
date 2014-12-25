@@ -92,3 +92,34 @@ void Tex::Bind(GLuint texUnit) const
 	glActiveTexture(static_cast<GLenum>(static_cast<GLuint>(GL_TEXTURE0) + texUnit));
 	glBindTexture(GL_TEXTURE_2D, textureObject);
 }
+
+IntTex::IntTex(GLsizei width, GLsizei height)
+{
+	glGenTextures(1, &textureObject);
+	glBindTexture(GL_TEXTURE_2D, textureObject);
+	//Ideally this would be GL_BGRA for performance, but lodepng doesn't support it
+	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_R32UI), width, height, 0,
+		GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+}
+
+IntTex::IntTex(IntTex&& other)
+    : textureObject(other.textureObject)
+{
+    other.textureObject = 0;
+}
+
+IntTex::~IntTex()
+{
+	glDeleteTextures(1, &textureObject);
+}
+
+GLuint IntTex::Handle() const
+{
+    return textureObject;
+}
+
+void IntTex::Bind(GLuint texUnit) const
+{
+	glActiveTexture(static_cast<GLenum>(static_cast<GLuint>(GL_TEXTURE0) + texUnit));
+	glBindTexture(GL_TEXTURE_2D, textureObject);
+}

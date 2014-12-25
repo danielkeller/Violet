@@ -64,6 +64,7 @@ public:
         Data(data, IgnoreType);
     }
 
+    //consider using vector-style allocation (round to nearest power of two)
     void Data(size_t size)
     {
         if (byte_len != size*sizeof(T))

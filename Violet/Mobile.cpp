@@ -3,7 +3,7 @@
 
 #include "Eigen/Core"
 
-Mobile::MoveProxy Mobile::Add(const Transform& loc, std::vector<Render::LocationProxy> targets)
+Mobile::MoveProxy Mobile::Create(const Transform& loc, std::vector<Render::LocationProxy> targets)
 {
 	auto ref = data.emplace_back(ObjData{ targets, loc, loc });
 	return MoveProxy{ ref, *this };

@@ -16,18 +16,50 @@
 
 class Render
 {
+	struct InstData
+	{
+		Matrix4f mat;
+        Object obj;
+        InstData(const Matrix4f& m, Object o) : mat(m), obj(o) {}
+		InstData& operator=(const Matrix4f& m) { mat = m; return *this; }
+		static const Schema schema;
+	};
+    using InstanceVec = Permavector<InstData, Eigen::aligned_allocator<InstData>>;
+
 public:
 	class LocationProxy;
 	//Maybe make mobility an option?
 	LocationProxy Create(Object obj, ShaderProgram shader, UBO ubo, std::vector<Tex> texes,
 		VertexData vertData, const Matrix4f& loc);
 	void Destroy(Object obj);
-	void draw() const;
+	void Draw();
 	Matrix4f camera;
 
 	Render();
 	Render(const Render&) = delete;
 	void operator=(const Render&) = delete;
+
+	//A thing that we can move the object with
+	class LocationProxy
+	{
+	public:
+		Matrix4f& operator*();
+		Matrix4f* operator->() { return &**this; }
+		LocationProxy(const LocationProxy& other) = default;
+		LocationProxy(const LocationProxy&& other); //= default
+	private:
+		std::weak_ptr<InstanceVec> buf;
+		InstanceVec::perma_ref obj;
+		friend class Render;
+		LocationProxy(std::weak_ptr<InstanceVec>, InstanceVec::perma_ref);
+	};
+
+    enum Passes
+    {
+        NormalPass,
+        PickerPass,
+        NumPasses
+    };
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -43,31 +75,28 @@ private:
 	struct Shape
 	{
 		VAO vao;
-		using InstanceVec = Permavector<Matrix4f, Eigen::aligned_allocator<Matrix4f>>;
 		std::shared_ptr<InstanceVec> instances;
-		void draw() const;
 
-		Shape(std::tuple<VertexData, ShaderProgram> t)
-			: vao(std::get<1>(t), std::get<0>(t))
+		Shape(const VertexData& vertData, const ShaderProgram& program)
+			: vao(program, vertData)
 			, instances(std::make_shared<InstanceVec>())
 		{}
 
         Shape& operator=(Shape&&) = default;
 		Shape(const Shape&) = delete;
-		Shape(Shape&&); //MSVC sucks and can't default this
+		Shape(Shape&& other) //MSVC sucks and can't default this
+            : vao(std::move(other.vao))
+            , instances(std::move(other.instances))
+        {}
 
-		bool operator==(const std::tuple<VertexData, ShaderProgram>& t)
-		{ return vao == std::get<0>(t);	}
-		bool operator!=(const std::tuple<VertexData, ShaderProgram>& t)
-		{ return !(vao == std::get<0>(t)); }
+        MEMBER_EQUALITY(VertexData, vao)
 	};
 
 	struct Material
 	{
-		container<Shape> shapes;
 		UBO materialProps;
 		std::vector<Tex> textures;
-		void draw() const;
+        container<Shape>::perma_ref begin;
 
 		bool operator==(const std::tuple<UBO, std::vector<Tex>>& t)
 		{
@@ -80,62 +109,45 @@ private:
 		
         Material& operator=(Material&&) = default;
 
-		Material(std::tuple<UBO, std::vector<Tex>> t)
-			: materialProps(std::get<0>(t))
-			, textures(std::get<1>(t))
+		Material(UBO ubo, std::vector<Tex> texes, container<Shape>::perma_ref begin)
+			: materialProps(ubo)
+			, textures(texes)
+            , begin(begin)
 		{}
 		Material(const Material&) = delete;
 		Material(Material&& other)
-			: shapes(std::move(other.shapes))
-			, materialProps(std::move(other.materialProps))
+			: materialProps(std::move(other.materialProps))
 			, textures(std::move(other.textures))
+			, begin(other.begin)
 		{}
 	};
 
 	struct Shader
 	{
 		ShaderProgram program;
-		container<Material> materials;
-		void draw() const;
+        container<Material>::perma_ref begin;
 
-		Shader(ShaderProgram program)
-			: program(program) {}
+		Shader(ShaderProgram program, container<Material>::perma_ref begin)
+			: program(program), begin(begin) {}
 
 		MEMBER_EQUALITY(ShaderProgram, program)
 
         Shader& operator=(Shader&&) = default;
 		Shader(const Shader&) = delete;
 		Shader(Shader&& other)
-			: program(std::move(other.program)), materials(std::move(other.materials))
+			: program(std::move(other.program))
+			, begin(other.begin)
 		{}
 	};
 
-	container<Shader> shaders;
-	struct InstData
-	{
-		Matrix4f mat;
-		InstData& operator=(const Matrix4f& m) { mat = m; return *this; }
-		static const Schema schema;
-	};
+    container<Shader> shaders;
+    container<Material> materials;
+    container<Shape> shapes;
 
-	mutable BufferObject<InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
+    template<class PerShader, class PerMaterial, class PerShape>
+    void Iterate(PerShader psh, PerMaterial pm, PerShape ps);
 
-public:
-	//A thing that we can move the object with
-	class LocationProxy
-	{
-	public:
-		Matrix4f& operator*();
-		Matrix4f* operator->() { return &**this; }
-		LocationProxy(const LocationProxy& other) = default;
-		LocationProxy(const LocationProxy&& other); //= default
-	private:
-		std::weak_ptr<Shape::InstanceVec> buf;
-		Shape::InstanceVec::perma_ref obj;
-		friend class Render;
-		LocationProxy(std::weak_ptr<Shape::InstanceVec>, Shape::InstanceVec::perma_ref);
-	};
-	friend class LocationProxy;
+	BufferObject<InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
 };
 
 #endif

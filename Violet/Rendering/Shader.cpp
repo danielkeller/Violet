@@ -212,6 +212,12 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag)
     //attach vertex and fragment shaders
     glAttachShader(program, vertShdr);
     glAttachShader(program, fragShdr);
+
+    //It doesn't matter what these are, as long as they're always the same.
+    //This lets us swap out shaders that use standard attributes
+    glBindAttribLocation(program, 0, "position");
+    glBindAttribLocation(program, 1, "transform");
+    glBindAttribLocation(program, 2, "object");
     
     //link the program Render
     glLinkProgram(program);

@@ -3,21 +3,24 @@
 #include <vector>
 #include <WrappedIterator.hpp>
 
-static const size_t INVALID_IND = -1;
-
 //Vector with iterator-like objects that can't be invalidated
 template<class T, class Alloc = std::allocator<T>>
 class Permavector
 {
 public:
 	using value_type = T;
+	using size_type = typename std::vector<value_type, Alloc>::size_type;
 private:
 	using storety = std::vector<value_type, Alloc>;
-    using indty = size_t;
+    //trick for declaring integral constants in the header
+    enum : size_type { INVALID_IND = static_cast<size_type>(-1) };
+    using indty = size_type;
     using indsty = std::vector<indty>;
 public:
 
-	Permavector() = default;
+	Permavector()
+        : inds({0}) //past-the-end
+    {}
 	Permavector(std::initializer_list<T> init)
 	{
 		for (auto& v : init)
@@ -49,7 +52,6 @@ public:
 	const_iterator cbegin() const {return store.cbegin();}
 	const_iterator cend() const {return store.cend();}
 
-	using size_type = typename storety::size_type;
 	size_type size() const { return store.size(); }
 	value_type* data() { return store.data(); }
 	const value_type* data() const { return store.data(); }
@@ -65,8 +67,8 @@ public:
 		}
 
 	private:
-		perma_ref(size_t it) : it(it) {}
-		size_t it;
+		perma_ref(typename indsty::difference_type it) : it(it) {}
+		typename indsty::difference_type it;
 		friend class Permavector;
 	};
 
@@ -80,10 +82,21 @@ public:
         return const_cast<Permavector*>(this)->get(r);
     }
 
+    //linear time
+    perma_ref get_perma(const_iterator pos) const
+    {
+        return perma_ref{
+            std::find(inds.begin(), inds.end(), pos - store.begin())
+            - inds.begin()};
+    }
+
 	template<class... Args>
 	perma_ref emplace_back(Args&&... args)
 	{
-        return emplace(end(), std::forward<Args>(args)...);
+        auto indIt = new_ind();
+        inds[indIt] = store.size();
+		store.emplace_back(std::forward<Args>(args)...);
+		return perma_ref{ indIt };
 	}
 
     //this should be const_iterator but libstdc++ has a bug
@@ -91,7 +104,9 @@ public:
 	perma_ref emplace(iterator pos, Args&&... args)
 	{
         auto indIt = new_ind();
-        inds[indIt] = pos - store.begin();
+        auto my_ind = pos - store.begin();
+        for(auto& ind : inds) if (ind >= my_ind) ++ind;
+        inds[indIt] = my_ind;
 		store.emplace(pos, std::forward<Args>(args)...);
 		return perma_ref{ indIt };
 	}
@@ -121,7 +136,7 @@ public:
     }
 
 private:
-    size_t new_ind()
+    typename indsty::difference_type new_ind()
     {
         auto indIt = std::find(inds.begin(), inds.end(), INVALID_IND);
         if (indIt == inds.end())

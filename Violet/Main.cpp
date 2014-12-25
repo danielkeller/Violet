@@ -39,7 +39,7 @@ try
         teapot.vertexData, //Matrix4f::Identity());
         Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix());
 
-	auto moveProxy = m.Add(Transform(), {locProxy}); //{locProxy, locProxyAabb});
+	auto moveProxy = m.Create(Transform(), {locProxy}); //{locProxy, locProxyAabb});
     
 	using clock = std::chrono::system_clock;
 	auto currentTime = clock::now();
@@ -88,7 +88,7 @@ try
 
 		w.PreDraw();
 		r.camera = w.PerspMat() * m.CameraMat();
-		r.draw();
+		r.Draw();
 		w.PostDraw();
     }
     
