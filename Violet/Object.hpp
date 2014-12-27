@@ -20,6 +20,16 @@ public:
     {
         return os << '[' << p.id << ']';
     }
+
+    template<class T>
+    friend struct std::hash;
+};
+
+template<>
+struct std::hash<Object>
+{
+    size_t operator()(Object& o)
+        { return std::hash<std::uint32_t>()(o.id);}
 };
 
 template <typename T>

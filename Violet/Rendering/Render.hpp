@@ -6,13 +6,11 @@
 #include "Object.hpp"
 #include "VAO.hpp"
 #include "Texture.hpp"
-#include "Permavector.hpp"
+#include "Containers/l_map.hpp"
+#include "Containers/l_bag.hpp"
 
 #include <vector>
 #include <memory>
-#include <set>
-
-#include <iostream>
 
 class Render
 {
@@ -24,7 +22,8 @@ class Render
 		InstData& operator=(const Matrix4f& m) { mat = m; return *this; }
 		static const Schema schema;
 	};
-    using InstanceVec = Permavector<InstData, Eigen::aligned_allocator<InstData>>;
+    //todo: use l_map
+    using InstanceVec = l_bag<InstData, Eigen::aligned_allocator<InstData>>;
 
 public:
 	class LocationProxy;
@@ -56,7 +55,6 @@ public:
 
     enum Passes
     {
-        NormalPass,
         PickerPass,
         NumPasses
     };
@@ -70,7 +68,7 @@ private:
 
 	//our container of choice
 	template<class... Args>
-	using container = Permavector<Args...>;
+	using container = l_bag<Args...>;
 
 	struct Shape
 	{

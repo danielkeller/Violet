@@ -1,7 +1,7 @@
 #ifndef AABB_HPP
 #define AABB_HPP
 #include "Mesh.hpp"
-#include "BinTree.hpp"
+#include "Containers/BinTree.hpp"
 
 //#ifdef SOMETHING
 #include "Rendering/VertexData.hpp"

@@ -91,8 +91,8 @@ Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo,
     [&](Shape& shape)
     {
         shape.vao.BindInstanceData(curShader->program, instanceBuffer, offset,
-            shapeit->instances->size());
-        offset += shapeit->instances->size();
+            shape.instances->size());
+        offset += shape.instances->size();
     });
 
 	instanceBuffer.Data(offset);

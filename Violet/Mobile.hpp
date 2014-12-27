@@ -3,7 +3,7 @@
 
 #include "Rendering/Render.hpp"
 #include "Object.hpp"
-#include "Permavector.hpp"
+#include "Containers/l_bag.hpp"
 
 #include <map>
 
@@ -24,7 +24,7 @@ struct Transform
 class Mobile
 {
 	struct ObjData;
-	using PermaRef = Permavector<ObjData, Eigen::aligned_allocator<ObjData>>::perma_ref;
+	using PermaRef = l_bag<ObjData, Eigen::aligned_allocator<ObjData>>::perma_ref;
 
 public:
 	void Update(float alpha);
@@ -66,7 +66,7 @@ private:
 
 	static Matrix4f interp(const Transform& before, const Transform& loc, float alpha);
 
-	Permavector<ObjData, Eigen::aligned_allocator<ObjData>> data;
+	l_bag<ObjData, Eigen::aligned_allocator<ObjData>> data;
 	//It's an exception anyway
 	Transform cameraBefore;
 	Transform cameraLoc;

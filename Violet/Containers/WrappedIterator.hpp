@@ -26,6 +26,7 @@ public:
 	Derived operator++(int) const { auto ret = *DerivedThis(); ++ret; return ret; }
 	Derived& operator--() { --it; return *DerivedThis(); }
 	Derived operator--(int) const { auto ret = *DerivedThis(); --ret; return ret; }
+    //TODO: use std::advance
 	Derived& operator+=(ptrdiff_t o) { it += o; return *DerivedThis(); }
 	Derived operator+(ptrdiff_t o) const { auto ret(*DerivedThis()); ret.it = it + o; return ret; }
 	Derived operator-(ptrdiff_t o) const { auto ret(*DerivedThis()); ret.it = it - o; return ret; }

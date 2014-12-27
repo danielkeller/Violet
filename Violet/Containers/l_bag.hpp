@@ -1,11 +1,11 @@
-#ifndef PERMAVECTOR_HPP
-#define PERMAVECTOR_HPP
+#ifndef L_BAG_HPP
+#define L_BAG_HPP
 #include <vector>
-#include <WrappedIterator.hpp>
+#include "WrappedIterator.hpp"
 
 //Vector with iterator-like objects that can't be invalidated
 template<class T, class Alloc = std::allocator<T>>
-class Permavector
+class l_bag
 {
 public:
 	using value_type = T;
@@ -18,24 +18,24 @@ private:
     using indsty = std::vector<indty>;
 public:
 
-	Permavector()
+	l_bag()
         : inds({0}) //past-the-end
     {}
-	Permavector(std::initializer_list<T> init)
+	l_bag(std::initializer_list<T> init)
 	{
 		for (auto& v : init)
 			emplace_back(v);
 	}
-	Permavector(Permavector&& other)
+	l_bag(l_bag&& other)
 		: store(std::move(other.store))
         , inds(std::move(other.inds))
 	{}
-	Permavector(const Permavector& other)
+	l_bag(const l_bag& other)
 		: store(other.store)
         , inds(other.inds)
 	{}
 
-    Permavector& operator=(Permavector other)
+    l_bag& operator=(l_bag other)
     {
         swap(store, other.store);
         swap(inds, other.inds);
@@ -69,7 +69,7 @@ public:
 	private:
 		perma_ref(typename indsty::difference_type it) : it(it) {}
 		typename indsty::difference_type it;
-		friend class Permavector;
+		friend class l_bag;
 	};
 
     iterator get(perma_ref r)
@@ -79,7 +79,7 @@ public:
 
     const_iterator get(perma_ref r) const
     {
-        return const_cast<Permavector*>(this)->get(r);
+        return const_cast<l_bag*>(this)->get(r);
     }
 
     //linear time
@@ -123,6 +123,7 @@ public:
     }
 
     //does not guarantee order of other elements
+    /*
     iterator fast_erase(const_iterator pos)
     {
         auto my_ind = pos - store.begin();
@@ -134,6 +135,7 @@ public:
         swap(*pos, store.back());
         store.pop_back();
     }
+    */
 
 private:
     typename indsty::difference_type new_ind()

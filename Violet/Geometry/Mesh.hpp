@@ -3,7 +3,7 @@
 #include <vector>
 #include "Resource.hpp"
 #include "Shapes.hpp"
-#include "WrappedIterator.hpp"
+#include "Containers/WrappedIterator.hpp"
 
 class VAO;
 class ShaderProgram;
