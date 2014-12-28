@@ -55,6 +55,7 @@ public:
 	size_type size() const { return store.size(); }
 	value_type* data() { return store.data(); }
 	const value_type* data() const { return store.data(); }
+    bool empty() const { return store.empty(); }
 
 	class perma_ref
 	{

@@ -30,7 +30,7 @@ static inline void printStackTrace( FILE *out = stderr )
    // iterate over the returned symbol lines. skip the first, it is the
    // address of this function.
    // Also skip the last two, they are in libc
-   for ( unsigned int i = 5; i < addrlen - 2; i++ )
+   for ( unsigned int i = 4; i < addrlen - 2; i++ )
    {
       char* begin_name   = NULL;
       char* begin_offset = NULL;

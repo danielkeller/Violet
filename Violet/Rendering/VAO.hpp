@@ -40,7 +40,7 @@ public:
 	{
 		auto bound = Bind();
 		buf.Bind();
-		BindArrayBufToShader(program, T::schema, sizeof(T), offset, true);
+		BindArrayBufToShader(program, AttribTraits<T>::schema, sizeof(T), offset, true);
 		numInstances = len;
 	}
 

@@ -12,13 +12,19 @@ struct WavefrontVert
 	Vector3f pos;
 	Vector3f norm;
 	Eigen::Vector2f uv;
-	static const Schema schema;
 };
+/*
+template<>
+AttribTraits<WavefrontVert>
+{
+    static const Schema schema;
+};*/
 
-const Schema WavefrontVert::schema = {
-	{"position", 3, GL_FLOAT, 0,                 1},
-	{"normal",   3, GL_FLOAT, 3 * sizeof(float), 1},
-	{"texCoord", 2, GL_FLOAT, 6 * sizeof(float), 1},
+template<>
+const Schema AttribTraits<WavefrontVert>::schema = {
+    {"position", 3, GL_FLOAT, 0,                 1},
+    {"normal",   3, GL_FLOAT, 3 * sizeof(float), 1},
+    {"texCoord", 2, GL_FLOAT, 6 * sizeof(float), 1},
 };
 
 Wavefront::Wavefront(std::string filename)
@@ -27,8 +33,8 @@ Wavefront::Wavefront(std::string filename)
 {
 	shaderProgram.TextureOrder({ "tex" });
 
-	std::shared_ptr<VertexData_detail::VertexDataResource> vertptr
-		= VertexData_detail::VertexDataResource::FindResource(filename);
+	std::shared_ptr<VertexData::VertexDataResource> vertptr
+		= VertexData::VertexDataResource::FindResource(filename);
 	std::shared_ptr<Mesh::MeshResource> meshptr = Mesh::MeshResource::FindResource(filename);
 	
 	if (vertptr && meshptr)
@@ -101,7 +107,7 @@ Wavefront::Wavefront(std::string filename)
 				norm_it < norms.end() ? Vector3f{ *norm_it++ } : Vector3f::Zero(),
 				uv_it < uvs.end() ? Vector2f{ *uv_it++ } : Vector2f::Zero() });
 
-		vertexData = VertexData_detail::VertexDataResource::MakeShared(
+		vertexData = VertexData::VertexDataResource::MakeShared(
 			filename, attribs, indices);
 	}
 

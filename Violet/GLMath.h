@@ -1,6 +1,4 @@
-#include "stdafx.h"
-
-Matrix4f perspective(float fovy, float aspect, float zNear, float zFar)
+inline Matrix4f perspective(float fovy, float aspect, float zNear, float zFar)
 {
     assert(aspect > 0);
     assert(zFar > zNear);
@@ -15,7 +13,7 @@ Matrix4f perspective(float fovy, float aspect, float zNear, float zFar)
     return res;
 }
 
-Matrix4f lookAt(Vector3f eye, Vector3f center, Vector3f up)
+inline Matrix4f lookAt(Vector3f eye, Vector3f center, Vector3f up)
 {
     Vector3f f = (center - eye).normalized();
     Vector3f u = up.normalized();

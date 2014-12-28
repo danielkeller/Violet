@@ -35,6 +35,23 @@ using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>
 	bool operator!=(const MemberTy& other) const \
 	{ return !(*this == other); }
 
+#define HAS_HASH template<class T> friend struct std::hash;
+#define MEMBER_HASH(type, member) template<> struct std::hash<type> \
+    { size_t operator()(const type& v) const\
+        { return std::hash<decltype(type::member)>()(v.member);}};
+#define HASH_DECL(thing, type) thing type; template<> struct std::hash<type> \
+    { size_t operator()(const type& v) const; };
+#define HASH_DEFN(type, member) template<> size_t std::hash<type>:: \
+    operator()(const type& v) const\
+        { return std::hash<decltype(type::member)>()(v.member);}
+
 #include <utility>
 //combine std and :: overload set for swap
 using std::swap;
+
+template <class T>
+inline void hash_combine(std::size_t& seed, const T& v)
+{
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}

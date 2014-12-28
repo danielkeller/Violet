@@ -75,7 +75,7 @@ Window::Window()
     if (!window)
 		throw "Could not create window";
 
-	glfwGetCursorPos(window, &mouseOld[0], &mouseOld[1]);
+	GetInput();
 
 	//add our keyboard input callback
 	glfwSetKeyCallback(window, key_callback);
@@ -112,19 +112,26 @@ Window::~Window()
 void Window::GetInput()
 {
 	mouseOld = mouseCur;
-	glfwGetCursorPos(window, &mouseCur[0], &mouseCur[1]);
+    double x, y;
+	glfwGetCursorPos(window, &x, &y);
+    mouseCur << x, y;
 }
 
-Eigen::Vector2d Window::mouseDelta()
+Eigen::Vector2f Window::mouseDeltaPct()
 {
-	return (mouseCur - mouseOld).array() / Eigen::Vector2d(width, height).array();
+	return (mouseCur - mouseOld).array() / dim.cast<float>().array();
+}
+
+Eigen::Vector2f Window::mousePosPct()
+{
+	return mouseCur.array() / dim.cast<float>().array();
 }
 
 void Window::PreDraw()
 {
 	//set the GL draw surface to the same size as the window
-	glfwGetFramebufferSize(window, &width, &height);
-	glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+	glfwGetFramebufferSize(window, &dim.x(), &dim.y());
+	glViewport(0, 0, (GLsizei)dim.x(), (GLsizei)dim.y());
 	//clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -148,5 +155,5 @@ Matrix4f Window::PerspMat()
 		0, 0,-1, 0,
 		0, 1, 0, 0,
 		0, 0, 0, 1;
-	return perspective((float)M_PI / 2.f, (float)width / height, .01f, 100.f) * z_upToY_up;
+	return perspective((float)M_PI / 2.f, (float)dim.x() / dim.y(), .01f, 100.f) * z_upToY_up;
 }

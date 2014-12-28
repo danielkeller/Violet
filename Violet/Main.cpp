@@ -2,6 +2,7 @@
 #include "Wavefront.hpp"
 #include "Window.hpp"
 #include "Rendering/Render.hpp"
+#include "Rendering/FBO.hpp"
 #include "Geometry/Mesh.hpp"
 #include "Geometry/AABB.hpp"
 #include "Profiling.hpp"
@@ -30,12 +31,23 @@ try
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-	auto locProxy = r.Create(teapotObj, teapot.shaderProgram, {}, { { "assets/capsule.png" } },
+    ShaderProgram pickerShader {"assets/picker"};
+    IntTex pickTex({512, 512});
+    FBO pickerFBO;
+    Object pickerObj;
+    //ShaderProgram simpleShader = std::string("assets/simple");
+    //r.Create(pickerObj, {simpleShader, {}}, {{{{}, {pickTex}}, {}}}, UnitBox, Matrix4f::Identity());
+    pickerFBO.AttachTex(pickTex);
+    pickerFBO.CheckStatus();
+
+	auto locProxy = r.Create(teapotObj, {teapot.shaderProgram, pickerShader},
+        {{{{}, {{"assets/capsule.png"}}}, {}}},
         teapot.vertexData, Matrix4f::Identity());
-	//auto locProxyAabb = r.Create(aabbObj, aabb.shaderProgram, {}, {},
+	//auto locProxyAabb = r.Create(aabbObj, aabb.shaderProgram, {{}, {}},
 	//	aabb.vertData, Matrix4f::Identity());
 
-	r.Create(teapot2Obj, teapot.shaderProgram, {}, { { "assets/capsule.png" } },
+	r.Create(teapot2Obj, {teapot.shaderProgram, pickerShader},
+        {{{{}, {{"assets/capsule.png"}}}, {}}},
         teapot.vertexData, //Matrix4f::Identity());
         Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix());
 
@@ -68,13 +80,15 @@ try
 			//physics step
 			moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(0.04f, Vector3f::UnitY()) };
 
+            std::cout << pickerFBO.ReadPixel(w.mousePosPct()) << '\n';
+
 			if (glfwGetMouseButton(w.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 			{
 				m.CameraLoc().rot *= Quaternionf{
-					Eigen::AngleAxisf(-float(w.mouseDelta().x()*3.f),
+					Eigen::AngleAxisf(-w.mouseDeltaPct().x()*3.f,
 					Vector3f::UnitZ()) };
 				m.CameraLoc().rot *= Quaternionf{
-					Eigen::AngleAxisf(float(w.mouseDelta().y()*3.f),
+					Eigen::AngleAxisf(w.mouseDeltaPct().y()*3.f,
 					m.CameraLoc().rot.conjugate() * Vector3f::UnitX()) };
 			}
 
@@ -85,6 +99,13 @@ try
 		float alpha = std::chrono::duration_cast<millifloat>(accumulator).count()
 			/ std::chrono::duration_cast<millifloat>(dt).count();
 		m.Update(alpha);
+
+        {
+            auto bound = pickerFBO.Bind(GL_DRAW_FRAMEBUFFER);
+            pickerFBO.PreDraw();
+            r.camera = pickerFBO.PerspMat() * m.CameraMat();
+            r.DrawPass(PickerPass);
+        }
 
 		w.PreDraw();
 		r.camera = w.PerspMat() * m.CameraMat();

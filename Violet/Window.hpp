@@ -15,14 +15,15 @@ public:
 	void PostDraw();
 
 	GLFWwindow* window;
-	int width, height;
+	Eigen::Vector2i dim;
 
 	Matrix4f PerspMat();
-	Eigen::Vector2d mouseDelta();
+	Vector2f mouseDeltaPct();
+	Vector2f mousePosPct();
 
 
 private:
-	Eigen::Vector2d mouseOld, mouseCur;
+	Vector2f mouseOld, mouseCur;
 };
 
 //print out a message if there are GL errors

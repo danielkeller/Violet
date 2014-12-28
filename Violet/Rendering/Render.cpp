@@ -2,6 +2,8 @@
 #include "Render.hpp"
 #include <algorithm>
 
+using namespace Render_detail;
+
 Render::Render()
 	: simpleShader("assets/simple")
 	, commonUBO(simpleShader.MakeUBO("Common", "Common"))
@@ -46,26 +48,26 @@ void Render::Iterate(PerShader psh, PerMaterial pm, PerShape ps)
     }
 }
 
-Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo,
-	std::vector<Tex> texes, VertexData vertData, const Matrix4f& loc)
+Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
+    std::array<Material, AllPasses> mat, VertexData vertData, const Matrix4f& loc)
 {
-    auto shaderit = std::find(shaders.begin(), shaders.end(), shader);
+    auto shaderit = std::find(shaders.begin(), shaders.end(), shader[0]);
     //special case: shaderit is, or will be, the last one
     auto matend = shaderit + 1 >= shaders.end() ? materials.get_perma(materials.end()) : shaderit[1].begin;
     if (shaderit == shaders.end())
     {
         //material range is empty
-        shaderit = shaders.get(shaders.emplace_back(shader, matend));
+        shaderit = shaders.get(shaders.emplace_back(shader[0], matend));
     } //shaderit is now valid
 
     auto matbegin = materials.get(shaderit->begin);
-    auto materialit = std::find(matbegin, materials.get(matend), std::make_tuple(ubo, texes));
+    auto materialit = std::find(matbegin, materials.get(matend), mat[0]);
     //special case: materialit is, or will be, the last one
     auto shapeend = materialit + 1 >= materials.end() ? shapes.get_perma(shapes.end()) : materialit[1].begin;
     if (materialit == materials.get(matend))
     {
         //put it at the beginning of the shader's range
-        shaderit->begin = materials.emplace(matbegin, ubo, texes, shapeend);
+        shaderit->begin = materials.emplace(matbegin, mat[0], shapeend);
         materialit = materials.get(shaderit->begin);
     } //materialit is now valid
 
@@ -74,11 +76,17 @@ Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo,
     if (shapeit == shapes.get(shapeend))
     {
         //put it at the beginning of the material's range
-        materialit->begin = shapes.emplace(shapebegin, vertData, shader);
+        materialit->begin = shapes.emplace(shapebegin, vertData, shader[0]);
         shapeit = shapes.get(materialit->begin);
     } //shapeit is now valid
 
 	auto objRef = shapeit->instances->emplace_back(loc, obj);
+
+    for (size_t i = 0; i < NumPasses; ++i)
+    {
+        shapeit->passShader[i] = passShaders.insert(shader[i+1]).first;
+        shapeit->passMaterial[i] = passMaterials.insert(mat[i+1]).first;
+    }
 
 	size_t offset = 0;
     Shader* curShader;
@@ -87,7 +95,7 @@ Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo,
     {
         curShader = &shader;
     },
-    [](Material& m) {},
+    [](T_Material& m) {},
     [&](Shape& shape)
     {
         shape.vao.BindInstanceData(curShader->program, instanceBuffer, offset,
@@ -99,6 +107,15 @@ Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, UBO ubo,
 
 	return LocationProxy{ shapeit->instances, objRef };
 }
+
+void Material::use() const
+{
+    for (GLuint i = 0; i < textures.size(); ++i)
+        textures[i].Bind(i);
+
+    materialProps.Bind();
+}
+
 void Render::Draw()
 {
 	commonUBO["camera"] = camera;
@@ -116,12 +133,9 @@ void Render::Draw()
     {
         shader.program.use();
     },
-    [](Material& material)
+    [](T_Material& material)
     {
-        for (GLuint i = 0; i < material.textures.size(); ++i)
-            material.textures[i].Bind(i);
-
-        material.materialProps.Bind();
+        material.mat.use();
     },
     [](Shape& shape)
     {
@@ -130,7 +144,32 @@ void Render::Draw()
 
 }
 
-const Schema Render::InstData::schema = {
+void Render::DrawPass(int pass)
+{
+	commonUBO["camera"] = camera;
+	commonUBO.Sync();
+
+    auto curShader = passShaders.end();
+    auto curMat = passMaterials.end();
+
+    for (const auto& shape : shapes)
+    {
+        if (curShader != shape.passShader[pass])
+        {
+            curShader = shape.passShader[pass];
+            curShader->use();
+        }
+        if (curMat != shape.passMaterial[pass])
+        {
+            curMat = shape.passMaterial[pass];
+            curMat->use();
+        }
+        shape.vao.Draw();
+    }
+}
+
+template<>
+const Schema AttribTraits<InstData>::schema = {
 	{ "transform", 4, GL_FLOAT, 0, 4, 4 * sizeof(float) },
 	{ "object", 1, GL_UNSIGNED_INT, 16 * sizeof(float), 1, 0 },
 };

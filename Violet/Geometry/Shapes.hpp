@@ -1,7 +1,6 @@
 #ifndef SHAPES_HPP
 #define SHAPES_HPP
 
-#include "stdafx.h"
 #include <array>
 
 using LineSegment = std::pair<float, float>;

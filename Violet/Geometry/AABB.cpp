@@ -62,10 +62,10 @@ struct AABBVert
 
 	Vector3f pos;
 	Vector3f color;
-	static const Schema schema;
 };
 
-const Schema AABBVert::schema = {
+template<>
+const Schema AttribTraits<AABBVert>::schema = {
 		{ "position", 3, GL_FLOAT, 0, 1 },
 		{ "color", 3, GL_FLOAT, 3 * sizeof(float), 1 },
 };
@@ -104,6 +104,6 @@ ShowAABB::ShowAABB(const AABB& aabb)
 		});
 	}
 
-	vertData = VertexData_detail::VertexDataResource::MakeShared(
+	vertData = VertexData::VertexDataResource::MakeShared(
 		"#debug#", attribs, indices);
 }

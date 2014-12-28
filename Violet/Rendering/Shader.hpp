@@ -14,6 +14,8 @@ class ShaderProgram
 	struct ShaderResource;
 
 public:
+    ShaderProgram() : ShaderProgram("assets/blank") {}
+
 	ShaderProgram(std::string path);
 
 	//Enable this program for rendering
@@ -36,7 +38,10 @@ private:
 
 	GLuint program;
 	std::shared_ptr<ShaderResource> resource;
+    HAS_HASH
 };
+
+MEMBER_HASH(ShaderProgram, program)
 
 //Uniform Buffer Object
 class UBO
@@ -100,6 +105,9 @@ private:
 		template<GLenum ty, typename T>
 		UBO::Proxy& AssignOpHelper(const T&);
 	};
+    HAS_HASH
 };
+
+MEMBER_HASH(UBO, resource)
 
 #endif
