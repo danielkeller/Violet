@@ -4,16 +4,22 @@ import os
 import subprocess
 import cPickle as pickle
 import hashlib
+import platform
 
 #glLoadGenFlags = ['-style=pointer_c', '-spec=gl', '-version=3.3', '-profile=core', '-stdext=gl_ubiquitous.txt']
 #glLoadGenOutput = 'GL/core_3_3'
 #glLoadGenExts = [] #['ARB_debug_output']
 
-cflags = ['-g', '-Wall', '-Wno-missing-braces', '-Werror', '-pedantic', '-I.', '-IViolet', '-ferror-limit=3', '-O2']
+cflags = ['-g', '-Wall', '-Wno-missing-braces', '-Wno-deprecated-declarations', '-Werror', '-pedantic', '-I.', '-IViolet', '-ferror-limit=3', '-O2']
 cppflags = ['-std=c++11']
 sourcedirs = ['Violet', 'Lodepng', 'GL']
-libs = ['-lGL', '-lGLU', 'GLFW/libglfw3.a', '-lX11', '-lXxf86vm', '-lpthread', '-lXrandr', '-lXi', '-lXinerama', '-lXcursor'] + ['-rdynamic']
-executable = 'violet'
+libgl = (['-L/System/Library/Frameworks', '-framework', 'OpenGL']
+    if platform.system() == 'Darwin' else ['-lGL', '-lGLU'])
+libglfw = (['-framework', 'Cocoa', '-framework', 'OpenGL', '-framework', 'IOKit', '-framework', 'CoreVideo', 'GLFW/libglfw3_mac.a']
+    if platform.system() == 'Darwin'
+    else ['GLFW/libglfw3.a' '-lX11', '-lXxf86vm', '-lpthread', '-lXrandr', '-lXi', '-lXinerama', '-lXcursor'])
+libs = libgl + libglfw + ['-rdynamic']
+executable = 'violet.o'
 
 def makedir(dir):
     return [os.path.join(path,fname) for path,_,fnames in os.walk(dir) for fname in fnames

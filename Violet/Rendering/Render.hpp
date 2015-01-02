@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <memory>
+#include <array>
 
 enum Passes
 {
