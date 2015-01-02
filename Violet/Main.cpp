@@ -32,13 +32,15 @@ try
 	//ShowAABB aabb(teapotAabb);
 
     ShaderProgram pickerShader {"assets/picker"};
-    IntTex pickTex({512, 512});
-    FBO pickerFBO;
-    Object pickerObj;
-    //ShaderProgram simpleShader = std::string("assets/simple");
-    //r.Create(pickerObj, {simpleShader, {}}, {{{{}, {pickTex}}, {}}}, UnitBox, Matrix4f::Identity());
-    pickerFBO.AttachTex(pickTex);
+    TypedTex<std::uint32_t> pickTex{TexDim{512, 512}};
+    FBO<std::uint32_t> pickerFBO{pickTex};
+    pickerFBO.AttachDepth(RenderBuffer{GL_DEPTH_COMPONENT, {512, 512}});
     pickerFBO.CheckStatus();
+    Object pickerObj;
+    ShaderProgram pickerDebugShader("assets/picker_debug");
+    r.Create(pickerObj, {pickerDebugShader, {}}, {{{{}, {pickTex}}, {}}}, UnitBox, Matrix4f::Identity());
+
+    //pickerShader = teapot.shaderProgram;
 
 	auto locProxy = r.Create(teapotObj, {teapot.shaderProgram, pickerShader},
         {{{{}, {{"assets/capsule.png"}}}, {}}},
@@ -103,7 +105,6 @@ try
         {
             auto bound = pickerFBO.Bind(GL_DRAW_FRAMEBUFFER);
             pickerFBO.PreDraw();
-            r.camera = pickerFBO.PerspMat() * m.CameraMat();
             r.DrawPass(PickerPass);
         }
 

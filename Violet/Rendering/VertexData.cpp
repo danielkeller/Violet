@@ -9,9 +9,9 @@ struct SimpleVert
 };
 
 std::vector<SimpleVert> boxVerts = {
-    {{0, 0, 0}, {0, 0}},
-    {{1, 0, 0}, {1, 0}},
-    {{0, 1, 0}, {0, 1}},
+    {{-1, -1, 0}, {0, 0}},
+    {{1, -1, 0}, {1, 0}},
+    {{-1, 1, 0}, {0, 1}},
     {{1, 1, 0}, {1, 1}}
 };
 std::vector<TriInd> boxInds = {

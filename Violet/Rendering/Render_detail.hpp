@@ -54,8 +54,8 @@ namespace Render_detail
 	{
 		VAO vao;
 		std::shared_ptr<InstanceVec> instances;
-        std::unordered_set<ShaderProgram>::iterator passShader[NumPasses];
-        std::unordered_set<Material>::iterator passMaterial[NumPasses];
+        std::array<std::unordered_set<ShaderProgram>::iterator, NumPasses> passShader;
+        std::array<std::unordered_set<Material>::iterator, NumPasses> passMaterial;
 
 		Shape(const VertexData& vertData, const ShaderProgram& program)
 			: vao(program, vertData)
@@ -67,6 +67,8 @@ namespace Render_detail
 		Shape(Shape&& other) //MSVC sucks and can't default this
             : vao(std::move(other.vao))
             , instances(std::move(other.instances))
+            , passShader(std::move(other.passShader))
+            , passMaterial(std::move(other.passMaterial))
         {}
 
         MEMBER_EQUALITY(VertexData, vao)

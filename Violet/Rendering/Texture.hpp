@@ -2,21 +2,28 @@
 #define TEXTURE_HPP
 
 #include "Resource.hpp"
+#include "MappedFile.hpp"
+#include "Lodepng/lodepng.hpp"
+#include <iostream>
+#include <fstream>
 
 using TexDim = Eigen::Matrix<GLsizei, 2, 1>;
 
 class Tex
 {
-	struct TexResource;
-
 public:
 	Tex(std::string path);
 
 	void Bind(GLuint texUnit) const;
+    GLuint Handle() const;
+    TexDim Dim() const;
+
 	BASIC_EQUALITY(Tex, textureObject)
 
-private:
+protected:
 	GLuint textureObject;
+
+	struct TexResource;
 	std::shared_ptr<TexResource> resource;
 	Tex(std::shared_ptr<TexResource> ptr);
     HAS_HASH
@@ -24,24 +31,34 @@ private:
 
 MEMBER_HASH(Tex, textureObject)
 
-//TODO:
-//template<class Pixel>
-//PixelTraits<Pixel>::format etc
-//integer texture for screen picking
-class IntTex
+//TODO: Pixel.hpp
+template<class T>
+struct PixelTraits
+{
+    static GLenum internalFormat;
+    static GLenum format;
+    static GLenum type;
+};
+
+using RGBA8Px = Eigen::Matrix<unsigned char, 4, 1>;
+
+template<class Pixel>
+class TypedTex : public Tex
 {
 public:
-    IntTex(TexDim dim);
-    IntTex(const IntTex&) = delete;
-    IntTex(IntTex&&);
-    ~IntTex();
-
-	void Bind(GLuint texUnit) const;
-    GLuint Handle() const;
-    TexDim Dim() const;
-private:
-	GLuint textureObject;
-    TexDim dim;
+    TypedTex(TexDim dim);
+	TypedTex(std::string path)
+        : Tex(path) {}
+    HAS_HASH
 };
+
+template<class Pixel>
+struct std::hash<TypedTex<Pixel>>
+{
+    size_t operator()(const TypedTex<Pixel>& v) const
+        { return std::hash<GLuint>()(v.textureObject);}
+};
+
+#include "Texture_detail.hpp"
 
 #endif

@@ -18,6 +18,8 @@ using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>
 #define PI 3.141592653589793238463
 #define PI_F 3.14159265358979f
 
+//#define _GLIBCXX_DEBUG
+
 #define GLFW_INCLUDE_NONE
 
 //enable stack traces on GL errors

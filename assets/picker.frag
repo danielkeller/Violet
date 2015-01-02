@@ -6,5 +6,5 @@ out uint outputColor;
 
 void main()
 {
-   outputColor = objectFrag;
+   outputColor = 5u; //objectFrag;
 }

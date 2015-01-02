@@ -88,15 +88,15 @@ Window::Window()
 #ifdef GL_DEBUG
     //enable for all errors
 	glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-	glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW_ARB,
-		0, nullptr, GL_FALSE);
+	//glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW_ARB,
+	//	0, nullptr, GL_FALSE);
     //get stacktrace in correct thread & function
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
     glDebugMessageCallbackARB(glDebugProc, nullptr);
 #endif
 
 	//Draw the correct sides of things
-	glCullFace(GL_BACK);
+	glCullFace(GL_FRONT_AND_BACK);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	//clear to black

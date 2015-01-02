@@ -7,28 +7,6 @@
 #include <iostream>
 #include <fstream>
 
-struct Tex::TexResource : public Resource<TexResource>
-{
-	TexResource(TexResource &&other)
-		: ResourceTy(std::move(other))
-		, textureObject(other.textureObject)
-	{
-		other.textureObject = 0;
-	}
-
-	//free resources associated with this program
-	~TexResource();
-
-	//object is not copyable
-	TexResource(const TexResource&) = delete;
-	TexResource& operator=(const TexResource&) = delete;
-
-	//Construct from given file path
-	TexResource(std::string path);
-
-	GLuint textureObject;
-};
-
 Tex::Tex(std::string path)
 	: Tex(TexResource::FindOrMake(path))
 {}
@@ -39,6 +17,12 @@ Tex::Tex(std::shared_ptr<TexResource> ptr)
 {}
 
 std::vector<unsigned char> PNGmagic = { 0x89, 0x50, 0x4e, 0x47 };
+
+Tex::TexResource::TexResource(TexDim dim)
+    : ResourceTy("#blankTexture#"), dim(dim)
+{
+	glGenTextures(1, &textureObject);
+}
 
 Tex::TexResource::TexResource(std::string path)
 	: ResourceTy(path)
@@ -53,13 +37,14 @@ Tex::TexResource::TexResource(std::string path)
 	std::vector<unsigned char> magic(file.Data<unsigned char>(), file.Data<unsigned char>() + 4);
 
 	std::vector<unsigned char> image;
-	unsigned int width, height;
 
 	if (magic == PNGmagic)
 	{
+        unsigned int width, height;
 		unsigned int error = lodepng::decode(image, width, height, file.Data<unsigned char>(), file.Size());
 		if (error)
 			throw std::runtime_error(std::string("PNG decoding error: ") + lodepng_error_text(error));
+        dim << width, height;
 	}
 	else
 	{
@@ -69,7 +54,7 @@ Tex::TexResource::TexResource(std::string path)
 	glGenTextures(1, &textureObject);
 	glBindTexture(GL_TEXTURE_2D, textureObject);
 	//Ideally this would be GL_BGRA for performance, but lodepng doesn't support it
-	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_RGBA), width, height, 0,
+	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_RGBA), dim.x(), dim.y(), 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, image.data());
 
 	//set some reasonable defaults
@@ -93,40 +78,26 @@ void Tex::Bind(GLuint texUnit) const
 	glBindTexture(GL_TEXTURE_2D, textureObject);
 }
 
-IntTex::IntTex(TexDim dim)
-    : dim(dim)
+TexDim Tex::Dim() const
 {
-	glGenTextures(1, &textureObject);
-	glBindTexture(GL_TEXTURE_2D, textureObject);
-	//Ideally this would be GL_BGRA for performance, but lodepng doesn't support it
-	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_R32UI), dim.x(), dim.y(), 0,
-		GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+    return resource->dim;
 }
 
-IntTex::IntTex(IntTex&& other)
-    : textureObject(other.textureObject)
-    , dim(other.dim)
-{
-    other.textureObject = 0;
-}
-
-IntTex::~IntTex()
-{
-	glDeleteTextures(1, &textureObject);
-}
-
-GLuint IntTex::Handle() const
+GLuint Tex::Handle() const
 {
     return textureObject;
 }
 
-TexDim IntTex::Dim() const
-{
-    return dim;
-}
+template<>
+GLenum PixelTraits<std::uint32_t>::internalFormat = GL_R32UI;
+template<>
+GLenum PixelTraits<std::uint32_t>::format = GL_RED_INTEGER;
+template<>
+GLenum PixelTraits<std::uint32_t>::type = GL_UNSIGNED_INT;
 
-void IntTex::Bind(GLuint texUnit) const
-{
-	glActiveTexture(static_cast<GLenum>(static_cast<GLuint>(GL_TEXTURE0) + texUnit));
-	glBindTexture(GL_TEXTURE_2D, textureObject);
-}
+template<>
+GLenum PixelTraits<RGBA8Px>::internalFormat = GL_RGBA8;
+template<>
+GLenum PixelTraits<RGBA8Px>::format = GL_RGBA;
+template<>
+GLenum PixelTraits<RGBA8Px>::type = GL_UNSIGNED_BYTE;

@@ -58,7 +58,7 @@ struct ShaderProgram::ShaderResource : public Resource<ShaderResource>
 
 	//the actual GL program reference
 	GLuint program;
-	void init(std::istream &vert, std::istream &frag);
+	void init(std::istream &vert, std::istream &frag, const std::string& vertName, const std::string& fragName);
 
 	Uniforms uniforms;
 };
@@ -80,7 +80,7 @@ ShaderProgram::ShaderResource::ShaderResource(std::string path)
 {
     std::ifstream vert(path + ".vert");
     std::ifstream frag(path + ".frag");
-    init(vert, frag);
+    init(vert, frag, path + ".vert", path + ".frag");
 }
 
 ShaderProgram::ShaderResource::ShaderResource(ShaderResource &&other)
@@ -166,7 +166,7 @@ void ShaderProgram::TextureOrder(const std::vector<std::string>& order)
 	}
 }
 
-GLuint CreateShader(GLenum eShaderType, std::istream &t)
+GLuint CreateShader(GLenum eShaderType, std::istream &t, const std::string& name)
 {
     if (!t)
         throw "Shader file not found";
@@ -195,19 +195,20 @@ GLuint CreateShader(GLenum eShaderType, std::istream &t)
 
         //print error message
         glGetShaderInfoLog(shader, infoLogLength, NULL, infoLog.data());
-        std::cerr << "Compile failure in shader: " << infoLog.data() << "\n";
+        throw std::runtime_error(name + ':' + infoLog.data());
     }
 
     return shader;
 }
 
-void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag)
+void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag,
+    const std::string& vertName, const std::string& fragName)
 {
     //create our empty program Render
     program = glCreateProgram();
 
-    GLuint vertShdr = CreateShader(GL_VERTEX_SHADER, vert);
-    GLuint fragShdr = CreateShader(GL_FRAGMENT_SHADER, frag);
+    GLuint vertShdr = CreateShader(GL_VERTEX_SHADER, vert, vertName);
+    GLuint fragShdr = CreateShader(GL_FRAGMENT_SHADER, frag, fragName);
 
     //attach vertex and fragment shaders
     glAttachShader(program, vertShdr);
@@ -232,7 +233,7 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag)
         std::vector<GLchar> infoLog(infoLogLength + 1);
 
         glGetProgramInfoLog(program, infoLogLength, NULL, infoLog.data());
-        std::cerr << "Linker failure: " << infoLog.data() << "\n";
+        throw std::runtime_error("Linker failure: " + Name() + infoLog.data());
     }
 	else
 		uniforms = Uniforms(program);
@@ -303,7 +304,8 @@ const Uniforms::Uniform& Uniforms::Block::operator[](const std::string& n) const
 {
 	auto it = std::find_if(uniforms.begin(), uniforms.end(), [&n](const Uniforms::Uniform& u)
 	{return u.name == n; });
-	assert(it != uniforms.end());
+	if (it == uniforms.end())
+        throw std::runtime_error("No uniform '" + n + "' in block '" + name + "'");
 	return *it;
 }
 
@@ -311,7 +313,8 @@ const Uniforms::Block& Uniforms::operator[](const std::string& n) const
 {
 	auto it = std::find_if(blocks.begin(), blocks.end(), [&n](const Uniforms::Block& u)
 	{return u.name == n; });
-	assert(it != blocks.end());
+	if (it == blocks.end())
+        throw std::runtime_error("No block '" + n + "'");
 	return *it;
 }
 
