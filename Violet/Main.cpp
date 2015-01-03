@@ -13,6 +13,8 @@
 #include <iostream>
 #include <chrono>
 
+#include <unistd.h>
+
 int main(void)
 try
 {
@@ -20,10 +22,10 @@ try
 
 	//Components
 	Window w;
-	Render r;
+    Render r;
 	Mobile m;
-
-    //load the Render
+    
+    //load the object
 	Object teapotObj, teapot2Obj;
 	Wavefront teapot{"assets/capsule.obj"};
 
@@ -119,13 +121,19 @@ try
 }
 catch (const char* mesg)
 {
-    std::cerr << mesg << "\nPress enter to exit...\n";
+    std::cerr << mesg << "\n";
+#ifndef __APPLE__
+    std::cerr << "Press enter to exit...\n";
     getchar();
+#endif
     return EXIT_FAILURE;
 }
 catch (std::exception &ex)
 {
-	std::cerr << ex.what() << "\nPress enter to exit...\n";
-	getchar();
+    std::cerr << ex.what() << "\n";
+#ifndef __APPLE__
+    std::cerr << "Press enter to exit...\n";
+    getchar();
+#endif
 	return EXIT_FAILURE;
 }

@@ -1,5 +1,4 @@
-#version 130
-#extension GL_ARB_uniform_buffer_object : require
+#version 330
 
 in vec3 position;
 in vec3 normal;

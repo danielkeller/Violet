@@ -1,5 +1,4 @@
-#version 130
-#extension GL_ARB_uniform_buffer_object : require
+#version 330
 
 out vec4 outputColor;
 in vec3 vert_color;
