@@ -23,7 +23,7 @@ try
 	//Components
 	Window w;
     Render r;
-	Mobile m;
+    Mobile m;
     
     //load the object
 	Object teapotObj, teapot2Obj;
@@ -34,25 +34,26 @@ try
 	//ShowAABB aabb(teapotAabb);
 
     ShaderProgram pickerShader {"assets/picker"};
-    TypedTex<RGBA8Px> pickTex{TexDim{512, 512}};
-    FBO<RGBA8Px> pickerFBO{pickTex};
+    TypedTex<std::uint32_t> pickTex{TexDim{512, 512}};
+    FBO<std::uint32_t> pickerFBO{pickTex};
     pickerFBO.AttachDepth(RenderBuffer{GL_DEPTH_COMPONENT, {512, 512}});
     pickerFBO.CheckStatus();
+    
     Object pickerObj;
     ShaderProgram pickerDebugShader("assets/picker_debug");
+    pickerDebugShader.TextureOrder({"tex"});
     r.Create(pickerObj, {pickerDebugShader, {}}, {{{{}, {pickTex}}, {}}}, UnitBox, Matrix4f::Identity());
 
-    pickerShader = teapot.shaderProgram;
+    //pickerShader = teapot.shaderProgram;
 
 	auto locProxy = r.Create(teapotObj, {teapot.shaderProgram, pickerShader},
-        //{{{{}, {{"assets/capsule.png"}}}, {}}},
-        {{{{}, {{"assets/capsule.png"}}}, {{}, {{"assets/capsule.png"}}}}},
+        {{{{}, {{"assets/capsule.png"}}}, {}}},
         teapot.vertexData, Matrix4f::Identity());
 	//auto locProxyAabb = r.Create(aabbObj, aabb.shaderProgram, {{}, {}},
 	//	aabb.vertData, Matrix4f::Identity());
 
-	r.Create(teapot2Obj, {teapot.shaderProgram, pickerShader},
-        {{{{}, {{"assets/capsule.png"}}}, {{}, {{"assets/capsule.png"}}}}},
+    r.Create(teapot2Obj, {teapot.shaderProgram, pickerShader},
+        {{{{}, {{"assets/capsule.png"}}}, {}}},
         teapot.vertexData, //Matrix4f::Identity());
         Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix());
 

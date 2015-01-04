@@ -220,12 +220,14 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag,
     glBindAttribLocation(program, GL_MAX_VERTEX_ATTRIBS - 1, "transform");
     glBindAttribLocation(program, GL_MAX_VERTEX_ATTRIBS - 2, "object");
     
+    glBindFragDataLocation(program, 0, "outputColor");
+    
     //link the program Render
     glLinkProgram(program);
 
     //check for linker errors
     GLint status;
-    glGetProgramiv (program, GL_LINK_STATUS, &status);
+    glGetProgramiv(program, GL_LINK_STATUS, &status);
     if (!status)
     {
         GLint infoLogLength;

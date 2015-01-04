@@ -29,11 +29,13 @@ template<class Pixel>
 TypedTex<Pixel>::TypedTex(TexDim dim)
     : Tex(std::make_shared<TexResource>(dim))
 {
-	Bind(0);
+    Bind(0);
     //https://www.opengl.org/wiki/Common_Mistakes#Creating_a_complete_texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(GL_NEAREST));
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(GL_NEAREST));
 
 	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(PixelTraits<Pixel>::internalFormat),
-        dim.x(), dim.y(), 0, PixelTraits<Pixel>::format, PixelTraits<Pixel>::type, nullptr);
+                 dim.x(), dim.y(), 0, PixelTraits<Pixel>::format, PixelTraits<Pixel>::type, nullptr);
 }
