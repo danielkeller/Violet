@@ -10,11 +10,11 @@ void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schem
 	for (const auto& props : schema)
 	{
 		//enable generic attribute array vertAttrib in the current vertex array object (VAO)
-		GLint vertAttrib = program.GetAttribLocation(props.name.c_str());
+		GLint vertAttrib = program.GetAttribLocation(props.name);
 		if (vertAttrib == -1)
 		{
-			//std::cerr << "Warning: Vertex attribute '" << props.name << "' is not defined or active in '"
-			//	<< program.Name() << "'\n";
+			std::cerr << "Warning: Vertex attribute '" << props.name << "' is not defined or active in '"
+				<< program.Name() << "'\n";
 			continue;
 		}
 

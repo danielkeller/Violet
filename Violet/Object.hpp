@@ -8,8 +8,10 @@
 class Object
 {
 	std::uint32_t id;
+    Object(std::uint32_t v) : id(v) {}
 public:
 	Object();
+    std::uint32_t Id() const {return id;}
 
 	BASIC_EQUALITY(Object, id)
 
@@ -20,6 +22,9 @@ public:
     {
         return os << '[' << p.id << ']';
     }
+
+    static const Object invalid;
+    static const Object none;
 
     HAS_HASH
 };

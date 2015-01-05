@@ -38,13 +38,13 @@ try
     FBO<std::uint32_t> pickerFBO{pickTex};
     pickerFBO.AttachDepth(RenderBuffer{GL_DEPTH_COMPONENT, {512, 512}});
     pickerFBO.CheckStatus();
-    
-    Object pickerObj;
-    ShaderProgram pickerDebugShader("assets/picker_debug");
-    pickerDebugShader.TextureOrder({"tex"});
-    r.Create(pickerObj, {pickerDebugShader, {}}, {{{{}, {pickTex}}, {}}}, UnitBox, Matrix4f::Identity());
 
-    //pickerShader = teapot.shaderProgram;
+    Object pickerObj;
+    ShaderProgram pickerHlShader("assets/picker_hl");
+    UBO pickerMat = pickerHlShader.MakeUBO("Material", "pickerMat");
+    pickerMat["selected"] = Object::invalid.Id();
+    pickerMat.Sync();
+    r.Create(pickerObj, {pickerHlShader, {}}, {{{pickerMat, {pickTex}}, {}}}, UnitBox, Matrix4f::Identity());
 
 	auto locProxy = r.Create(teapotObj, {teapot.shaderProgram, pickerShader},
         {{{{}, {{"assets/capsule.png"}}}, {}}},
@@ -86,8 +86,6 @@ try
 			//physics step
 			moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(0.04f, Vector3f::UnitY()) };
 
-            //std::cout << pickerFBO.ReadPixel(w.mousePosPct()) << '\n';
-
 			if (glfwGetMouseButton(w.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 			{
 				m.CameraLoc().rot *= Quaternionf{
@@ -111,6 +109,8 @@ try
             pickerFBO.PreDraw();
             r.DrawPass(PickerPass);
         }
+        pickerMat["selected"] = pickerFBO.ReadPixel(w.mousePosPct());
+        pickerMat.Sync();
 
 		w.PreDraw();
 		r.camera = w.PerspMat() * m.CameraMat();

@@ -63,6 +63,15 @@ struct ShaderProgram::ShaderResource : public Resource<ShaderResource>
 	Uniforms uniforms;
 };
 
+//It doesn't matter what these are, as long as they're always the same.
+//This lets us swap out shaders that use standard attributes
+//at a minimum there are 16 attribute locations, and generally there are no more
+std::map<std::string, GLint> standardAttribs = {
+    {"transform", 10}, //take up 4 locations
+    {"position",  14},
+    {"object",    15}
+};
+
 struct UBO::UBOResource : public Resource<UBOResource>
 {
     std::vector<BufferTy> data;
@@ -113,22 +122,6 @@ void ShaderProgram::use() const
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
-#if 0
-GLint ShaderProgram::Ref::GetUniformLocation(const char* name) const
-{
-    return glGetUniformLocation(program, name);
-}
-
-GLenum ShaderProgram::Ref::GetUniformType(GLint loc) const
-{
-	GLenum ty;
-	GLint size;
-	//request to write 0 characters of name, so nullptr should be OK
-	glGetActiveUniform(program, loc, 0, nullptr, &size, &ty, nullptr);
-	return ty;
-}
-#endif
-
 std::string ShaderProgram::Name() const
 {
 	return resource->Name();
@@ -142,17 +135,21 @@ GLenum ShaderProgram::GetAttribType(GLint loc) const
 	return ret;
 }
 
-GLint ShaderProgram::GetAttribLocation(const char* name) const
+GLint ShaderProgram::GetAttribLocation(const std::string& name) const
 {
-    return glGetAttribLocation(program, name);
+    auto it = standardAttribs.find(name);
+    if (it != standardAttribs.end())
+        return it->second;
+    return glGetAttribLocation(program, name.c_str());
 }
 
 UBO ShaderProgram::MakeUBO(const std::string& block, const std::string& name) const
 {
-	auto res = UBO::UBOResource::FindResource(name);
+    std::string qualName = block + "#" + name;
+	auto res = UBO::UBOResource::FindResource(qualName);
 	if (res)
 		return res;
-	return UBO::UBOResource::MakeShared(name, resource->uniforms[block]);
+	return UBO::UBOResource::MakeShared(qualName, resource->uniforms[block]);
 }
 
 //These should stay the same for much of the shader's lifetime
@@ -214,13 +211,8 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag,
     glAttachShader(program, vertShdr);
     glAttachShader(program, fragShdr);
 
-    //It doesn't matter what these are, as long as they're always the same.
-    //This lets us swap out shaders that use standard attributes
-    glBindAttribLocation(program, GL_MAX_VERTEX_ATTRIBS - 0, "position");
-    glBindAttribLocation(program, GL_MAX_VERTEX_ATTRIBS - 1, "transform");
-    glBindAttribLocation(program, GL_MAX_VERTEX_ATTRIBS - 2, "object");
-    
-    glBindFragDataLocation(program, 0, "outputColor");
+    for (const auto& pair : standardAttribs)
+        glBindAttribLocation(program, pair.second, pair.first.c_str());
     
     //link the program Render
     glLinkProgram(program);
@@ -321,8 +313,8 @@ const Uniforms::Block& Uniforms::operator[](const std::string& n) const
 }
 
 UBO::UBOResource::UBOResource(const std::string& name, const Uniforms::Block& block)
-	: Resource(name), data(block.byte_size / sizeof(BufferTy))
-    , bufferObject(block.byte_size / sizeof(BufferTy))
+	: Resource(name), data(block.byte_size)
+    , bufferObject(block.byte_size)
 	, type(block.name == "Common" ? UBO::Common : UBO::Material), block(block)
 {}
 
@@ -346,12 +338,8 @@ T UBO::Proxy::ConvertOpHelper() const
 {
 	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
 	assert(unif.type == ty);
-	T ret;
-	const typename T::Scalar* store = ubo.resource->data.data();
-	std::copy(store + unif.offset,
-		store + unif.offset + ret.size(),
-		ret.data());
-	return ret;
+	return Eigen::Map<const T>(reinterpret_cast<const typename T::Scalar*>(
+        ubo.resource->data.data() + unif.offset));
 }
 
 template<GLenum ty, typename T>
@@ -359,10 +347,26 @@ UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 {
 	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
 	assert(unif.type == ty);
-	typename T::Scalar* store = ubo.resource->data.data();
-	std::copy(val.data(),
-		val.data() + val.size(),
-		store + unif.offset);
+	Eigen::Map<T>(reinterpret_cast<typename T::Scalar*>(
+        ubo.resource->data.data() + unif.offset))
+        = val;
+	return *this;
+}
+
+template<typename T, GLenum ty>
+T UBO::Proxy::ScalarConvertOpHelper() const
+{
+	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
+	assert(unif.type == ty);
+	return *reinterpret_cast<const T*>(ubo.resource->data.data() + unif.offset);
+}
+
+template<GLenum ty, typename T>
+UBO::Proxy& UBO::Proxy::ScalarAssignOpHelper(const T& val)
+{
+	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
+	assert(unif.type == ty);
+	*reinterpret_cast<T*>(ubo.resource->data.data() + unif.offset) = val;
 	return *this;
 }
 
@@ -384,4 +388,14 @@ UBO::Proxy::operator Matrix4f() const
 UBO::Proxy& UBO::Proxy::operator=(const Matrix4f& v)
 {
 	return AssignOpHelper<GL_FLOAT_MAT4>(v);
+}
+
+UBO::Proxy::operator uint32_t() const
+{
+	return ScalarConvertOpHelper<uint32_t, GL_UNSIGNED_INT>();
+}
+
+UBO::Proxy& UBO::Proxy::operator=(const uint32_t& v)
+{
+	return ScalarAssignOpHelper<GL_UNSIGNED_INT>(v);
 }

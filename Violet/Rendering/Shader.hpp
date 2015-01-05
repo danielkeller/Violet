@@ -22,7 +22,7 @@ public:
 	void use() const;
 
 	//get an attribute
-	GLint GetAttribLocation(const char* name) const;
+	GLint GetAttribLocation(const std::string& name) const;
 	GLenum GetAttribType(GLint loc) const;
 
 	BASIC_EQUALITY(ShaderProgram, program)
@@ -76,7 +76,7 @@ public:
 	friend class ShaderProgram;
 
 private:
-	using BufferTy = float; //for alignment
+	using BufferTy = char; //typename std::aligned_storage<sizeof(char), alignof(Matrix4f)>::type;
 	using BufferObjTy = BufferObject<BufferTy, GL_UNIFORM_BUFFER, GL_STREAM_DRAW>;
 
 	struct UBOResource;
@@ -91,10 +91,12 @@ private:
 		Proxy(UBO& ubo, const std::string& name)
 			: ubo(ubo), name(name) {}
 
-		operator Matrix3f() const;
+		explicit operator Matrix3f() const;
 		Proxy& operator=(const Matrix3f&);
-		operator Matrix4f() const;
+		explicit operator Matrix4f() const;
 		Proxy& operator=(const Matrix4f&);
+		explicit operator std::uint32_t() const;
+		Proxy& operator=(const std::uint32_t&);
 
 	private:
 		UBO& ubo;
@@ -104,6 +106,10 @@ private:
 		T ConvertOpHelper() const;
 		template<GLenum ty, typename T>
 		UBO::Proxy& AssignOpHelper(const T&);
+		template<typename T, GLenum ty>
+		T ScalarConvertOpHelper() const;
+		template<GLenum ty, typename T>
+		UBO::Proxy& ScalarAssignOpHelper(const T&);
 	};
     HAS_HASH
 };
