@@ -28,6 +28,6 @@ VertexData::VertexData(UnitBoxT)
 
 template<>
 const Schema AttribTraits<SimpleVert>::schema = {
-    {"position", 3, GL_FLOAT, 0,                 1},
-    {"texCoord", 2, GL_FLOAT, 3 * sizeof(float), 1},
+    {"position", GL_FLOAT, false, 0,                 {3, 1}},
+    {"texCoord", GL_FLOAT, false, 3 * sizeof(float), {2, 1}},
 };

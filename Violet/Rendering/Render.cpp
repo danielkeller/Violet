@@ -88,7 +88,7 @@ Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPa
         shapeit->passMaterial[i] = passMaterials.insert(mat[i+1]).first;
     }
 
-	size_t offset = 0;
+	GLsizei offset = 0;
     Shader* curShader;
     Iterate(
     [&](Shader& shader)
@@ -99,7 +99,7 @@ Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPa
     [&](Shape& shape)
     {
         shape.vao.BindInstanceData(curShader->program, instanceBuffer, offset,
-            shape.instances->size());
+            static_cast<GLsizei>(shape.instances->size()));
         offset += shape.instances->size();
     });
 
@@ -170,6 +170,6 @@ void Render::DrawPass(int pass)
 
 template<>
 const Schema AttribTraits<InstData>::schema = {
-	{ "transform", 4, GL_FLOAT, 0, 4, 4 * sizeof(float) },
-	{ "object", 1, GL_UNSIGNED_INT, 16 * sizeof(float), 1, 0 },
+    { "transform", GL_FLOAT, false, 0, {4, 4}, 4 * sizeof(float) },
+    { "object", GL_UNSIGNED_INT, true, 16 * sizeof(float), {1, 1}, 0 },
 };

@@ -1,5 +1,4 @@
-#version 130
-#extension GL_ARB_uniform_buffer_object : require
+#version 330
 
 out vec4 outputColor;
 
@@ -14,12 +13,9 @@ uniform Material
 
 void main()
 {
-    uint num = texture(tex, texCoordFrag).r;
-    outputColor = vec4(num, 0,0, selected);
-    /*
-    if (texture(tex, texCoordFrag).r != 1u)
+    if (texture(tex, texCoordFrag).r != selected
+        || selected == uint(-2)) //"none" index
         discard;
     else
         outputColor = vec4(1, 0, 0, selected);
-        */
 }

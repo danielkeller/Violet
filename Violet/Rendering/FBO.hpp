@@ -45,6 +45,7 @@ public:
     void AttachTex(TypedTex<Pixel> t);
     void AttachDepth(RenderBuffer&& rb);
     void PreDraw();
+    void PreDraw(const Eigen::Matrix<GLuint, 4, 1>& clearColor);
     Matrix4f PerspMat() const;
     void CheckStatus() const; //throws on error
     Pixel ReadPixel(Vector2f windowPos);

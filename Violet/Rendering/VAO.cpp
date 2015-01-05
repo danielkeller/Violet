@@ -19,16 +19,22 @@ void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schem
 		}
 
 		//GL makes you specify matrices in this goofball way
-		for (int column = 0; column < props.numMatrixComponents; ++column)
+		for (int column = 0; column < props.dims[1]; ++column)
 		{
 			glEnableVertexAttribArray(vertAttrib + column);
 
 			//associate the buffer data bound to GL_ARRAY_BUFFER with the attribute in index 0
 			//the final argument to this call is an integer offset, cast to pointer type. don't ask me why.
-			glVertexAttribPointer(
-				vertAttrib + column, props.numComponents, props.glType, GL_FALSE, stride,
-				static_cast<const char*>(nullptr)
-				+ offset*stride + props.offset + column*props.matrixStride);
+            if (props.integer)
+                glVertexAttribIPointer(
+                    vertAttrib + column, props.dims[0], props.glType, stride,
+                    static_cast<const char*>(nullptr)
+                    + offset*stride + props.offset + column*props.matrixStride);
+            else
+                glVertexAttribPointer(
+                    vertAttrib + column, props.dims[0], props.glType, GL_FALSE, stride,
+                    static_cast<const char*>(nullptr)
+				    + offset*stride + props.offset + column*props.matrixStride);
 
 			if (instanced)
 				glVertexAttribDivisor(vertAttrib + column, 1);

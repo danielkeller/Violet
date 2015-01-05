@@ -42,20 +42,20 @@ try
     Object pickerObj;
     ShaderProgram pickerHlShader("assets/picker_hl");
     UBO pickerMat = pickerHlShader.MakeUBO("Material", "pickerMat");
-    pickerMat["selected"] = Object::invalid.Id();
+    pickerMat["selected"] = Object::none.Id();
     pickerMat.Sync();
     r.Create(pickerObj, {pickerHlShader, {}}, {{{pickerMat, {pickTex}}, {}}}, UnitBox, Matrix4f::Identity());
 
 	auto locProxy = r.Create(teapotObj, {teapot.shaderProgram, pickerShader},
         {{{{}, {{"assets/capsule.png"}}}, {}}},
-        teapot.vertexData, Matrix4f::Identity());
+        teapot.vertexData, Matrix4f::Identity()*2);
 	//auto locProxyAabb = r.Create(aabbObj, aabb.shaderProgram, {{}, {}},
 	//	aabb.vertData, Matrix4f::Identity());
-
+    
     r.Create(teapot2Obj, {teapot.shaderProgram, pickerShader},
         {{{{}, {{"assets/capsule.png"}}}, {}}},
         teapot.vertexData, //Matrix4f::Identity());
-        Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix());
+        Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix()*3);
 
 	auto moveProxy = m.Create(Transform(), {locProxy}); //{locProxy, locProxyAabb});
     
@@ -105,12 +105,12 @@ try
 		m.Update(alpha);
 
         {
-            auto bound = pickerFBO.Bind(GL_DRAW_FRAMEBUFFER);
-            pickerFBO.PreDraw();
+            auto bound = pickerFBO.Bind(GL_FRAMEBUFFER);
+            pickerFBO.PreDraw({Object::none.Id(),0,0,0});
             r.DrawPass(PickerPass);
+            pickerMat["selected"] = pickerFBO.ReadPixel(w.mousePosPct());
+            pickerMat.Sync();
         }
-        pickerMat["selected"] = pickerFBO.ReadPixel(w.mousePosPct());
-        pickerMat.Sync();
 
 		w.PreDraw();
 		r.camera = w.PerspMat() * m.CameraMat();

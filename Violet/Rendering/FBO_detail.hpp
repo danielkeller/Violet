@@ -74,10 +74,16 @@ void FBO<Pixel>::CheckStatus() const
 template<class Pixel>
 void FBO<Pixel>::PreDraw()
 {
+    PreDraw({0,0,0,0});
+}
+
+template<class Pixel>
+void FBO<Pixel>::PreDraw(const Eigen::Matrix<GLuint, 4, 1>& clearColor)
+{
     auto bound = Bind(GL_DRAW_FRAMEBUFFER);
-	glViewport(0, 0, dim.x(), dim.y());
-    //TODO: be more flexible
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, dim.x(), dim.y());
+    glClearBufferuiv(GL_COLOR, 0, clearColor.data());
+    glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 template<class Pixel>

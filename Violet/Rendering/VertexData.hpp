@@ -7,10 +7,10 @@
 struct AttribProperties
 {
 	std::string name;
-	GLint numComponents;
 	GLenum glType;
-	size_t offset;
-	GLint numMatrixComponents;
+    bool integer;
+    size_t offset;
+    Eigen::Vector2i dims; //(rows, cols)
 	size_t matrixStride;
 };
 typedef std::vector<AttribProperties> Schema;
@@ -41,7 +41,7 @@ private:
             indexBuffer(inds, IgnoreType),
             vertexBuffer(verts, IgnoreType)
         {
-            numVertecies = indexBuffer.Size();
+            numVertecies = static_cast<GLsizei>(indexBuffer.Size());
         }
 
         Schema vertexBufferSchema;

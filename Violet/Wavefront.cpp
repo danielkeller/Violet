@@ -13,18 +13,12 @@ struct WavefrontVert
 	Vector3f norm;
 	Eigen::Vector2f uv;
 };
-/*
-template<>
-AttribTraits<WavefrontVert>
-{
-    static const Schema schema;
-};*/
 
 template<>
 const Schema AttribTraits<WavefrontVert>::schema = {
-    {"position", 3, GL_FLOAT, 0,                 1},
-    {"normal",   3, GL_FLOAT, 3 * sizeof(float), 1},
-    {"texCoord", 2, GL_FLOAT, 6 * sizeof(float), 1},
+    {"position", GL_FLOAT, false, 0,                 {3, 1}},
+    {"normal",   GL_FLOAT, false, 3 * sizeof(float), {3, 1}},
+    {"texCoord", GL_FLOAT, false, 6 * sizeof(float), {2, 1}},
 };
 
 Wavefront::Wavefront(std::string filename)

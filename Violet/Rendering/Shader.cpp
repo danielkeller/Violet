@@ -227,10 +227,15 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag,
         std::vector<GLchar> infoLog(infoLogLength + 1);
 
         glGetProgramInfoLog(program, infoLogLength, NULL, infoLog.data());
+        //FIXME: leaks shaders
         throw std::runtime_error("Linker failure: " + Name() + infoLog.data());
     }
-	else
-		uniforms = Uniforms(program);
+	
+    uniforms = Uniforms(program);
+    
+    for(GLuint uniformBlockIndex = 0; uniformBlockIndex < uniforms.blocks.size(); ++uniformBlockIndex)
+        glUniformBlockBinding(program, uniformBlockIndex,
+            uniforms.blocks[uniformBlockIndex].name == "Common" ? UBO::Common : UBO::Material);
 
     //shaders are no longer used now that the program is linked
     glDetachShader(program, vertShdr);
