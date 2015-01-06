@@ -49,7 +49,8 @@ public:
     void Data(const std::vector<U, Alloc>& data, IgnoreTypeT)
     {
         Bind();
-        if (byte_len == data.size()*sizeof(U))
+        //This appears to be slower. TODO: find out exactly when it is
+        if (false) //(byte_len == data.size()*sizeof(U))
             glBufferSubData(target, 0, byte_len, data.data());
         else
         {

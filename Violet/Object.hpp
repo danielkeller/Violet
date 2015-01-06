@@ -8,9 +8,9 @@
 class Object
 {
 	std::uint32_t id;
-    Object(std::uint32_t v) : id(v) {}
 public:
-	Object();
+    Object();
+    explicit Object(std::uint32_t v) : id(v) {}
     std::uint32_t Id() const {return id;}
 
 	BASIC_EQUALITY(Object, id)

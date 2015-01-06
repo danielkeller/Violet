@@ -14,17 +14,17 @@ Render::Render()
 }
 
 Render::LocationProxy::LocationProxy(
-	std::weak_ptr<InstanceVec> buf, InstanceVec::perma_ref obj)
+	InstanceVec& buf, InstanceVec::perma_ref obj)
 	: buf(buf), obj(obj)
 {}
 
-Render::LocationProxy::LocationProxy(const LocationProxy&& other)
+Render::LocationProxy::LocationProxy(LocationProxy&& other)
 	: buf(other.buf), obj(other.obj)
 {}
 
 Matrix4f& Render::LocationProxy::operator*()
 {
-	return buf.lock()->get(obj)->mat;
+	return buf.get(obj)->mat;
 }
 
 template<class PerShader, class PerMaterial, class PerShape>
@@ -73,14 +73,15 @@ Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPa
 
     auto shapebegin = shapes.get(materialit->begin);
     auto shapeit = std::find(shapebegin, shapes.get(shapeend), vertData);
+    auto instend = shapeit + 1 >= shapes.end() ? instances.get_perma(instances.end()) : shapeit[1].begin;
     if (shapeit == shapes.get(shapeend))
     {
         //put it at the beginning of the material's range
-        materialit->begin = shapes.emplace(shapebegin, vertData, shader[0]);
+        materialit->begin = shapes.emplace(shapebegin, vertData, shader[0], instend);
         shapeit = shapes.get(materialit->begin);
     } //shapeit is now valid
 
-	auto objRef = shapeit->instances->emplace_back(loc, obj);
+	shapeit->begin = instances.emplace(instances.get(shapeit->begin), loc, obj);
 
     for (size_t i = 0; i < NumPasses; ++i)
     {
@@ -98,14 +99,17 @@ Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPa
     [](T_Material& m) {},
     [&](Shape& shape)
     {
+        auto instend = &shape == &shapes.back() ? instances.end() : instances.get((&shape)[1].begin);
+        auto numInstances = instend - instances.get(shape.begin);
         shape.vao.BindInstanceData(curShader->program, instanceBuffer, offset,
-            static_cast<GLsizei>(shape.instances->size()));
-        offset += shape.instances->size();
+            static_cast<GLsizei>(numInstances));
+        offset += numInstances;
     });
 
+    instances.resize(offset);
 	instanceBuffer.Data(offset);
 
-	return LocationProxy{ shapeit->instances, objRef };
+	return LocationProxy{ instances, shapeit->begin };
 }
 
 void Material::use() const
@@ -122,10 +126,11 @@ void Render::Draw()
 	commonUBO.Sync();
 
 	{
-		auto mapping = instanceBuffer.Map(GL_WRITE_ONLY);
-		auto mapit = mapping.begin();
-        for (auto& shape : shapes)
-            mapit = std::copy(shape.instances->begin(), shape.instances->end(), mapit);
+		//auto mapping = instanceBuffer.Map(GL_WRITE_ONLY);
+        //auto mapit = instances.begin(); //mapping.begin();
+        //for (auto& shape : shapes)
+         //   mapit = std::copy(shape.instances->begin(), shape.instances->end(), mapit);
+        instanceBuffer.Data(instances.vector());
 	} //unmap
     
     Iterate(

@@ -86,7 +86,7 @@ Window::Window()
     //set the window as current. note that this won't work right with multiple windows.
     glfwMakeContextCurrent(window);
     //set vsync
-    //glfwSwapInterval(1);
+    glfwSwapInterval(1);
 
 #ifdef GL_DEBUG
     //enable for all errors

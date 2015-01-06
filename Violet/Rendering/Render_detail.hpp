@@ -45,6 +45,7 @@ namespace Render_detail
 		Matrix4f mat;
         Object obj;
         InstData(const Matrix4f& m, Object o) : mat(m), obj(o) {}
+        InstData() : mat(), obj(Object::invalid) {}
 		InstData& operator=(const Matrix4f& m) { mat = m; return *this; }
 	};
 
@@ -53,20 +54,19 @@ namespace Render_detail
 	struct Shape
 	{
 		VAO vao;
-		std::shared_ptr<InstanceVec> instances;
+        InstanceVec::perma_ref begin;
         std::array<std::unordered_set<ShaderProgram>::iterator, NumPasses> passShader;
         std::array<std::unordered_set<Material>::iterator, NumPasses> passMaterial;
 
-		Shape(const VertexData& vertData, const ShaderProgram& program)
-			: vao(program, vertData)
-			, instances(std::make_shared<InstanceVec>())
+		Shape(const VertexData& vertData, const ShaderProgram& program, InstanceVec::perma_ref begin)
+			: vao(program, vertData), begin(begin)
 		{}
 
         Shape& operator=(Shape&&) = default;
 		Shape(const Shape&) = delete;
 		Shape(Shape&& other) //MSVC sucks and can't default this
             : vao(std::move(other.vao))
-            , instances(std::move(other.instances))
+            , begin(other.begin)
             , passShader(std::move(other.passShader))
             , passMaterial(std::move(other.passMaterial))
         {}

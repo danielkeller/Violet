@@ -64,12 +64,12 @@ public:
 		Matrix4f& operator*();
 		Matrix4f* operator->() { return &**this; }
 		LocationProxy(const LocationProxy& other) = default;
-		LocationProxy(const LocationProxy&& other); //= default
+        LocationProxy(LocationProxy&& other);
 	private:
-		std::weak_ptr<Render_detail::InstanceVec> buf;
+		Render_detail::InstanceVec& buf;
 		Render_detail::InstanceVec::perma_ref obj;
 		friend class Render;
-		LocationProxy(std::weak_ptr<Render_detail::InstanceVec>, Render_detail::InstanceVec::perma_ref);
+		LocationProxy(Render_detail::InstanceVec&, Render_detail::InstanceVec::perma_ref);
 	};
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -85,13 +85,13 @@ private:
     l_bag<Render_detail::Shader> shaders;
     l_bag<Render_detail::T_Material> materials;
     l_bag<Render_detail::Shape> shapes;
-    //or, unord_l_map<Shader, unord_l_map<T_Material, unord_l_set<VAO>>>/
+    Render_detail::InstanceVec instances;
+    BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
+    //or, unord_l_map<Shader, unord_l_map<T_Material, unord_l_set<VAO>>>
     //const insert but fragmented data
 
     template<class PerShader, class PerMaterial, class PerShape>
     void Iterate(PerShader psh, PerMaterial pm, PerShape ps);
-
-	BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
 };
 
 #endif

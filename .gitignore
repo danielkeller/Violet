@@ -187,3 +187,6 @@ FakesAssemblies/
 *.pyc
 sums
 violet
+
+#Xcode stuff
+xcuserdata

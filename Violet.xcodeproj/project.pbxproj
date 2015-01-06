@@ -34,6 +34,8 @@
 		B9AA96CA1A5760CF0079F917 /* gl_core_3_3.c in Sources */ = {isa = PBXBuildFile; fileRef = B9AA96C41A5760CF0079F917 /* gl_core_3_3.c */; };
 		B9AA96CB1A5760CF0079F917 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9AA96C71A5760CF0079F917 /* lodepng.cpp */; };
 		B9AA96DA1A577D3E0079F917 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = B9AA96D91A577D3E0079F917 /* assets */; };
+		B9FEE4FD1A5B228D00489197 /* Picker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FEE4FC1A5B228D00489197 /* Picker.cpp */; };
+		B9FEE5001A5B27B700489197 /* Time.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FEE4FE1A5B27B700489197 /* Time.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -95,6 +97,10 @@
 		B9AA96C41A5760CF0079F917 /* gl_core_3_3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gl_core_3_3.c; sourceTree = "<group>"; };
 		B9AA96C71A5760CF0079F917 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lodepng.cpp; sourceTree = "<group>"; };
 		B9AA96D91A577D3E0079F917 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = "<group>"; };
+		B9FEE4FB1A5B226500489197 /* Picker.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Picker.hpp; sourceTree = "<group>"; };
+		B9FEE4FC1A5B228D00489197 /* Picker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Picker.cpp; sourceTree = "<group>"; };
+		B9FEE4FE1A5B27B700489197 /* Time.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Time.cpp; sourceTree = "<group>"; };
+		B9FEE4FF1A5B27B700489197 /* Time.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Time.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +163,8 @@
 				B9AA96841A575DE00079F917 /* Resource.hpp */,
 				B9AA96851A575DE00079F917 /* stdafx.cpp */,
 				B9AA96861A575DE00079F917 /* stdafx.h */,
+				B9FEE4FE1A5B27B700489197 /* Time.cpp */,
+				B9FEE4FF1A5B27B700489197 /* Time.hpp */,
 				B9AA96951A575DE00079F917 /* Wavefront.cpp */,
 				B9AA96961A575DE00079F917 /* Wavefront.hpp */,
 				B9AA96971A575DE00079F917 /* Window.cpp */,
@@ -221,6 +229,8 @@
 				B9AA96811A575DE00079F917 /* VAO.hpp */,
 				B9AA96821A575DE00079F917 /* VertexData.cpp */,
 				B9AA96831A575DE00079F917 /* VertexData.hpp */,
+				B9FEE4FB1A5B226500489197 /* Picker.hpp */,
+				B9FEE4FC1A5B228D00489197 /* Picker.cpp */,
 			);
 			path = Rendering;
 			sourceTree = "<group>";
@@ -323,7 +333,9 @@
 				B9AA96B41A575DE00079F917 /* Window.cpp in Sources */,
 				B9AA96AB1A575DE00079F917 /* stdafx.cpp in Sources */,
 				B9AA96A11A575DE00079F917 /* MappedFile.cpp in Sources */,
+				B9FEE5001A5B27B700489197 /* Time.cpp in Sources */,
 				B9AA96CA1A5760CF0079F917 /* gl_core_3_3.c in Sources */,
+				B9FEE4FD1A5B228D00489197 /* Picker.cpp in Sources */,
 				B9AA96A21A575DE00079F917 /* Mobile.cpp in Sources */,
 				B9AA96A61A575DE00079F917 /* Render.cpp in Sources */,
 				B9AA96A31A575DE00079F917 /* Object.cpp in Sources */,
@@ -484,6 +496,7 @@
 				B9AA96501A575CB50079F917 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

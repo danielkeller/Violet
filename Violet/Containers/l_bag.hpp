@@ -51,11 +51,15 @@ public:
 	const_iterator end() const {return store.cend();}
 	const_iterator cbegin() const {return store.cbegin();}
 	const_iterator cend() const {return store.cend();}
+    
+    value_type& front() {return store.front();}
+    value_type& back() {return store.back();}
 
 	size_type size() const { return store.size(); }
 	value_type* data() { return store.data(); }
 	const value_type* data() const { return store.data(); }
     bool empty() const { return store.empty(); }
+    const storety& vector() const {return store;}
 
 	class perma_ref
 	{
@@ -121,6 +125,36 @@ public:
             else if (ind == my_ind) ind = INVALID_IND;
         }
         return store.erase(pos);
+    }
+    
+    void resize(size_type count)
+    {
+        if (count == size())
+            return;
+        if (count < size())
+        {
+            store.resize(count);
+            inds.erase(std::remove_if(inds.begin(), inds.end(), [=](indty ind){return ind >= count;}),
+                inds.end());
+        }
+        else
+        {
+            auto oldCount = size();
+            store.resize(count);
+            inds.reserve(count);
+            auto newBegin = store.begin() + oldCount;
+            auto indIt = std::find(inds.begin(), inds.end(), INVALID_IND);
+            
+            //do this instead of new_ind because this is linear and that is quadratic
+            //run out the existing ind spaces
+            for (; indIt != inds.end() && newBegin != store.end();
+                 indIt = std::find(indIt, inds.end(), INVALID_IND), ++newBegin)
+                *indIt = newBegin - store.begin();
+            
+            //add new inds at the end
+            for (; newBegin != store.end(); ++newBegin)
+                inds.emplace_back(newBegin - store.begin());
+        }
     }
 
     //does not guarantee order of other elements
