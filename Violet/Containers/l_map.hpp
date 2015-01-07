@@ -7,7 +7,7 @@
 
 //alternative: implement this with unordered_map and l_bag
 //pros: O(1) lookup
-//cons: more memory
+//cons: more memory, very slow middle insert/erase
 
 template<class Key, class T,
     class Compare = std::less<Key>,

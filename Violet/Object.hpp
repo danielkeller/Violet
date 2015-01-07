@@ -22,6 +22,11 @@ public:
     {
         return os << '[' << p.id << ']';
     }
+    
+    friend std::string to_string(Object obj)
+    {
+        return '[' + std::to_string(obj.id) + ']';
+    }
 
     static const Object invalid;
     static const Object none;
@@ -30,8 +35,5 @@ public:
 };
 
 MEMBER_HASH(Object, id)
-
-template <typename T>
-using PlainComponent = std::vector < std::pair<Object, T> >;
 
 #endif

@@ -375,6 +375,16 @@ UBO::Proxy& UBO::Proxy::ScalarAssignOpHelper(const T& val)
 	return *this;
 }
 
+UBO::Proxy::operator Vector3f() const
+{
+    return ConvertOpHelper<Vector3f, GL_FLOAT_VEC3>();
+}
+
+UBO::Proxy& UBO::Proxy::operator=(const Vector3f& v)
+{
+    return AssignOpHelper<GL_FLOAT_VEC3>(v);
+}
+
 UBO::Proxy::operator Matrix3f() const
 {
 	return ConvertOpHelper<Matrix3f, GL_FLOAT_MAT3>();

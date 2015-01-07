@@ -18,6 +18,7 @@ public:
 	Eigen::Vector2i dim;
 
 	Matrix4f PerspMat();
+    //values are in Opengl viewport coordinates
 	Vector2f mouseDeltaPct();
 	Vector2f mousePosPct();
 

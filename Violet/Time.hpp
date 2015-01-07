@@ -5,13 +5,16 @@
 
 class Time
 {
-    using clock = std::chrono::system_clock;
-    clock::time_point currentTime;
-    clock::duration accumulator;
-    
 public:
+    using clock = std::chrono::system_clock;
+    
     Time();
+    
+    //time simulated per step
     static const clock::duration dt;
+    //total simulation time as of just before current step
+    clock::duration SimTime();
+    float SimTimeMs();
     
     template<class PhysTick, class RenderTick>
     void MainLoop(const PhysTick& physTick, const RenderTick& renderTick)
@@ -20,8 +23,15 @@ public:
         {
             auto newTime = clock::now();
             auto frameTime = newTime - currentTime;
-            if (frameTime > std::chrono::milliseconds(250))
-                frameTime = std::chrono::milliseconds(250);
+            if (frameTime > frameLimit) frameTime = frameLimit;
+            
+            //By setting currentTime to newTime we "warp" the time we say we've simulated up to clock::now(),
+            //even if the amount of time is less than what we've actually simulated. This is fine in a single-player
+            //environment, but in a networked environment it could cause our simulation to fall behind everyone
+            //else's. By instead setting it to currentTime + frameTime, it would force the physics to take extra
+            //steps (limited by frameLimit) to catch back up to clock::now(). This would appear as the physics
+            //slowing down under load, then speeding back up to compensate. Alternatively, if we can simply override
+            //the entire physics state, we could just skip simulating those ticks and warp right up to now.
             currentTime = newTime;
             
             accumulator += frameTime;
@@ -30,15 +40,27 @@ public:
             {
                 if (!physTick())
                     return;
+                simTime += dt;
                 accumulator -= dt;
             }
             
-            using millifloat = std::chrono::duration<float, std::milli>;
+            //leftover unsimulated time as a fraction of the step size
             float alpha = std::chrono::duration_cast<millifloat>(accumulator).count()
             / std::chrono::duration_cast<millifloat>(dt).count();
             renderTick(alpha);
         }
     }
+    
+private:
+    using millifloat = std::chrono::duration<float, std::milli>;
+    
+    //maximum amount of physics time to simulate before drawing a frame
+    static const clock::duration frameLimit;
+    
+    //time point before last set of physics/draw steps
+    clock::time_point currentTime;
+    clock::duration accumulator; //total unsimulated time
+    clock::duration simTime; //total simulated time
 };
 
 #endif

@@ -17,5 +17,5 @@ void main()
         || selected == uint(-2)) //"none" index
         discard;
     else
-        outputColor = vec4(1, 0, 0, selected);
+        outputColor = vec4(1, 0, 0, 1);
 }

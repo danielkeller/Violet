@@ -1,7 +1,6 @@
 #ifndef L_BAG_HPP
 #define L_BAG_HPP
 #include <vector>
-#include "WrappedIterator.hpp"
 
 //Vector with iterator-like objects that can't be invalidated
 template<class T, class Alloc = std::allocator<T>>

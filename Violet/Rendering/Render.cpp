@@ -48,40 +48,45 @@ void Render::Iterate(PerShader psh, PerMaterial pm, PerShape ps)
     }
 }
 
+template<class data_t, class lower_data_t>
+std::pair<typename lower_data_t::iterator, typename lower_data_t::iterator>
+range_of(typename data_t::iterator it, data_t& data, lower_data_t& lower_data)
+{
+    if (it == data.end())
+        return {lower_data.end(), lower_data.end()};
+    else if (it + 1 == data.end())
+        return {lower_data.get(it[0].begin), lower_data.end()};
+    else
+        return {lower_data.get(it[0].begin), lower_data.get(it[1].begin)};
+}
+
 Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
     std::array<Material, AllPasses> mat, VertexData vertData, const Matrix4f& loc)
 {
     auto shaderit = std::find(shaders.begin(), shaders.end(), shader[0]);
-    //special case: shaderit is, or will be, the last one
-    auto matend = shaderit + 1 >= shaders.end() ? materials.get_perma(materials.end()) : shaderit[1].begin;
+    auto matrange = range_of(shaderit, shaders, materials);
+    auto matit = std::find(matrange.first, matrange.second, mat[0]);
+    auto shaperange = range_of(matit, materials, shapes);
+    auto shapeit = std::find(shaperange.first, shaperange.second, vertData);
+    auto instrange = range_of(shapeit, shapes, instances);
+    auto instref = instances.emplace(instrange.second, loc, obj);
+    
+    auto shaperef = shapes.get_perma(shapes.end());
+    if (shapeit == shaperange.second)
+    {
+        shaperef = shapes.emplace(shapeit, vertData, shader[0], instref);
+        shapeit = shapes.get(shaperef);
+    }
+    
     if (shaderit == shaders.end())
     {
-        //material range is empty
-        shaderit = shaders.get(shaders.emplace_back(shader[0], matend));
-    } //shaderit is now valid
-
-    auto matbegin = materials.get(shaderit->begin);
-    auto materialit = std::find(matbegin, materials.get(matend), mat[0]);
-    //special case: materialit is, or will be, the last one
-    auto shapeend = materialit + 1 >= materials.end() ? shapes.get_perma(shapes.end()) : materialit[1].begin;
-    if (materialit == materials.get(matend))
+        shaders.emplace(shaderit, shader[0],
+            materials.emplace(matit, mat[0], shaperef));
+    }
+    else if (matit == matrange.second)
     {
-        //put it at the beginning of the shader's range
-        shaderit->begin = materials.emplace(matbegin, mat[0], shapeend);
-        materialit = materials.get(shaderit->begin);
-    } //materialit is now valid
-
-    auto shapebegin = shapes.get(materialit->begin);
-    auto shapeit = std::find(shapebegin, shapes.get(shapeend), vertData);
-    auto instend = shapeit + 1 >= shapes.end() ? instances.get_perma(instances.end()) : shapeit[1].begin;
-    if (shapeit == shapes.get(shapeend))
-    {
-        //put it at the beginning of the material's range
-        materialit->begin = shapes.emplace(shapebegin, vertData, shader[0], instend);
-        shapeit = shapes.get(materialit->begin);
-    } //shapeit is now valid
-
-	shapeit->begin = instances.emplace(instances.get(shapeit->begin), loc, obj);
+        materials.emplace(matit, mat[0], shaperef);
+    }
 
     for (size_t i = 0; i < NumPasses; ++i)
     {
@@ -109,7 +114,7 @@ Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPa
     instances.resize(offset);
 	instanceBuffer.Data(offset);
 
-	return LocationProxy{ instances, shapeit->begin };
+	return { instances, instref };
 }
 
 void Material::use() const
@@ -171,6 +176,14 @@ void Render::DrawPass(int pass)
         }
         shape.vao.Draw();
     }
+}
+
+Render::LocationProxy Render::GetLocProxyFor(Object obj)
+{
+    auto inst = std::find(instances.begin(), instances.end(), obj);
+    if (inst == instances.end())
+        throw std::runtime_error("No such object " + to_string(obj));
+    return {instances, instances.get_perma(inst)};
 }
 
 template<>

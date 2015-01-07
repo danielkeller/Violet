@@ -7,6 +7,7 @@
 #include "Profiling.hpp"
 #include "Mobile.hpp"
 #include "Picker.hpp"
+#include "Editor/Tool.hpp"
 #include "Time.hpp"
 
 #include "GLFW/glfw3.h"
@@ -46,24 +47,30 @@ try
         Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix()*3);
 
     auto moveProxy = m.Create(Transform(), {locProxy}); //{locProxy, locProxyAabb});
+    
+    Tool tool(r, pick, m);
 
 	m.CameraLoc().pos = Vector3f(0.f, -3.f, 0.f);
 
 	m.Tick();
     
+    Time t;
+    
     auto physTick = [&]() {
         w.GetInput();
         m.Tick();
         //physics step
+        tool.Update(t);
         moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(0.04f, Vector3f::UnitY()) };
 
         if (glfwGetMouseButton(w.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         {
             m.CameraLoc().rot *= Quaternionf{
                 Eigen::AngleAxisf(-w.mouseDeltaPct().x()*3.f,
-                                  Vector3f::UnitZ()) };
+                                  Vector3f::UnitZ()) }; //rotate around world z
             m.CameraLoc().rot *= Quaternionf{
-                Eigen::AngleAxisf(w.mouseDeltaPct().y()*3.f,
+                Eigen::AngleAxisf(-w.mouseDeltaPct().y()*3.f,
+                                  //rotate around camera x
                                   m.CameraLoc().rot.conjugate() * Vector3f::UnitX()) };
         }
 
@@ -81,7 +88,6 @@ try
         pick.Pick();
     };
     
-    Time t;
     t.MainLoop(physTick, renderTick);
     
     return EXIT_SUCCESS;

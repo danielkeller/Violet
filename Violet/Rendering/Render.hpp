@@ -6,6 +6,7 @@
 #include "VAO.hpp"
 #include "Texture.hpp"
 #include "Containers/l_bag.hpp"
+#include "Containers/lex_set.hpp"
 #include <unordered_set>
 
 #include <vector>
@@ -48,6 +49,7 @@ public:
 	//Maybe make mobility an option?
 	LocationProxy Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
         std::array<Material, AllPasses> mat, VertexData vertData, const Matrix4f& loc);
+    LocationProxy GetLocProxyFor(Object obj);
 	void Destroy(Object obj);
 	void Draw();
     void DrawPass(int pass);
@@ -81,6 +83,8 @@ private:
 
     std::unordered_set<ShaderProgram> passShaders;
     std::unordered_set<Material> passMaterials;
+    
+    //lex_set<Render_detail::Shader, Render_detail::T_Material, Render_detail::Shape> mainPass;
 
     l_bag<Render_detail::Shader> shaders;
     l_bag<Render_detail::T_Material> materials;

@@ -117,7 +117,7 @@ void Window::GetInput()
 	mouseOld = mouseCur;
     double x, y;
 	glfwGetCursorPos(window, &x, &y);
-    mouseCur << x, y;
+    mouseCur << x, dim.y() - y; //opengl and glfw use opposite viewport coordinates
 }
 
 Eigen::Vector2f Window::mouseDeltaPct()

@@ -29,6 +29,14 @@ class VertexData
 public:
     BASIC_EQUALITY(VertexData, resource)
     VertexData(UnitBoxT);
+    
+    template<class V, class VAlloc, class I, class IAlloc>
+    VertexData(const std::string& name, const std::vector<V, VAlloc>& verts, const std::vector<I, IAlloc>& inds)
+    {
+        resource = VertexDataResource::FindResource(name);
+        if (!resource)
+            resource = VertexDataResource::MakeShared(name, verts, inds);
+    }
 
 private:
     struct VertexDataResource : public Resource<VertexDataResource>

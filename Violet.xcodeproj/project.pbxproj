@@ -36,6 +36,7 @@
 		B9AA96DA1A577D3E0079F917 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = B9AA96D91A577D3E0079F917 /* assets */; };
 		B9FEE4FD1A5B228D00489197 /* Picker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FEE4FC1A5B228D00489197 /* Picker.cpp */; };
 		B9FEE5001A5B27B700489197 /* Time.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FEE4FE1A5B27B700489197 /* Time.cpp */; };
+		B9FEE5041A5C9ABA00489197 /* Tool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FEE5021A5C9ABA00489197 /* Tool.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -101,6 +102,9 @@
 		B9FEE4FC1A5B228D00489197 /* Picker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Picker.cpp; sourceTree = "<group>"; };
 		B9FEE4FE1A5B27B700489197 /* Time.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Time.cpp; sourceTree = "<group>"; };
 		B9FEE4FF1A5B27B700489197 /* Time.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Time.hpp; sourceTree = "<group>"; };
+		B9FEE5021A5C9ABA00489197 /* Tool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Tool.cpp; path = Editor/Tool.cpp; sourceTree = "<group>"; };
+		B9FEE5031A5C9ABA00489197 /* Tool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Tool.hpp; path = Editor/Tool.hpp; sourceTree = "<group>"; };
+		B9FEE5071A5DA3C600489197 /* lex_set.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = lex_set.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -146,6 +150,7 @@
 		B9AA96331A575CB40079F917 /* Violet */ = {
 			isa = PBXGroup;
 			children = (
+				B9FEE5011A5C9AA200489197 /* Editor */,
 				B9AA96591A575DE00079F917 /* Containers */,
 				B9AA965E1A575DE00079F917 /* Geometry */,
 				B9AA96731A575DE00079F917 /* Rendering */,
@@ -193,6 +198,7 @@
 				B9AA965B1A575DE00079F917 /* l_bag.hpp */,
 				B9AA965C1A575DE00079F917 /* l_map.hpp */,
 				B9AA965D1A575DE00079F917 /* WrappedIterator.hpp */,
+				B9FEE5071A5DA3C600489197 /* lex_set.hpp */,
 			);
 			path = Containers;
 			sourceTree = "<group>";
@@ -249,6 +255,15 @@
 				B9AA96C71A5760CF0079F917 /* lodepng.cpp */,
 			);
 			path = Lodepng;
+			sourceTree = "<group>";
+		};
+		B9FEE5011A5C9AA200489197 /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				B9FEE5021A5C9ABA00489197 /* Tool.cpp */,
+				B9FEE5031A5C9ABA00489197 /* Tool.hpp */,
+			);
+			name = Editor;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -334,6 +349,7 @@
 				B9AA96AB1A575DE00079F917 /* stdafx.cpp in Sources */,
 				B9AA96A11A575DE00079F917 /* MappedFile.cpp in Sources */,
 				B9FEE5001A5B27B700489197 /* Time.cpp in Sources */,
+				B9FEE5041A5C9ABA00489197 /* Tool.cpp in Sources */,
 				B9AA96CA1A5760CF0079F917 /* gl_core_3_3.c in Sources */,
 				B9FEE4FD1A5B228D00489197 /* Picker.cpp in Sources */,
 				B9AA96A21A575DE00079F917 /* Mobile.cpp in Sources */,

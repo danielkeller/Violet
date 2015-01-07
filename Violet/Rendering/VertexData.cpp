@@ -31,3 +31,9 @@ const Schema AttribTraits<SimpleVert>::schema = {
     {"position", GL_FLOAT, false, 0,                 {3, 1}},
     {"texCoord", GL_FLOAT, false, 3 * sizeof(float), {2, 1}},
 };
+
+//just assume this
+template<>
+const Schema AttribTraits<Vector3f>::schema = {
+    {"position", GL_FLOAT, false, 0, {3, 1}},
+};

@@ -91,6 +91,8 @@ private:
 		Proxy(UBO& ubo, const std::string& name)
 			: ubo(ubo), name(name) {}
 
+        explicit operator Vector3f() const;
+        Proxy& operator=(const Vector3f&);
 		explicit operator Matrix3f() const;
 		Proxy& operator=(const Matrix3f&);
 		explicit operator Matrix4f() const;

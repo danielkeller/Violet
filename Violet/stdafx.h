@@ -52,6 +52,7 @@ using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>
 #include <utility>
 //combine std and :: overload set for swap
 using std::swap;
+using std::to_string;
 
 template <class T>
 inline void hash_combine(std::size_t& seed, const T& v)
