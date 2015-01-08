@@ -19,6 +19,7 @@ private:
     
     Object x, y, z;
     Mobile::MoveProxy move;
+    const Mobile& m;
 };
 
 #endif

@@ -7,6 +7,7 @@
 //prevent vectors from breaking things
 #include "Eigen/StdVector"
 
+using Eigen::Vector2i;
 using Eigen::Matrix3f;
 using Eigen::Matrix4f;
 using Eigen::Vector2f;

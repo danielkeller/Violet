@@ -24,7 +24,7 @@ void Picker::Pick()
     fbo.PreDraw({Object::none.Id(),0,0,0});
     r.DrawPass(PickerPass);
     
-    auto objId = fbo.ReadPixel(w.mousePosPct());
+    auto objId = fbo.ReadPixel(w.MousePosView());
     hlMat["selected"] = objId;
     hlMat.Sync();
     

@@ -83,7 +83,7 @@ public:
 private:
 	//UBO shared with all shaders
 	ShaderProgram simpleShader;
-	mutable UBO commonUBO;
+    UBO commonUBO;
 
     std::unordered_set<ShaderProgram> passShaders;
     std::unordered_set<Material> passMaterials;

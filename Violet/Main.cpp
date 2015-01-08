@@ -74,15 +74,16 @@ try
         else
         {
             mouseDown = false;
+            focused = Object::none;
         }
         
         if (w.LeftMouse() && focused == Object::none)
         {
             m.CameraLoc().rot *= Quaternionf{
-                Eigen::AngleAxisf(-w.mouseDeltaPct().x()*3.f,
+                Eigen::AngleAxisf(-w.MouseDeltaScr().x(),
                                   Vector3f::UnitZ()) }; //rotate around world z
             m.CameraLoc().rot *= Quaternionf{
-                Eigen::AngleAxisf(-w.mouseDeltaPct().y()*3.f,
+                Eigen::AngleAxisf(w.MouseDeltaScr().y(),
                                   //rotate around camera x
                                   m.CameraLoc().rot.conjugate() * Vector3f::UnitX()) };
         }

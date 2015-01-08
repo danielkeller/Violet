@@ -120,14 +120,39 @@ void Window::GetInput()
     mouseCur << x, dim.y() - y; //opengl and glfw use opposite viewport coordinates
 }
 
-Eigen::Vector2f Window::mouseDeltaPct() const
+Vector2f Window::MouseDeltaScr() const
 {
-	return (mouseCur - mouseOld).array() / dim.cast<float>().array();
+    return MouseDeltaView() * 2.f;
 }
 
-Eigen::Vector2f Window::mousePosPct() const
+Vector2f Window::MousePosScr() const
 {
-	return mouseCur.array() / dim.cast<float>().array();
+    return mouseCur.array() / dim.cast<float>().array() * 2.f - 1.f;
+}
+
+Vector2f Window::MouseDeltaView() const
+{
+    return (mouseCur - mouseOld).array() / dim.cast<float>().array();
+}
+
+Vector2f Window::MousePosView() const
+{
+    return mouseCur.array() / dim.cast<float>().array();
+}
+
+Vector2f Window::MouseDeltaPxl() const
+{
+    return mouseCur - mouseOld;
+}
+
+Vector2f Window::MousePosPxl() const
+{
+    return mouseCur;
+}
+
+Vector2i Window::Dim()
+{
+    return dim;
 }
 
 void Window::PreDraw()
@@ -155,7 +180,7 @@ Matrix4f Window::PerspMat() const
 	Matrix4f z_upToY_up;
 	z_upToY_up <<
 		1, 0, 0, 0,
-		0, 0,-1, 0,
+		0, 0, 1, 0,
 		0, 1, 0, 0,
 		0, 0, 0, 1;
 	return perspective((float)M_PI / 2.f, (float)dim.x() / dim.y(), .01f, 100.f) * z_upToY_up;

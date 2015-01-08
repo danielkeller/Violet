@@ -15,9 +15,17 @@ public:
 	void PostDraw();
 
 	Matrix4f PerspMat() const;
+    //values are in Opengl screen coordinates
+	Vector2f MouseDeltaScr() const;
+    Vector2f MousePosScr() const;
     //values are in Opengl viewport coordinates
-	Vector2f mouseDeltaPct() const;
-	Vector2f mousePosPct() const;
+    Vector2f MouseDeltaView() const;
+    Vector2f MousePosView() const;
+    //values are in Opengl viewport coordinates in pixel units
+    Vector2f MouseDeltaPxl() const;
+    Vector2f MousePosPxl() const;
+    
+    Vector2i Dim();
 
     bool LeftMouse() const;
     bool RightMouse() const;
@@ -26,7 +34,7 @@ public:
 
 private:
     GLFWwindow* window;
-    Eigen::Vector2i dim;
+    Vector2i dim;
     
 	Vector2f mouseOld, mouseCur;
 };

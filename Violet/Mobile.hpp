@@ -17,6 +17,11 @@ struct Transform
 		, rot(Quaternionf::Identity())
 		, scale(1)
 	{}
+    
+    Matrix4f ToMatrix() const
+    {
+        return (Eigen::Translation3f(pos) * rot * Eigen::Scaling(scale)).matrix();
+    }
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
@@ -34,8 +39,10 @@ public:
 	class MoveProxy
 	{
 	public:
-		Transform& operator*();
-		Transform* operator->() { return &**this; }
+        Transform& operator*();
+        const Transform& operator*() const;
+        Transform* operator->() { return &**this; }
+        const Transform* operator->() const { return &**this; }
 		void Sync();
 	private:
 		PermaRef ref;
@@ -50,7 +57,7 @@ public:
 	{
 		return cameraLoc;
 	}
-	Matrix4f CameraMat()
+	Matrix4f CameraMat() const
 	{
 		return cameraMat;
 	}

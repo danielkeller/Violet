@@ -67,7 +67,7 @@ Wavefront::Wavefront(std::string filename)
 		else if (!vertptr && letter == "vt")
 		{
 			obj >> x >> y;
-			uvs.push_back(Vector2f(1-x, y));
+			uvs.push_back(Vector2f(1-x, 1-y));
 		}
         else if (letter == "f")
         {

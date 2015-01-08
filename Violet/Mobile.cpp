@@ -38,6 +38,11 @@ Transform& Mobile::MoveProxy::operator*()
 	return mobile.data.get(ref)->loc;
 }
 
+const Transform& Mobile::MoveProxy::operator*() const
+{
+    return mobile.data.get(ref)->loc;
+}
+
 Mobile::MoveProxy::MoveProxy(PermaRef ref, Mobile& mobile)
 	: ref(ref), mobile(mobile)
 {}

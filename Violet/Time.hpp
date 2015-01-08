@@ -32,6 +32,8 @@ public:
             //steps (limited by frameLimit) to catch back up to clock::now(). This would appear as the physics
             //slowing down under load, then speeding back up to compensate. Alternatively, if we can simply override
             //the entire physics state, we could just skip simulating those ticks and warp right up to now.
+            //On the other hand, after leaving it paused in the debugger for a while this could really screw things
+            //up
             currentTime = newTime;
             
             accumulator += frameTime;

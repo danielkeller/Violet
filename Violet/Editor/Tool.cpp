@@ -39,7 +39,7 @@ std::vector<Render::LocationProxy> Tool::CreateArrows(Render& r)
 }
 
 Tool::Tool(Render& r, Mobile& m)
-    : move(m.Create({}, CreateArrows(r)))
+    : move(m.Create({}, CreateArrows(r))), m(m)
 {}
 
 void Tool::Update(Window& w, Object focused)
@@ -47,11 +47,22 @@ void Tool::Update(Window& w, Object focused)
     if (!w.LeftMouse())
         return;
     
-    float dist = (w.mouseDeltaPct().x() - w.mouseDeltaPct().y())*2.f;
-    if (focused == x)
-        move->pos.x() += dist;
-    if (focused == y)
-        move->pos.y() += dist;
-    if (focused == z)
-        move->pos.z() += dist;
+    int dir;
+    
+    if      (focused == x) dir = 0;
+    else if (focused == y) dir = 1;
+    else if (focused == z) dir = 2;
+    else return;
+    
+    //transform the tool coordinate axes into screen space vectors
+    Matrix4f screenAxes = w.PerspMat() * m.CameraMat() * move->ToMatrix();
+    Eigen::Matrix<float, 2, 3> vecs = screenAxes.block<2, 3>(0, 0); //chop off z and w
+    vecs.array().colwise() *= w.Dim().cast<float>().array() / 2.f; //scale into viewport pixel coordinates
+    //how big is the object on the screen?
+    float maxLen = vecs.colwise().norm().maxCoeff();
+    //now scale each direction to that length
+    vecs.colwise().normalize();
+    vecs /= maxLen;
+    
+    move->pos[dir] += w.MouseDeltaPxl().dot(vecs.block<2, 1>(0, dir));
 }
