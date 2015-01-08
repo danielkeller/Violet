@@ -6,14 +6,13 @@
 #include "Mobile.hpp"
 
 class Render;
-class Picker;
-class Time;
+class Window;
 
 class Tool
 {
 public:
-    Tool(Render& r, Picker& pick, Mobile& m);
-    void Update(Time& t);
+    Tool(Render& r, Mobile& m);
+    void Update(Window& w, Object focused);
     
 private:
     std::vector<Render::LocationProxy> CreateArrows(Render& r);

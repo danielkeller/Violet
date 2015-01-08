@@ -30,3 +30,8 @@ void Picker::Pick()
     
     pickedObj = Object(objId);
 }
+
+Object Picker::Picked() const
+{
+    return pickedObj;
+}

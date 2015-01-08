@@ -104,7 +104,6 @@
 		B9FEE4FF1A5B27B700489197 /* Time.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Time.hpp; sourceTree = "<group>"; };
 		B9FEE5021A5C9ABA00489197 /* Tool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Tool.cpp; path = Editor/Tool.cpp; sourceTree = "<group>"; };
 		B9FEE5031A5C9ABA00489197 /* Tool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Tool.hpp; path = Editor/Tool.hpp; sourceTree = "<group>"; };
-		B9FEE5071A5DA3C600489197 /* lex_set.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = lex_set.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -198,7 +197,6 @@
 				B9AA965B1A575DE00079F917 /* l_bag.hpp */,
 				B9AA965C1A575DE00079F917 /* l_map.hpp */,
 				B9AA965D1A575DE00079F917 /* WrappedIterator.hpp */,
-				B9FEE5071A5DA3C600489197 /* lex_set.hpp */,
 			);
 			path = Containers;
 			sourceTree = "<group>";

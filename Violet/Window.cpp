@@ -120,12 +120,12 @@ void Window::GetInput()
     mouseCur << x, dim.y() - y; //opengl and glfw use opposite viewport coordinates
 }
 
-Eigen::Vector2f Window::mouseDeltaPct()
+Eigen::Vector2f Window::mouseDeltaPct() const
 {
 	return (mouseCur - mouseOld).array() / dim.cast<float>().array();
 }
 
-Eigen::Vector2f Window::mousePosPct()
+Eigen::Vector2f Window::mousePosPct() const
 {
 	return mouseCur.array() / dim.cast<float>().array();
 }
@@ -150,7 +150,7 @@ void Window::PostDraw()
 #endif
 }
 
-Matrix4f Window::PerspMat()
+Matrix4f Window::PerspMat() const
 {
 	Matrix4f z_upToY_up;
 	z_upToY_up <<
@@ -159,4 +159,19 @@ Matrix4f Window::PerspMat()
 		0, 1, 0, 0,
 		0, 0, 0, 1;
 	return perspective((float)M_PI / 2.f, (float)dim.x() / dim.y(), .01f, 100.f) * z_upToY_up;
+}
+
+bool Window::LeftMouse() const
+{
+    return glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+}
+
+bool Window::RightMouse() const
+{
+    return glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+}
+
+bool Window::ShouldClose() const
+{
+    return glfwWindowShouldClose(window);
 }

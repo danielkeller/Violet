@@ -15,7 +15,7 @@ public:
     Picker(Render&, Window&);
     const ShaderProgram shader;
     void Pick();
-    Object Picked();
+    Object Picked() const;
     
 private:
     TypedTex<std::uint32_t> tex;

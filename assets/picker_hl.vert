@@ -14,6 +14,6 @@ in mat4 transform;
 
 void main()
 {
-    gl_Position = transform * vec4(position.xy, .01, 1);
+    gl_Position = transform * vec4(position.xy, 0, 1);
 	texCoordFrag = texCoord;
 }

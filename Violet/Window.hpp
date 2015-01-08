@@ -14,16 +14,20 @@ public:
 	void PreDraw();
 	void PostDraw();
 
-	GLFWwindow* window;
-	Eigen::Vector2i dim;
-
-	Matrix4f PerspMat();
+	Matrix4f PerspMat() const;
     //values are in Opengl viewport coordinates
-	Vector2f mouseDeltaPct();
-	Vector2f mousePosPct();
+	Vector2f mouseDeltaPct() const;
+	Vector2f mousePosPct() const;
 
+    bool LeftMouse() const;
+    bool RightMouse() const;
+    
+    bool ShouldClose() const;
 
 private:
+    GLFWwindow* window;
+    Eigen::Vector2i dim;
+    
 	Vector2f mouseOld, mouseCur;
 };
 

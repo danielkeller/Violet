@@ -10,8 +10,6 @@
 #include "Editor/Tool.hpp"
 #include "Time.hpp"
 
-#include "GLFW/glfw3.h"
-
 #include <iostream>
 
 #include <unistd.h>
@@ -48,7 +46,7 @@ try
 
     auto moveProxy = m.Create(Transform(), {locProxy}); //{locProxy, locProxyAabb});
     
-    Tool tool(r, pick, m);
+    Tool tool(r, m);
 
 	m.CameraLoc().pos = Vector3f(0.f, -3.f, 0.f);
 
@@ -56,14 +54,29 @@ try
     
     Time t;
     
+    //todo: some objects have "clicky" behavior, some have "draggy"
+    Object focused = Object::none;
+    bool mouseDown = false;
+    
     auto physTick = [&]() {
         w.GetInput();
         m.Tick();
         //physics step
-        tool.Update(t);
-        moveProxy->rot *= Quaternionf{ Eigen::AngleAxisf(0.04f, Vector3f::UnitY()) };
+        tool.Update(w, focused);
+        moveProxy->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
 
-        if (glfwGetMouseButton(w.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        if (w.LeftMouse())
+        {
+            if (!mouseDown) //just clicked
+                focused = pick.Picked();
+            mouseDown = true;
+        }
+        else
+        {
+            mouseDown = false;
+        }
+        
+        if (w.LeftMouse() && focused == Object::none)
         {
             m.CameraLoc().rot *= Quaternionf{
                 Eigen::AngleAxisf(-w.mouseDeltaPct().x()*3.f,
@@ -74,7 +87,7 @@ try
                                   m.CameraLoc().rot.conjugate() * Vector3f::UnitX()) };
         }
 
-        return !glfwWindowShouldClose(w.window);
+        return !w.ShouldClose();
     };
     
     auto renderTick = [&](float alpha) {
