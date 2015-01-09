@@ -6,7 +6,7 @@
 #include "Geometry/AABB.hpp"
 #include "Profiling.hpp"
 #include "Mobile.hpp"
-#include "Picker.hpp"
+#include "Rendering/Picker.hpp"
 #include "Editor/Tool.hpp"
 #include "Time.hpp"
 

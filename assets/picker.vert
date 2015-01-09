@@ -1,5 +1,3 @@
-#version 330
-
 in vec3 position;
 in uint object;
 flat out uint objectFrag;

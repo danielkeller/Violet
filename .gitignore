@@ -186,6 +186,7 @@ FakesAssemblies/
 # Python stuff
 *.pyc
 sums
+violet.o
 
 #Xcode stuff
 xcuserdata

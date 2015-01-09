@@ -166,13 +166,23 @@ void ShaderProgram::TextureOrder(const std::vector<std::string>& order)
 GLuint CreateShader(GLenum eShaderType, std::istream &t, const std::string& name)
 {
     if (!t)
-        throw "Shader file not found";
+        throw std::runtime_error("Shader file '" + name + "'not found");
+
+    static const std::string versionString =
+#ifdef __APPLE__
+        "#version 330\n";
+#else
+        "#version 130\n"
+        "#extension GL_ARB_uniform_buffer_object : require\n";
+#endif
+
     //read the stream into a string
     t.seekg(0, std::ios::end);
     size_t size = static_cast<size_t>(t.tellg());
     std::string buffer(size, ' ');
     t.seekg(0);
     t.read(&buffer[0], size); 
+    buffer = versionString + buffer;
 
     //create the shader Render
     GLuint shader = glCreateShader(eShaderType);
@@ -234,8 +244,9 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag,
     uniforms = Uniforms(program);
     
     for(GLuint uniformBlockIndex = 0; uniformBlockIndex < uniforms.blocks.size(); ++uniformBlockIndex)
-        glUniformBlockBinding(program, uniformBlockIndex,
-            uniforms.blocks[uniformBlockIndex].name == "Common" ? UBO::Common : UBO::Material);
+        if (uniforms.blocks[uniformBlockIndex].name != "")
+            glUniformBlockBinding(program, uniformBlockIndex,
+                uniforms.blocks[uniformBlockIndex].name == "Common" ? UBO::Common : UBO::Material);
 
     //shaders are no longer used now that the program is linked
     glDetachShader(program, vertShdr);

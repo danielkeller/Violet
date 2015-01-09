@@ -17,7 +17,7 @@ libgl = (['-L/System/Library/Frameworks', '-framework', 'OpenGL']
     if platform.system() == 'Darwin' else ['-lGL', '-lGLU'])
 libglfw = (['-framework', 'Cocoa', '-framework', 'OpenGL', '-framework', 'IOKit', '-framework', 'CoreVideo', 'GLFW/libglfw3_mac.a']
     if platform.system() == 'Darwin'
-    else ['GLFW/libglfw3.a' '-lX11', '-lXxf86vm', '-lpthread', '-lXrandr', '-lXi', '-lXinerama', '-lXcursor'])
+    else ['GLFW/libglfw3.a', '-lX11', '-lXxf86vm', '-lpthread', '-lXrandr', '-lXi', '-lXinerama', '-lXcursor'])
 libs = libgl + libglfw + ['-rdynamic']
 executable = 'violet.o'
 

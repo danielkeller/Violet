@@ -1,5 +1,3 @@
-#version 330
-
 uniform Common
 {
 	mat4 camera;

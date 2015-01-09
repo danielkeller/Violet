@@ -1,5 +1,3 @@
-#version 330
-
 out vec4 outputColor;
 
 in vec2 texCoordFrag;

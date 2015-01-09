@@ -1,7 +1,7 @@
 #ifndef TOOL_HPP
 #define TOOL_HPP
 
-#include "VertexData.hpp"
+#include "Rendering/VertexData.hpp"
 #include "Object.hpp"
 #include "Mobile.hpp"
 
