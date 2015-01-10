@@ -25,8 +25,6 @@ void Picker::Pick()
     r.DrawPass(PickerPass);
     
     auto objId = fbo.ReadPixel(w.MousePosView());
-    hlMat["selected"] = objId;
-    hlMat.Sync();
     
     pickedObj = Object(objId);
 }
@@ -34,4 +32,10 @@ void Picker::Pick()
 Object Picker::Picked() const
 {
     return pickedObj;
+}
+
+void Picker::Highlight(Object o)
+{
+    hlMat["selected"] = o;
+    hlMat.Sync();
 }

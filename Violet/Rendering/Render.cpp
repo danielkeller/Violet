@@ -48,6 +48,12 @@ void Render::Iterate(PerShader psh, PerMaterial pm, PerShape ps)
     }
 }
 
+void Render::PassDefaults(Passes pass, ShaderProgram shader, Material mat)
+{
+    defaultShader[pass] = passShaders.insert(shader).first;
+    defaultMaterial[pass] = passMaterials.insert(mat).first;
+}
+
 template<class data_t, class lower_data_t>
 std::pair<typename lower_data_t::iterator, typename lower_data_t::iterator>
 range_of(typename data_t::iterator it, data_t& data, lower_data_t& lower_data)
@@ -60,12 +66,13 @@ range_of(typename data_t::iterator it, data_t& data, lower_data_t& lower_data)
         return {lower_data.get(it[0].begin), lower_data.get(it[1].begin)};
 }
 
-Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
-    std::array<Material, AllPasses> mat, VertexData vertData, const Matrix4f& loc)
+std::pair<l_bag<Shape>::iterator, Render::LocationProxy>
+Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
+    VertexData vertData, const Matrix4f& loc)
 {
-    auto shaderit = std::find(shaders.begin(), shaders.end(), shader[0]);
+    auto shaderit = std::find(shaders.begin(), shaders.end(), shader);
     auto matrange = range_of(shaderit, shaders, materials);
-    auto matit = std::find(matrange.first, matrange.second, mat[0]);
+    auto matit = std::find(matrange.first, matrange.second, mat);
     auto shaperange = range_of(matit, materials, shapes);
     auto shapeit = std::find(shaperange.first, shaperange.second, vertData);
     auto instrange = range_of(shapeit, shapes, instances);
@@ -74,24 +81,18 @@ Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPa
     auto shaperef = shapes.get_perma(shapes.end());
     if (shapeit == shaperange.second)
     {
-        shaperef = shapes.emplace(shapeit, vertData, shader[0], instref);
+        shaperef = shapes.emplace(shapeit, vertData, shader, instref);
         shapeit = shapes.get(shaperef);
     }
     
     if (shaderit == shaders.end())
     {
-        shaders.emplace(shaderit, shader[0],
-            materials.emplace(matit, mat[0], shaperef));
+        shaders.emplace(shaderit, shader,
+            materials.emplace(matit, mat, shaperef));
     }
     else if (matit == matrange.second)
     {
-        materials.emplace(matit, mat[0], shaperef);
-    }
-
-    for (size_t i = 0; i < NumPasses; ++i)
-    {
-        shapeit->passShader[i] = passShaders.insert(shader[i+1]).first;
-        shapeit->passMaterial[i] = passMaterials.insert(mat[i+1]).first;
+        materials.emplace(matit, mat, shaperef);
     }
 
 	GLsizei offset = 0;
@@ -114,7 +115,35 @@ Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPa
     instances.resize(offset);
 	instanceBuffer.Data(offset);
 
-	return { instances, instref };
+	return {shapeit, {instances, instref}};
+}
+
+Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, Material mat,
+    VertexData vertData, const Matrix4f& loc)
+{
+    auto p = InternalCreate(obj, shader, mat, vertData, loc);
+
+    for (size_t i = 0; i < NumPasses; ++i)
+    {
+        p.first->passShader[i] = defaultShader[i];
+        p.first->passMaterial[i] = defaultMaterial[i];
+    }
+
+    return p.second;
+}
+
+Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
+    std::array<Material, AllPasses> mat, VertexData vertData, const Matrix4f& loc)
+{
+    auto p = InternalCreate(obj, shader[0], mat[0], vertData, loc);
+
+    for (size_t i = 0; i < NumPasses; ++i)
+    {
+        p.first->passShader[i] = passShaders.insert(shader[i+1]).first;
+        p.first->passMaterial[i] = passMaterials.insert(mat[i+1]).first;
+    }
+
+    return p.second;
 }
 
 void Material::use() const

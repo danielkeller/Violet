@@ -6,8 +6,7 @@
 #include "Geometry/AABB.hpp"
 #include "Profiling.hpp"
 #include "Mobile.hpp"
-#include "Rendering/Picker.hpp"
-#include "Editor/Tool.hpp"
+#include "Editor/Edit.hpp"
 #include "Time.hpp"
 
 #include <iostream>
@@ -23,8 +22,8 @@ try
 	Window w;
     Render r;
     Mobile m;
-    Picker pick(r, w);
-    
+    Edit edit(r, w, m);
+
     //load the object
 	Object teapotObj, teapot2Obj;
 	Wavefront teapot{"assets/capsule.obj"};
@@ -33,73 +32,48 @@ try
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-    auto locProxy = r.Create(teapotObj, {teapot.shaderProgram, pick.shader},
-        {{{{}, {{"assets/capsule.png"}}}, {}}},
+    auto locProxy = r.Create(teapotObj, teapot.shaderProgram,
+        {{}, {{"assets/capsule.png"}}},
         teapot.vertexData, Matrix4f::Identity()*2);
     //auto locProxyAabb = r.Create(aabbObj, {aabb.shaderProgram, {}}, {},
 	//	aabb.vertData, Matrix4f::Identity());
     
-    r.Create(teapot2Obj, {teapot.shaderProgram, pick.shader},
-        {{{{}, {{"assets/capsule.png"}}}, {}}},
+    r.Create(teapot2Obj, teapot.shaderProgram,
+        {{}, {{"assets/capsule.png"}}},
         teapot.vertexData, //Matrix4f::Identity());
         Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix()*3);
 
     auto moveProxy = m.Create(Transform(), {locProxy}); //{locProxy, locProxyAabb});
     
-    Tool tool(r, m);
-
 	m.CameraLoc().pos = Vector3f(0.f, -3.f, 0.f);
 
 	m.Tick();
     
     Time t;
     
-    //todo: some objects have "clicky" behavior, some have "draggy"
-    Object focused = Object::none;
-    bool mouseDown = false;
-    
-    auto physTick = [&]() {
-        w.GetInput();
+    auto physTick = [&]()
+    {
         m.Tick();
-        //physics step
-        tool.Update(w, focused);
-        moveProxy->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
 
-        if (w.LeftMouse())
-        {
-            if (!mouseDown) //just clicked
-                focused = pick.Picked();
-            mouseDown = true;
-        }
-        else
-        {
-            mouseDown = false;
-            focused = Object::none;
-        }
-        
-        if (w.LeftMouse() && focused == Object::none)
-        {
-            m.CameraLoc().rot *= Quaternionf{
-                Eigen::AngleAxisf(-w.MouseDeltaScr().x(),
-                                  Vector3f::UnitZ()) }; //rotate around world z
-            m.CameraLoc().rot *= Quaternionf{
-                Eigen::AngleAxisf(w.MouseDeltaScr().y(),
-                                  //rotate around camera x
-                                  m.CameraLoc().rot.conjugate() * Vector3f::UnitX()) };
-        }
+        w.GetInput();
+        edit.PhysTick();
+
+        //physics step
+        moveProxy->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
 
         return !w.ShouldClose();
     };
     
-    auto renderTick = [&](float alpha) {
+    auto renderTick = [&](float alpha)
+    {
         m.Update(alpha);
+        edit.DrawTick();
 
         w.PreDraw();
         r.camera = w.PerspMat() * m.CameraMat();
         r.Draw();
         w.PostDraw();
         
-        pick.Pick();
     };
     
     t.MainLoop(physTick, renderTick);

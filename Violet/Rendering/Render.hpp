@@ -53,11 +53,18 @@ public:
 	//Maybe make mobility an option?
 	LocationProxy Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
         std::array<Material, AllPasses> mat, VertexData vertData, const Matrix4f& loc);
+    //create with defaults
+	LocationProxy Create(Object obj, ShaderProgram shader, Material mat,
+        VertexData vertData, const Matrix4f& loc);
+
     LocationProxy GetLocProxyFor(Object obj);
 	void Destroy(Object obj);
+
 	void Draw();
     void DrawPass(int pass);
 	Matrix4f camera;
+
+    void PassDefaults(Passes pass, ShaderProgram shader, Material mat);
 
 	Render();
 	Render(const Render&) = delete;
@@ -81,6 +88,10 @@ public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 private:
+    std::pair<l_bag<Render_detail::Shape>::iterator, LocationProxy>
+	InternalCreate(Object obj, ShaderProgram shader, Material mat,
+        VertexData vertData, const Matrix4f& loc);
+
 	//UBO shared with all shaders
 	ShaderProgram simpleShader;
     UBO commonUBO;
@@ -95,6 +106,9 @@ private:
     BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
     //or, unord_l_map<Shader, unord_l_map<T_Material, unord_l_set<VAO>>>
     //const insert but fragmented data
+
+    std::array<std::unordered_set<ShaderProgram>::iterator, NumPasses> defaultShader;
+    std::array<std::unordered_set<Material>::iterator, NumPasses> defaultMaterial;
 
     template<class PerShader, class PerMaterial, class PerShape>
     void Iterate(PerShader psh, PerMaterial pm, PerShape ps);

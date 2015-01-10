@@ -16,6 +16,8 @@ public:
     const ShaderProgram shader;
     void Pick();
     Object Picked() const;
+    //set the highlighted object
+    void Highlight(Object o);
     
 private:
     TypedTex<std::uint32_t> tex;
