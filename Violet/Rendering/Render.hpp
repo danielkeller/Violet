@@ -79,10 +79,10 @@ public:
 		LocationProxy(const LocationProxy& other) = default;
         LocationProxy(LocationProxy&& other);
 	private:
-		Render_detail::InstanceVec& buf;
+		Render_detail::InstanceVec* buf;
 		Render_detail::InstanceVec::perma_ref obj;
 		friend class Render;
-		LocationProxy(Render_detail::InstanceVec&, Render_detail::InstanceVec::perma_ref);
+		LocationProxy(Render_detail::InstanceVec*, Render_detail::InstanceVec::perma_ref);
 	};
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW

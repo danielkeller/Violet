@@ -36,6 +36,6 @@ Object Picker::Picked() const
 
 void Picker::Highlight(Object o)
 {
-    hlMat["selected"] = o;
+    hlMat["selected"] = o.Id();
     hlMat.Sync();
 }

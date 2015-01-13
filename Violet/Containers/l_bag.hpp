@@ -18,7 +18,7 @@ private:
 public:
 
 	l_bag()
-        : inds({0}) //past-the-end
+		: inds(1, 0) //past-the-end
     {}
 	l_bag(std::initializer_list<T> init)
 	{
@@ -108,7 +108,7 @@ public:
 	perma_ref emplace(iterator pos, Args&&... args)
 	{
         auto indIt = new_ind();
-        auto my_ind = pos - store.begin();
+        indty my_ind = pos - store.begin();
         for(auto& ind : inds) if (ind >= my_ind) ++ind;
         inds[indIt] = my_ind;
 		store.emplace(pos, std::forward<Args>(args)...);

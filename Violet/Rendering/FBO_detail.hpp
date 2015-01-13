@@ -103,7 +103,7 @@ Pixel FBO<Pixel>::ReadPixel(Vector2f windowPos)
 {
     auto bound = Bind(GL_READ_FRAMEBUFFER);
     Pixel ret;
-    glReadPixels(dim.x()*windowPos.x(), dim.y()*windowPos.y(), 1, 1,
+    glReadPixels(GLint(dim.x()*windowPos.x()), GLint(dim.y()*windowPos.y()), 1, 1,
         PixelTraits<Pixel>::format, PixelTraits<Pixel>::type, &ret);
     return ret;
 }

@@ -9,7 +9,7 @@ namespace Render_detail
 
         MEMBER_EQUALITY(Material, mat)
 		
-        T_Material& operator=(T_Material&&) = default;
+       // T_Material& operator=(T_Material&&) = default;
 
 		T_Material(Material mat, l_bag<Shape>::perma_ref begin)
 			: mat(mat)
@@ -32,7 +32,7 @@ namespace Render_detail
 
 		MEMBER_EQUALITY(ShaderProgram, program)
 
-        Shader& operator=(Shader&&) = default;
+        //Shader& operator=(Shader&&) = default;
 		Shader(const Shader&) = delete;
 		Shader(Shader&& other)
 			: program(std::move(other.program))
@@ -65,7 +65,7 @@ namespace Render_detail
 			: vao(program, vertData), begin(begin)
 		{}
 
-        Shape& operator=(Shape&&) = default;
+        //Shape& operator=(Shape&&) = default;
 		Shape(const Shape&) = delete;
 		Shape(Shape&& other) //MSVC sucks and can't default this
             : vao(std::move(other.vao))

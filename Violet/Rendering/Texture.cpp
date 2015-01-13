@@ -6,6 +6,7 @@
 #include "Lodepng/lodepng.hpp"
 #include <iostream>
 #include <fstream>
+#include <cstdint>
 
 Tex::Tex(std::string path)
 	: Tex(TexResource::FindOrMake(path))

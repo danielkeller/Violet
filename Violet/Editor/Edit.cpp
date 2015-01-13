@@ -23,8 +23,8 @@ void Edit::PhysTick()
         {
             Object picked = pick.Picked();
             if (editable.count(picked))
-                edit.Highlight(selected = picked);
-            focused = 
+                pick.Highlight(selected = picked);
+            //focused = 
         }
         mouseDown = true;
     }

@@ -14,7 +14,7 @@ Render::Render()
 }
 
 Render::LocationProxy::LocationProxy(
-	InstanceVec& buf, InstanceVec::perma_ref obj)
+	InstanceVec* buf, InstanceVec::perma_ref obj)
 	: buf(buf), obj(obj)
 {}
 
@@ -24,7 +24,7 @@ Render::LocationProxy::LocationProxy(LocationProxy&& other)
 
 Matrix4f& Render::LocationProxy::operator*()
 {
-	return buf.get(obj)->mat;
+	return buf->get(obj)->mat;
 }
 
 template<class PerShader, class PerMaterial, class PerShape>
@@ -115,7 +115,7 @@ Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
     instances.resize(offset);
 	instanceBuffer.Data(offset);
 
-	return {shapeit, {instances, instref}};
+	return {shapeit, {&instances, instref}};
 }
 
 Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, Material mat,
@@ -212,7 +212,7 @@ Render::LocationProxy Render::GetLocProxyFor(Object obj)
     auto inst = std::find(instances.begin(), instances.end(), obj);
     if (inst == instances.end())
         throw std::runtime_error("No such object " + to_string(obj));
-    return {instances, instances.get_perma(inst)};
+    return {&instances, instances.get_perma(inst)};
 }
 
 template<>

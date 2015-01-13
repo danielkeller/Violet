@@ -132,6 +132,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BinTree.hpp" />
+    <ClInclude Include="Editor\Edit.hpp" />
+    <ClInclude Include="Editor\Tool.hpp" />
     <ClInclude Include="Geometry\AABB.hpp" />
     <ClInclude Include="Geometry\Collide.hpp" />
     <ClInclude Include="Geometry\Mesh.hpp" />
@@ -143,13 +145,19 @@
     <ClInclude Include="Permavector.hpp" />
     <ClInclude Include="Profiling.hpp" />
     <ClInclude Include="Rendering\BufferObject.hpp" />
+    <ClInclude Include="Rendering\FBO.hpp" />
+    <ClInclude Include="Rendering\FBO_detail.hpp" />
+    <ClInclude Include="Rendering\Picker.hpp" />
     <ClInclude Include="Rendering\Render.hpp" />
+    <ClInclude Include="Rendering\Render_detail.hpp" />
     <ClInclude Include="Rendering\Shader.hpp" />
     <ClInclude Include="Rendering\Texture.hpp" />
+    <ClInclude Include="Rendering\Texture_detail.hpp" />
     <ClInclude Include="Rendering\VAO.hpp" />
     <ClInclude Include="Rendering\VertexData.hpp" />
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Time.hpp" />
     <ClInclude Include="Wavefront.hpp" />
     <ClInclude Include="Window.hpp" />
     <ClInclude Include="WrappedIterator.hpp" />
@@ -167,6 +175,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Editor\Edit.cpp" />
+    <ClCompile Include="Editor\Tool.cpp" />
     <ClCompile Include="Geometry\AABB.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -184,6 +194,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Rendering\FBO.cpp" />
+    <ClCompile Include="Rendering\Picker.cpp" />
     <ClCompile Include="Rendering\Render.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Rendering\Texture.cpp" />
@@ -197,6 +209,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Zm120 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zm120 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="Time.cpp" />
     <ClCompile Include="Wavefront.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>

@@ -24,7 +24,7 @@ using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>
 #define GLFW_INCLUDE_NONE
 
 //enable stack traces on GL errors
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(WIN32)
 #define GL_DEBUG
 #endif
 

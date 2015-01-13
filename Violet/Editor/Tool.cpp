@@ -6,9 +6,9 @@
 
 //Arrow towards +x
 std::vector<Vector3f> arrowVerts = {
-    {0, .1, 0}, {0, -.1, 0},
-    {1, .1, 0}, {1, -.1, 0},
-    {1, .5, 0}, {1, -.5, 0}, {1.5, 0, 0}
+    {0.f, .1f, 0.f}, {0.f, -.1f, 0.f},
+    {1.f, .1f, 0.f}, {1.f, -.1f, 0.f},
+    {1.f, .5f, 0.f}, {1.f, -.5f, 0.f}, {1.5f, 0.f, 0.f}
 };
 
 std::vector<TriInd> arrowInds = {

@@ -6,6 +6,7 @@
 
 #include <istream>
 #include <memory>
+#include <cstdint>
 
 class UBO;
 
