@@ -12,14 +12,15 @@ class Tool
 {
 public:
     Tool(Render& r, Mobile& m);
-    void Update(Window& w, Object focused);
+	void Update(Window& w, Object focused);
+	Mobile::MoveProxy& Move();
     
 private:
     std::vector<Render::LocationProxy> CreateArrows(Render& r);
-    
-    Object x, y, z;
-    Mobile::MoveProxy move;
-    const Mobile& m;
+
+	const Mobile& m;
+	Object x, y, z;
+	Mobile::MoveProxy move;
 };
 
 #endif

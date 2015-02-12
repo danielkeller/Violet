@@ -21,6 +21,9 @@
     <Filter Include="Source Files\Editor">
       <UniqueIdentifier>{611df96d-6cb7-42fe-8014-1904a476afa6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Containers">
+      <UniqueIdentifier>{93bdf5f6-a93f-4efc-8f8b-577daca88de6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Rendering\Render.hpp">
@@ -77,9 +80,6 @@
     <ClInclude Include="BinTree.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="WrappedIterator.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="MappedFile.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -112,6 +112,21 @@
     </ClInclude>
     <ClInclude Include="Time.hpp">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Position.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Containers\BinTree.hpp">
+      <Filter>Source Files\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Containers\l_bag.hpp">
+      <Filter>Source Files\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Containers\l_map.hpp">
+      <Filter>Source Files\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Containers\WrappedIterator.hpp">
+      <Filter>Source Files\Containers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -195,6 +210,36 @@
     <None Include="..\assets\color.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\assets\blank.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\blank.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\picker.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\picker.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\picker_hl.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\picker_hl.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\tool_arrow.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\tool_arrow.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\tool_arrow_picker.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\tool_arrow_picker.vert">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\GLFW\glfw3_32.lib">
@@ -203,5 +248,10 @@
     <Library Include="..\GLFW\glfw3_64.lib">
       <Filter>Resource Files</Filter>
     </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\assets\capsule.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -42,7 +42,10 @@ try
         Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix()*3);
 
     auto moveProxy = m.Create(Transform(), {locProxy}); //{locProxy, locProxyAabb});
-    
+
+	edit.Editable(teapotObj);
+	edit.Editable(teapot2Obj);
+
 	m.CameraLoc().pos = Vector3f(0.f, -3.f, 0.f);
 
 	m.Tick();

@@ -5,26 +5,9 @@
 #include "Object.hpp"
 #include "Containers/l_bag.hpp"
 
+#include "Position.hpp"
+
 #include <map>
-
-struct Transform
-{
-	Vector3f pos;
-	Quaternionf rot;
-	float scale;
-	Transform()
-		: pos(0, 0, 0)
-		, rot(Quaternionf::Identity())
-		, scale(1)
-	{}
-    
-    Matrix4f ToMatrix() const
-    {
-        return (Eigen::Translation3f(pos) * rot * Eigen::Scaling(scale)).matrix();
-    }
-
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
 
 class Mobile
 {
@@ -43,7 +26,8 @@ public:
         const Transform& operator*() const;
         Transform* operator->() { return &**this; }
         const Transform* operator->() const { return &**this; }
-		void Sync();
+		void Add(Render::LocationProxy target);
+		void Remove(Render::LocationProxy target);
 	private:
 		PermaRef ref;
 		Mobile& mobile;

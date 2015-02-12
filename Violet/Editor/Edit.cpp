@@ -3,7 +3,7 @@
 #include "Window.hpp"
 
 Edit::Edit(Render& r, Window& w, Mobile& m)
-    : w(w), m(m), pick(r, w), tool(r, m)
+    : r(r), w(w), m(m), pick(r, w), tool(r, m)
     , focused(Object::none), mouseDown(false)
 {
     r.PassDefaults(PickerPass, pick.shader, {});
@@ -17,27 +17,37 @@ void Edit::Editable(Object o)
 void Edit::PhysTick()
 {
     tool.Update(w, focused);
-    if (w.LeftMouse())
+	if (w.LeftMouse() && !mouseDown) //just clicked
     {
-        if (!mouseDown) //just clicked
-        {
-            Object picked = pick.Picked();
-            if (editable.count(picked))
-                pick.Highlight(selected = picked);
-            //focused = 
-        }
+        Object picked = pick.Picked();
+		if (selected == picked) //click to deselect
+		{
+			if (selected != Object::none)
+				tool.Move().Remove(r.GetLocProxyFor(selected));
+			selected = Object::none;
+		}
+		else if (editable.count(picked)) //click to select
+		{
+			selected = picked;
+			if (selected != Object::none)
+				tool.Move().Add(r.GetLocProxyFor(selected));
+		}
+		focused = picked;
         mouseDown = true;
     }
-    else
+	else if (!w.LeftMouse() && mouseDown) //just released
     {
+		//focus reverts to the selectable object that was selected
+		focused = selected;
         mouseDown = false;
-        focused = Object::none;
+	}
 
-        //hover highlight
-        pick.Highlight(pick.Picked());
-    }
+	pick.Highlight(pick.Picked(), Picker::Hovered);
+	pick.Highlight(focused, Picker::Focused);
+	pick.Highlight(selected, Picker::Selected);
     
-    if (w.LeftMouse() && focused == Object::none)
+	//right mouse to rotate
+    if (w.RightMouse())
     {
         m.CameraLoc().rot *= Quaternionf{
             Eigen::AngleAxisf(-w.MouseDeltaScr().x(),

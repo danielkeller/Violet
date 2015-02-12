@@ -19,6 +19,7 @@ public:
     void DrawTick();
 
 private:
+	Render& r;
     Window& w;
     Mobile& m;
     Picker pick;

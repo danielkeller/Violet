@@ -39,8 +39,13 @@ std::vector<Render::LocationProxy> Tool::CreateArrows(Render& r)
 }
 
 Tool::Tool(Render& r, Mobile& m)
-    : move(m.Create({}, CreateArrows(r))), m(m)
+	: m(m), x(), y(), z(), move(m.Create({}, CreateArrows(r)))
 {}
+
+Mobile::MoveProxy& Tool::Move()
+{
+	return move;
+}
 
 void Tool::Update(Window& w, Object focused)
 {

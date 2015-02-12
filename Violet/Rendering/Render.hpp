@@ -78,6 +78,7 @@ public:
 		Matrix4f* operator->() { return &**this; }
 		LocationProxy(const LocationProxy& other) = default;
         LocationProxy(LocationProxy&& other);
+		BASIC_EQUALITY(LocationProxy, obj)
 	private:
 		Render_detail::InstanceVec* buf;
 		Render_detail::InstanceVec::perma_ref obj;

@@ -43,6 +43,21 @@ const Transform& Mobile::MoveProxy::operator*() const
     return mobile.data.get(ref)->loc;
 }
 
+void Mobile::MoveProxy::Add(Render::LocationProxy target)
+{
+	auto& targets = mobile.data.get(ref)->targets;
+	if (std::find(targets.begin(), targets.end(), target) == targets.end())
+		mobile.data.get(ref)->targets.push_back(target);
+}
+
+void Mobile::MoveProxy::Remove(Render::LocationProxy target)
+{
+	auto& targets = mobile.data.get(ref)->targets;
+	auto it = std::find(targets.begin(), targets.end(), target);
+	if (it == targets.end())
+		mobile.data.get(ref)->targets.erase(it);
+}
+
 Mobile::MoveProxy::MoveProxy(PermaRef ref, Mobile& mobile)
 	: ref(ref), mobile(mobile)
 {}

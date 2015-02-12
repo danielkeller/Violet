@@ -76,7 +76,8 @@ Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
     auto shaperange = range_of(matit, materials, shapes);
     auto shapeit = std::find(shaperange.first, shaperange.second, vertData);
     auto instrange = range_of(shapeit, shapes, instances);
-    auto instref = instances.emplace(instrange.second, loc, obj);
+	//This call has issues with emplacing normally, because of alignment
+    auto instref = instances.emplace(instrange.second, InstData(loc, obj));
     
     auto shaperef = shapes.get_perma(shapes.end());
     if (shapeit == shaperange.second)
@@ -106,9 +107,8 @@ Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
     [&](Shape& shape)
     {
         auto instend = &shape == &shapes.back() ? instances.end() : instances.get((&shape)[1].begin);
-        auto numInstances = instend - instances.get(shape.begin);
-        shape.vao.BindInstanceData(curShader->program, instanceBuffer, offset,
-            static_cast<GLsizei>(numInstances));
+		auto numInstances = static_cast<GLsizei>(instend - instances.get(shape.begin));
+        shape.vao.BindInstanceData(curShader->program, instanceBuffer, offset, numInstances);
         offset += numInstances;
     });
 

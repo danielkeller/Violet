@@ -34,8 +34,8 @@ Object Picker::Picked() const
     return pickedObj;
 }
 
-void Picker::Highlight(Object o)
+void Picker::Highlight(Object o, Highlights type)
 {
-    hlMat["selected"] = o.Id();
-    hlMat.Sync();
+    hlMat["selected"][type] = o.Id();
+    hlMat.Sync(); //TODO: this is redundant
 }

@@ -45,6 +45,7 @@ namespace Render_detail
 		Matrix4f mat;
         Object obj;
         
+		InstData(const InstData&) = default;
         InstData(const Matrix4f& m, Object o) : mat(m), obj(o) {}
         InstData() : mat(), obj(Object::invalid) {}
 		InstData& operator=(const Matrix4f& m) { mat = m; return *this; }

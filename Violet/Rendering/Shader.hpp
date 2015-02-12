@@ -44,6 +44,35 @@ private:
 
 MEMBER_HASH(ShaderProgram, program)
 
+struct Uniform
+{
+	std::string name;
+	MEMBER_EQUALITY(std::string, name)
+	GLenum type;
+
+	//The sizes returned are in units of the type returned by a query of
+	//GL_UNIFORM_TYPE. For active uniforms that are arrays, the size is
+	//the number of active elements in the array; for all other uniforms,
+	//the size is one.
+	GLuint size;
+
+	//For uniforms in a named uniform block, the returned value will be
+	//its offset, in basic machine units, relative to the beginning of
+	//the uniform block in the buffer object data store. For atomic
+	//counter uniforms, the returned value will be its offset relative
+	//to the beginning of its active atomic counter buffer. For all other
+	//uniforms, -1 will be returned.
+	GLuint offset;
+
+	//For uniforms in named uniform blocks and for uniforms declared as
+	//atomic counters, the stride is the difference, in basic machine
+	//units, of consecutive elements in an array, or zero for uniforms
+	//not declared as an array. For all other uniforms, a stride of
+	//-1 will be returned.
+	GLint stride;
+	GLint location;
+};
+
 //Uniform Buffer Object
 class UBO
 {
@@ -62,10 +91,7 @@ public:
 
 	BASIC_EQUALITY(UBO, bindProxy)
 
-	Proxy operator[](const std::string& name)
-	{
-		return Proxy(*this, name);
-	}
+	Proxy operator[](const std::string& name);
 
 	//synchronize with OpenGL. Note that this stalls anything using this UBO.
 	void Sync() const;
@@ -89,8 +115,8 @@ private:
 
 	struct Proxy
 	{
-		Proxy(UBO& ubo, const std::string& name)
-			: ubo(ubo), name(name) {}
+		Proxy(UBO& ubo, Uniform unif)
+			: ubo(ubo), unif(unif) {}
 
         explicit operator Vector3f() const;
         Proxy& operator=(const Vector3f&);
@@ -101,9 +127,11 @@ private:
 		explicit operator std::uint32_t() const;
 		Proxy& operator=(const std::uint32_t&);
 
+		Proxy operator[](GLuint offset);
+
 	private:
 		UBO& ubo;
-		const std::string& name;
+		const Uniform unif;
 
 		template<typename T, GLenum ty>
 		T ConvertOpHelper() const;

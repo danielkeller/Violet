@@ -16,8 +16,17 @@ public:
     const ShaderProgram shader;
     void Pick();
     Object Picked() const;
+
+	enum Highlights
+	{
+		//Ordered by priority
+		Focused = 0,
+		Selected,
+		Hovered,
+	};
+
     //set the highlighted object
-    void Highlight(Object o);
+    void Highlight(Object o, Highlights type);
     
 private:
     TypedTex<std::uint32_t> tex;

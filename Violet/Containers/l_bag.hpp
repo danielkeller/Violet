@@ -69,6 +69,7 @@ public:
 			it = other.it;
 			return *this;
 		}
+		BASIC_EQUALITY(perma_ref, it)
 
 	private:
 		perma_ref(typename indsty::difference_type it) : it(it) {}

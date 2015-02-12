@@ -9,19 +9,11 @@ struct Uniforms
 	Uniforms() = default;
 	Uniforms(GLuint program);
 
-	struct Uniform
-	{
-		std::string name;
-		GLenum type;
-		GLuint size;
-		GLuint offset;
-		GLint stride;
-		GLint location;
-	};
-
 	struct Block
 	{
 		std::string name;
+		MEMBER_EQUALITY(std::string, name)
+
 		size_t byte_size;
 		std::vector<Uniform> uniforms;
 
@@ -277,7 +269,7 @@ std::vector<Uniforms::Block> DoQuery(GLuint program)
 
 	for (GLuint uniformIndex = 0; uniformIndex < (GLuint)activeUniforms; ++uniformIndex)
 	{
-		Uniforms::Uniform unif;
+		Uniform unif;
 		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_TYPE, &outParam);
 		unif.type = static_cast<GLenum>(outParam);
 		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_SIZE, &outParam);
@@ -291,7 +283,10 @@ std::vector<Uniforms::Block> DoQuery(GLuint program)
 		glGetActiveUniformsiv(program, 1, &uniformIndex, GL_UNIFORM_NAME_LENGTH, &outParam);
 		std::vector<char> name(outParam);
 		glGetActiveUniformName(program, uniformIndex, outParam, NULL, name.data());
-		unif.name.assign(name.begin(), name.end() - 1); //remove null
+		if (unif.size == 1)
+			unif.name.assign(name.begin(), name.end() - 1); //remove null
+		else
+			unif.name.assign(name.begin(), name.end() - 1 - 3); //remove null and "[0]"
 
 		unif.location = glGetUniformLocation(program, name.data());
 
@@ -310,10 +305,9 @@ Uniforms::Uniforms(GLuint program)
 	: blocks(DoQuery(program))
 {}
 
-const Uniforms::Uniform& Uniforms::Block::operator[](const std::string& n) const
+const Uniform& Uniforms::Block::operator[](const std::string& n) const
 {
-	auto it = std::find_if(uniforms.begin(), uniforms.end(), [&n](const Uniforms::Uniform& u)
-	{return u.name == n; });
+	auto it = std::find(uniforms.begin(), uniforms.end(), n);
 	if (it == uniforms.end())
         throw std::runtime_error("No uniform '" + n + "' in block '" + name + "'");
 	return *it;
@@ -321,8 +315,7 @@ const Uniforms::Uniform& Uniforms::Block::operator[](const std::string& n) const
 
 const Uniforms::Block& Uniforms::operator[](const std::string& n) const
 {
-	auto it = std::find_if(blocks.begin(), blocks.end(), [&n](const Uniforms::Block& u)
-	{return u.name == n; });
+	auto it = std::find(blocks.begin(), blocks.end(), n);
 	if (it == blocks.end())
         throw std::runtime_error("No block '" + n + "'");
 	return *it;
@@ -349,11 +342,15 @@ void UBO::Bind() const
 	bindProxy.Bind();
 }
 
+UBO::Proxy UBO::operator[](const std::string& name)
+{
+	return Proxy(*this, resource->Block()[name]);
+}
+
 template<typename T, GLenum ty>
 T UBO::Proxy::ConvertOpHelper() const
 {
-	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
-	assert(unif.type == ty);
+	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform " + unif.name);
 	return Eigen::Map<const T>(reinterpret_cast<const typename T::Scalar*>(
         ubo.resource->data.data() + unif.offset));
 }
@@ -361,8 +358,7 @@ T UBO::Proxy::ConvertOpHelper() const
 template<GLenum ty, typename T>
 UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 {
-	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
-	assert(unif.type == ty);
+	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform " + unif.name);
 	Eigen::Map<T>(reinterpret_cast<typename T::Scalar*>(
         ubo.resource->data.data() + unif.offset))
         = val;
@@ -372,15 +368,13 @@ UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 template<typename T, GLenum ty>
 T UBO::Proxy::ScalarConvertOpHelper() const
 {
-	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
-	assert(unif.type == ty);
+	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform " + unif.name);
 	return *reinterpret_cast<const T*>(ubo.resource->data.data() + unif.offset);
 }
 
 template<GLenum ty, typename T>
 UBO::Proxy& UBO::Proxy::ScalarAssignOpHelper(const T& val)
 {
-	const Uniforms::Uniform& unif = ubo.resource->Block()[name];
 	assert(unif.type == ty);
 	*reinterpret_cast<T*>(ubo.resource->data.data() + unif.offset) = val;
 	return *this;
@@ -424,4 +418,14 @@ UBO::Proxy::operator uint32_t() const
 UBO::Proxy& UBO::Proxy::operator=(const uint32_t& v)
 {
 	return ScalarAssignOpHelper<GL_UNSIGNED_INT>(v);
+}
+
+UBO::Proxy UBO::Proxy::operator[](GLuint offset)
+{
+	if (unif.size <= offset)
+		throw std::runtime_error(offset + " is is past the end of " + unif.name);
+
+	Uniform offsetted = unif;
+	offsetted.offset = unif.offset + unif.stride * offset;
+	return Proxy(ubo, offsetted);
 }
