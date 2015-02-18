@@ -135,6 +135,7 @@
     <ClInclude Include="Containers\BinTree.hpp" />
     <ClInclude Include="Containers\l_bag.hpp" />
     <ClInclude Include="Containers\l_map.hpp" />
+    <ClInclude Include="Containers\l_unordered_map.hpp" />
     <ClInclude Include="Containers\WrappedIterator.hpp" />
     <ClInclude Include="Editor\Edit.hpp" />
     <ClInclude Include="Editor\Tool.hpp" />
@@ -143,10 +144,10 @@
     <ClInclude Include="Geometry\Mesh.hpp" />
     <ClInclude Include="Geometry\Shapes.hpp" />
     <ClInclude Include="GLMath.h" />
+    <ClInclude Include="magic_ptr.hpp" />
     <ClInclude Include="MappedFile.hpp" />
     <ClInclude Include="Mobile.hpp" />
     <ClInclude Include="Object.hpp" />
-    <ClInclude Include="Permavector.hpp" />
     <ClInclude Include="Position.hpp" />
     <ClInclude Include="Profiling.hpp" />
     <ClInclude Include="Rendering\BufferObject.hpp" />
@@ -192,6 +193,7 @@
     </ClCompile>
     <ClCompile Include="Mobile.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Position.cpp" />
     <ClCompile Include="Profiling.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>

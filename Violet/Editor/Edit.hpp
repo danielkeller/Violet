@@ -3,6 +3,7 @@
 
 #include "Rendering/Picker.hpp"
 #include "Editor/Tool.hpp"
+#include <unordered_set>
 
 class Mobile;
 class Window;

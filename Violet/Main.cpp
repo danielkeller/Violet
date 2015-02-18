@@ -8,6 +8,7 @@
 #include "Mobile.hpp"
 #include "Editor/Edit.hpp"
 #include "Time.hpp"
+#include "magic_ptr.hpp"
 
 #include <iostream>
 
@@ -18,8 +19,9 @@ try
 
 	//Components
 	Window w;
-    Render r;
-    Mobile m;
+	Position position;
+	Mobile m(position);
+	Render r(position, m);
     Edit edit(r, w, m);
 
     //load the object
@@ -30,18 +32,16 @@ try
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-    auto locProxy = r.Create(teapotObj, teapot.shaderProgram,
+    r.Create(teapotObj, teapot.shaderProgram,
         {{}, {{"assets/capsule.png"}}},
-        teapot.vertexData, Matrix4f::Identity()*2);
+        teapot.vertexData);
     //auto locProxyAabb = r.Create(aabbObj, {aabb.shaderProgram, {}}, {},
 	//	aabb.vertData, Matrix4f::Identity());
     
+	position[teapot2Obj]->pos = {2, 0, 0};
     r.Create(teapot2Obj, teapot.shaderProgram,
         {{}, {{"assets/capsule.png"}}},
-        teapot.vertexData, //Matrix4f::Identity());
-        Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix()*3);
-
-    auto moveProxy = m.Create(Transform(), {locProxy}); //{locProxy, locProxyAabb});
+        teapot.vertexData);
 
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
@@ -60,7 +60,7 @@ try
         edit.PhysTick();
 
         //physics step
-        moveProxy->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
+        position[teapotObj]->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
 
         return !w.ShouldClose();
     };

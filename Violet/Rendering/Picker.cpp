@@ -15,7 +15,7 @@ Picker::Picker(Render& r, Window& w)
     Object pickerObj;
     hlMat["selected"] = Object::none.Id();
     hlMat.Sync();
-    r.Create(pickerObj, {hlShader, {}}, {{{hlMat, {tex}}, {}}}, UnitBox, Matrix4f::Identity());
+    r.Create(pickerObj, {hlShader, {}}, {{{hlMat, {tex}}, {}}}, UnitBox);
 }
 
 void Picker::Pick()

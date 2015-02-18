@@ -117,7 +117,8 @@ void Window::GetInput()
 	mouseOld = mouseCur;
     double x, y;
 	glfwGetCursorPos(window, &x, &y);
-    mouseCur << x, dim.y() - y; //opengl and glfw use opposite viewport coordinates
+	//opengl and glfw use opposite viewport coordinates
+	mouseCur << float(x), float(dim.y() - y);
 }
 
 Vector2f Window::MouseDeltaScr() const
@@ -198,5 +199,5 @@ bool Window::RightMouse() const
 
 bool Window::ShouldClose() const
 {
-    return glfwWindowShouldClose(window);
+    return glfwWindowShouldClose(window) != 0;
 }

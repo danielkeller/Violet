@@ -62,9 +62,6 @@
     <ClInclude Include="Mobile.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Permavector.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Geometry\Shapes.hpp">
       <Filter>Source Files\Geometry</Filter>
     </ClInclude>
@@ -126,6 +123,12 @@
       <Filter>Source Files\Containers</Filter>
     </ClInclude>
     <ClInclude Include="Containers\WrappedIterator.hpp">
+      <Filter>Source Files\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="magic_ptr.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Containers\l_unordered_map.hpp">
       <Filter>Source Files\Containers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -194,6 +197,9 @@
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
     <ClCompile Include="Time.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Position.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

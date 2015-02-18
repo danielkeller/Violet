@@ -3,10 +3,29 @@
 
 #include "Eigen/Core"
 
-Mobile::MoveProxy Mobile::Create(const Transform& loc, std::vector<Render::LocationProxy> targets)
+magic_ptr<Matrix4f>& Mobile::operator[](Object obj)
 {
-	auto ref = data.emplace_back(ObjData{ targets, loc, loc });
-	return MoveProxy{ ref, *this };
+	auto pair = data.try_emplace(obj, ObjData{});
+	auto it = pair.first;
+	if (pair.second) //emplace happened
+	{
+		//if we remove an object, this will add it back in if the magic_ptr
+		//is assigned. this may or may not be okay.
+		static accessor<Transform, Object> access = {
+			[this](Object o) { assert(false && "Should not be called");  return Transform{}; },
+			[this](Object o, const Transform& val)
+			{
+				auto p = data.try_emplace(o);
+				auto& dat = p.first->second;
+				if (p.second) //just inserted
+					dat.before = dat.loc = val; //prevent stuttering
+				else //already there
+					dat.loc = val;
+			} };
+		position[obj] += magic_ptr<Transform>{access, obj};
+	}
+
+	return it->second.target;
 }
 
 Matrix4f Mobile::interp(const Transform& before, const Transform& loc, float alpha)
@@ -21,43 +40,13 @@ Matrix4f Mobile::interp(const Transform& before, const Transform& loc, float alp
 void Mobile::Update(float alpha)
 {
 	for (auto& dat : data)
-        for (auto& target : dat.targets)
-            *target = interp(dat.before, dat.loc, alpha);
+		dat.second.target.set(interp(dat.second.before, dat.second.loc, alpha));
 	cameraMat = interp(cameraBefore, cameraLoc, alpha);
 }
 
 void Mobile::Tick()
 {
 	for (auto& dat : data)
-		dat.before = dat.loc;
+		dat.second.before = dat.second.loc;
 	cameraBefore = cameraLoc;
 }
-
-Transform& Mobile::MoveProxy::operator*()
-{
-	return mobile.data.get(ref)->loc;
-}
-
-const Transform& Mobile::MoveProxy::operator*() const
-{
-    return mobile.data.get(ref)->loc;
-}
-
-void Mobile::MoveProxy::Add(Render::LocationProxy target)
-{
-	auto& targets = mobile.data.get(ref)->targets;
-	if (std::find(targets.begin(), targets.end(), target) == targets.end())
-		mobile.data.get(ref)->targets.push_back(target);
-}
-
-void Mobile::MoveProxy::Remove(Render::LocationProxy target)
-{
-	auto& targets = mobile.data.get(ref)->targets;
-	auto it = std::find(targets.begin(), targets.end(), target);
-	if (it == targets.end())
-		mobile.data.get(ref)->targets.erase(it);
-}
-
-Mobile::MoveProxy::MoveProxy(PermaRef ref, Mobile& mobile)
-	: ref(ref), mobile(mobile)
-{}

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Edit.hpp"
 #include "Window.hpp"
+#include "Rendering/Render.hpp"
 
 Edit::Edit(Render& r, Window& w, Mobile& m)
     : r(r), w(w), m(m), pick(r, w), tool(r, m)
@@ -23,14 +24,14 @@ void Edit::PhysTick()
 		if (selected == picked) //click to deselect
 		{
 			if (selected != Object::none)
-				tool.Move().Remove(r.GetLocProxyFor(selected));
+				;// tool.Move().Remove(r.GetLocProxyFor(selected));
 			selected = Object::none;
 		}
 		else if (editable.count(picked)) //click to select
 		{
 			selected = picked;
 			if (selected != Object::none)
-				tool.Move().Add(r.GetLocProxyFor(selected));
+				;// tool.Move().Add(r.GetLocProxyFor(selected));
 		}
 		focused = picked;
         mouseDown = true;

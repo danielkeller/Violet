@@ -1,41 +1,17 @@
 #ifndef MOBILE_HPP
 #define MOBILE_HPP
 
-#include "Rendering/Render.hpp"
-#include "Object.hpp"
-#include "Containers/l_bag.hpp"
-
+#include "Containers/l_unordered_map.hpp"
 #include "Position.hpp"
-
-#include <map>
 
 class Mobile
 {
-	struct ObjData;
-	using PermaRef = l_bag<ObjData, Eigen::aligned_allocator<ObjData>>::perma_ref;
-
 public:
+	Mobile(Position& p) : position(p) {}
 	void Update(float alpha);
 	void Tick();
 
-	//A thing that we can move the object with
-	class MoveProxy
-	{
-	public:
-        Transform& operator*();
-        const Transform& operator*() const;
-        Transform* operator->() { return &**this; }
-        const Transform* operator->() const { return &**this; }
-		void Add(Render::LocationProxy target);
-		void Remove(Render::LocationProxy target);
-	private:
-		PermaRef ref;
-		Mobile& mobile;
-		MoveProxy(PermaRef, Mobile&);
-		friend class Mobile;
-	};
-
-	MoveProxy Create(const Transform& loc, std::vector<Render::LocationProxy> targets);
+	magic_ptr<Matrix4f>& operator[](Object obj);
 
 	Transform& CameraLoc()
 	{
@@ -49,15 +25,18 @@ public:
 private:
 	struct ObjData
 	{
-		std::vector<Render::LocationProxy> targets;
 		Transform before;
 		Transform loc;
+		magic_ptr<Matrix4f> target; //but this uses lots of heap stuff and we want to avoid that?
 		EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	};
 
 	static Matrix4f interp(const Transform& before, const Transform& loc, float alpha);
 
-	l_bag<ObjData, Eigen::aligned_allocator<ObjData>> data;
+	Position& position;
+	// considering auto-picking allocators based on a type tag
+	l_unordered_map<Object, ObjData, std::hash<Object>, std::equal_to<Object>,
+	Eigen::aligned_allocator<std::pair<const Object, ObjData>>> data;
 	//It's an exception anyway
 	Transform cameraBefore;
 	Transform cameraLoc;

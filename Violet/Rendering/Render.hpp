@@ -12,6 +12,9 @@
 #include <memory>
 #include <array>
 
+class Position;
+class Mobile;
+
 enum Passes
 {
     PickerPass,
@@ -49,15 +52,13 @@ MEMBER_HASH(Material, materialProps)
 class Render
 {
 public:
-	class LocationProxy;
 	//Maybe make mobility an option?
-	LocationProxy Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
-        std::array<Material, AllPasses> mat, VertexData vertData, const Matrix4f& loc);
+	void Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
+        std::array<Material, AllPasses> mat, VertexData vertData);
     //create with defaults
-	LocationProxy Create(Object obj, ShaderProgram shader, Material mat,
-        VertexData vertData, const Matrix4f& loc);
+	void Create(Object obj, ShaderProgram shader, Material mat,
+        VertexData vertData);
 
-    LocationProxy GetLocProxyFor(Object obj);
 	void Destroy(Object obj);
 
 	void Draw();
@@ -66,32 +67,19 @@ public:
 
     void PassDefaults(Passes pass, ShaderProgram shader, Material mat);
 
-	Render();
+	Render(Position&, Mobile&);
 	Render(const Render&) = delete;
 	void operator=(const Render&) = delete;
-
-	//A thing that we can move the object with
-	class LocationProxy
-	{
-	public:
-		Matrix4f& operator*();
-		Matrix4f* operator->() { return &**this; }
-		LocationProxy(const LocationProxy& other) = default;
-        LocationProxy(LocationProxy&& other);
-		BASIC_EQUALITY(LocationProxy, obj)
-	private:
-		Render_detail::InstanceVec* buf;
-		Render_detail::InstanceVec::perma_ref obj;
-		friend class Render;
-		LocationProxy(Render_detail::InstanceVec*, Render_detail::InstanceVec::perma_ref);
-	};
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 private:
-    std::pair<l_bag<Render_detail::Shape>::iterator, LocationProxy>
+    l_bag<Render_detail::Shape>::iterator
 	InternalCreate(Object obj, ShaderProgram shader, Material mat,
-        VertexData vertData, const Matrix4f& loc);
+        VertexData vertData);
+
+	Position& position;
+	Mobile& m;
 
 	//UBO shared with all shaders
 	ShaderProgram simpleShader;

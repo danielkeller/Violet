@@ -17,7 +17,7 @@ std::vector<TriInd> arrowInds = {
     {4, 5, 6}
 };
 
-std::vector<Render::LocationProxy> Tool::CreateArrows(Render& r)
+magic_ptr<Transform> Tool::CreateArrows(Render& r)
 {
     VertexData arrow("ToolArrow", arrowVerts, arrowInds);
     
@@ -32,17 +32,17 @@ std::vector<Render::LocationProxy> Tool::CreateArrows(Render& r)
     UBO zMat = arrowShader.MakeUBO("Material", "ToolZ");
     zMat["direction"] = Vector3f{0,0,1};
     zMat.Sync();
-    auto xloc = r.Create(x, {arrowShader, arrowPicker}, {xMat, xMat}, arrow, Matrix4f::Identity());
-    auto yloc = r.Create(y, {arrowShader, arrowPicker}, {yMat, yMat}, arrow, Matrix4f::Identity());
-    auto zloc = r.Create(z, {arrowShader, arrowPicker}, {zMat, zMat}, arrow, Matrix4f::Identity());
-    return {xloc, yloc, zloc};
+    r.Create(x, {arrowShader, arrowPicker}, {xMat, xMat}, arrow);
+    r.Create(y, {arrowShader, arrowPicker}, {yMat, yMat}, arrow);
+    r.Create(z, {arrowShader, arrowPicker}, {zMat, zMat}, arrow);
+    return {};
 }
 
 Tool::Tool(Render& r, Mobile& m)
-	: m(m), x(), y(), z(), move(m.Create({}, CreateArrows(r)))
+	: m(m), x(), y(), z(), move()
 {}
 
-Mobile::MoveProxy& Tool::Move()
+magic_ptr<Transform>& Tool::Move()
 {
 	return move;
 }

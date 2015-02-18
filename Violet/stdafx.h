@@ -5,7 +5,8 @@
 #include "Eigen/Dense"
 #include "Eigen/Geometry"
 //prevent vectors from breaking things
-#include "Eigen/StdVector"
+//#include "Eigen/StdVector"
+#include <vector>
 
 using Eigen::Vector2i;
 using Eigen::Matrix3f;

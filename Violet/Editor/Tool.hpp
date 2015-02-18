@@ -13,14 +13,14 @@ class Tool
 public:
     Tool(Render& r, Mobile& m);
 	void Update(Window& w, Object focused);
-	Mobile::MoveProxy& Move();
+	magic_ptr<Transform>& Move();
     
 private:
-    std::vector<Render::LocationProxy> CreateArrows(Render& r);
+	magic_ptr<Transform> CreateArrows(Render& r);
 
 	const Mobile& m;
 	Object x, y, z;
-	Mobile::MoveProxy move;
+	magic_ptr<Transform> move;
 };
 
 #endif
