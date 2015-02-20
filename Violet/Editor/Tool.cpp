@@ -17,40 +17,51 @@ std::vector<TriInd> arrowInds = {
     {4, 5, 6}
 };
 
-std::vector<Render::LocationProxy> Tool::CreateArrows(Render& r)
+Tool::Tool(Render& r, Position& position)
+	: position(position)
 {
-    VertexData arrow("ToolArrow", arrowVerts, arrowInds);
-    
-    ShaderProgram arrowShader{"assets/tool_arrow"};
-    ShaderProgram arrowPicker{"assets/tool_arrow_picker"};
-    UBO xMat = arrowShader.MakeUBO("Material", "ToolX");
-    xMat["direction"] = Vector3f{1,0,0};
-    xMat.Sync();
-    UBO yMat = arrowShader.MakeUBO("Material", "ToolY");
-    yMat["direction"] = Vector3f{0,1,0};
-    yMat.Sync();
-    UBO zMat = arrowShader.MakeUBO("Material", "ToolZ");
-    zMat["direction"] = Vector3f{0,0,1};
-    zMat.Sync();
-    auto xloc = r.Create(x, {arrowShader, arrowPicker}, {xMat, xMat}, arrow, Matrix4f::Identity());
-    auto yloc = r.Create(y, {arrowShader, arrowPicker}, {yMat, yMat}, arrow, Matrix4f::Identity());
-    auto zloc = r.Create(z, {arrowShader, arrowPicker}, {zMat, zMat}, arrow, Matrix4f::Identity());
-    return {xloc, yloc, zloc};
+	VertexData arrow("ToolArrow", arrowVerts, arrowInds);
+
+	ShaderProgram arrowShader{ "assets/tool_arrow" };
+	ShaderProgram arrowPicker{ "assets/tool_arrow_picker" };
+	UBO xMat = arrowShader.MakeUBO("Material", "ToolX");
+	xMat["direction"] = Vector3f{ 1, 0, 0 };
+	xMat.Sync();
+	UBO yMat = arrowShader.MakeUBO("Material", "ToolY");
+	yMat["direction"] = Vector3f{ 0, 1, 0 };
+	yMat.Sync();
+	UBO zMat = arrowShader.MakeUBO("Material", "ToolZ");
+	zMat["direction"] = Vector3f{ 0, 0, 1 };
+	zMat.Sync();
+	r.Create(x, { arrowShader, arrowPicker }, { xMat, xMat }, arrow);
+	r.Create(y, { arrowShader, arrowPicker }, { yMat, yMat }, arrow);
+	r.Create(z, { arrowShader, arrowPicker }, { zMat, zMat }, arrow);
+
+	//i'm still not totally okay with having to save this after the calls to
+	//r.Create, but the alternative of making magic_ptrs shallow-copy
+	//seems somehow more janky and prone to breakage
+	move = position[x] + position[y] + position[z];
 }
 
-Tool::Tool(Render& r, Mobile& m)
-	: m(m), x(), y(), z(), move(m.Create({}, CreateArrows(r)))
-{}
-
-Mobile::MoveProxy& Tool::Move()
+void Tool::SetTarget(magic_ptr<Transform> t)
 {
-	return move;
+	target = t;
+	if (t)
+		move->pos = t.get().pos; //snap over to moved object
+	else
+		move->pos = Vector3f::Zero(); //better, hide the tool;
 }
 
-void Tool::Update(Window& w, Object focused)
+#include "Time.hpp"
+
+extern Time* globalTime;
+
+void Tool::Update(Window& w, Object camera, Object focused)
 {
     if (!w.LeftMouse())
         return;
+	if (!target)
+		return;
     
     int dir;
     
@@ -58,16 +69,8 @@ void Tool::Update(Window& w, Object focused)
     else if (focused == y) dir = 1;
     else if (focused == z) dir = 2;
     else return;
-    
-    //transform the tool coordinate axes into screen space vectors
-    Matrix4f screenAxes = w.PerspMat() * m.CameraMat() * move->ToMatrix();
-    Eigen::Matrix<float, 2, 3> vecs = screenAxes.block<2, 3>(0, 0); //chop off z and w
-    vecs.array().colwise() *= w.Dim().cast<float>().array() / 2.f; //scale into viewport pixel coordinates
-    //how big is the object on the screen?
-    float maxLen = vecs.colwise().norm().maxCoeff();
-    //now scale each direction to that length
-    vecs.colwise().normalize();
-    vecs /= maxLen;
-    
-    move->pos[dir] += w.MouseDeltaPxl().dot(vecs.block<2, 1>(0, dir));
+
+	float delta = w.ApparentMousePos(position[camera]->ToMatrix() * move->ToMatrix())[dir];
+	move->pos[dir] += delta;
+	target->pos[dir] += delta;
 }

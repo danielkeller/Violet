@@ -15,6 +15,8 @@ float size = .1;
 
 void main()
 {
+	vec4 screenpos = camera * transform[3];
+	screenpos /= screenpos[3];
     vec4 dir = camera * transform * vec4(direction, 0);
     //project onto screen
     vec3 dir3 = normalize(vec3(dir.xy, 0));
@@ -23,6 +25,8 @@ void main()
     realTransform[0].xyz = dir3*size;
     realTransform[1].xyz = cross(dir3, vec3(0,0,1))*size;
     realTransform[2].z = size;
-    realTransform[3].xyz = vec3((camera * transform[3]).xy, .01);
+    realTransform[3].xyz = vec3((screenpos).xy, .01);
     gl_Position = realTransform * vec4(position, 1);
+	//gl_Position = camera * transform * vec4(position, 1);
+	//gl_Position.z = .01;
 }

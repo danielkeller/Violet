@@ -3,25 +3,25 @@
 
 #include "Rendering/Picker.hpp"
 #include "Editor/Tool.hpp"
+#include <unordered_set>
 
-class Mobile;
 class Window;
 class Render;
 
 class Edit
 {
 public:
-    Edit(Render& r, Window& w, Mobile& m);
+    Edit(Render& r, Window& w, Position& position);
 
     void Editable(Object o);
 
-    void PhysTick();
+    void PhysTick(Object camera);
     void DrawTick();
 
 private:
 	Render& r;
     Window& w;
-    Mobile& m;
+	Position& position;
     Picker pick;
     Tool tool;
 
@@ -30,6 +30,7 @@ private:
     Object focused;
     Object selected;
     bool mouseDown;
+	float viewPitch, viewYaw;
 };
 
 #endif

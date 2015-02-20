@@ -63,12 +63,7 @@ public:
 	class perma_ref
 	{
 	public:
-		perma_ref(const perma_ref& other) : it(other.it) {}
-		perma_ref& operator=(perma_ref other)
-		{
-			it = other.it;
-			return *this;
-		}
+		perma_ref(const perma_ref& other) = default;
 		BASIC_EQUALITY(perma_ref, it)
 
 	private:
@@ -77,12 +72,12 @@ public:
 		friend class l_bag;
 	};
 
-    iterator get(perma_ref r)
+    iterator find(perma_ref r)
     {
         return store.begin() + inds[r.it];
     }
 
-    const_iterator get(perma_ref r) const
+	const_iterator find(perma_ref r) const
     {
         return const_cast<l_bag*>(this)->get(r);
     }

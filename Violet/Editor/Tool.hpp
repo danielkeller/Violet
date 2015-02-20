@@ -3,7 +3,7 @@
 
 #include "Rendering/VertexData.hpp"
 #include "Object.hpp"
-#include "Mobile.hpp"
+#include "Position.hpp"
 
 class Render;
 class Window;
@@ -11,16 +11,15 @@ class Window;
 class Tool
 {
 public:
-    Tool(Render& r, Mobile& m);
-	void Update(Window& w, Object focused);
-	Mobile::MoveProxy& Move();
+    Tool(Render& r, Position& position);
+	void Update(Window& w, Object camera, Object focused);
+	void SetTarget(magic_ptr<Transform> target);
     
 private:
-    std::vector<Render::LocationProxy> CreateArrows(Render& r);
-
-	const Mobile& m;
+	Position& position;
 	Object x, y, z;
-	Mobile::MoveProxy move;
+	magic_ptr<Transform> move;
+	magic_ptr<Transform> target;
 };
 
 #endif

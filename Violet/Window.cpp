@@ -34,6 +34,11 @@ void APIENTRY glDebugProc(GLenum source, GLenum type, GLuint id, GLenum severity
 }
 #endif
 
+Window* getWindow(GLFWwindow* window)
+{
+	return static_cast<Window*>(glfwGetWindowUserPointer(window));
+}
+
 static void error_callback(int error, const char* description)
 {
     std::cerr << description << "\n";
@@ -53,6 +58,11 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	default:
 		break;
 	}
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	getWindow(window)->scrollAmt += Vector2f(xoffset, yoffset);
 }
 
 Window::Window()
@@ -80,8 +90,11 @@ Window::Window()
 
 	GetInput();
 
-	//add our keyboard input callback
+	glfwSetWindowUserPointer(window, this);
+
+	//add our input callbacks
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
     //set the window as current. note that this won't work right with multiple windows.
     glfwMakeContextCurrent(window);
@@ -104,6 +117,8 @@ Window::Window()
 	glDepthFunc(GL_LESS);
 	//clear to black
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+	ClearInput();
 }
 
 Window::~Window()
@@ -117,7 +132,13 @@ void Window::GetInput()
 	mouseOld = mouseCur;
     double x, y;
 	glfwGetCursorPos(window, &x, &y);
-    mouseCur << x, dim.y() - y; //opengl and glfw use opposite viewport coordinates
+	//opengl and glfw use opposite viewport coordinates
+	mouseCur << float(x), float(dim.y() - y);
+}
+
+void Window::ClearInput()
+{
+	scrollAmt = Vector2f::Zero();
 }
 
 Vector2f Window::MouseDeltaScr() const
@@ -148,6 +169,11 @@ Vector2f Window::MouseDeltaPxl() const
 Vector2f Window::MousePosPxl() const
 {
     return mouseCur;
+}
+
+Vector2f Window::ScrollDelta() const
+{
+	return scrollAmt;
 }
 
 Vector2i Window::Dim()
@@ -198,5 +224,5 @@ bool Window::RightMouse() const
 
 bool Window::ShouldClose() const
 {
-    return glfwWindowShouldClose(window);
+    return glfwWindowShouldClose(window) != 0;
 }

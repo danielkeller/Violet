@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "Edit.hpp"
 #include "Window.hpp"
+#include "Rendering/Render.hpp"
 
-Edit::Edit(Render& r, Window& w, Mobile& m)
-    : r(r), w(w), m(m), pick(r, w), tool(r, m)
+Edit::Edit(Render& r, Window& w, Position& position)
+	: r(r), w(w), position(position), pick(r, w), tool(r, position)
     , focused(Object::none), mouseDown(false)
+	, viewPitch(0), viewYaw(0)
 {
     r.PassDefaults(PickerPass, pick.shader, {});
 }
@@ -14,23 +16,23 @@ void Edit::Editable(Object o)
     editable.insert(o);
 }
 
-void Edit::PhysTick()
+void Edit::PhysTick(Object camera)
 {
-    tool.Update(w, focused);
+    tool.Update(w, camera, focused);
 	if (w.LeftMouse() && !mouseDown) //just clicked
     {
         Object picked = pick.Picked();
 		if (selected == picked) //click to deselect
 		{
 			if (selected != Object::none)
-				tool.Move().Remove(r.GetLocProxyFor(selected));
+				tool.SetTarget({});
 			selected = Object::none;
 		}
 		else if (editable.count(picked)) //click to select
 		{
 			selected = picked;
 			if (selected != Object::none)
-				tool.Move().Add(r.GetLocProxyFor(selected));
+				tool.SetTarget(position[selected]);
 		}
 		focused = picked;
         mouseDown = true;
@@ -49,14 +51,13 @@ void Edit::PhysTick()
 	//right mouse to rotate
     if (w.RightMouse())
     {
-        m.CameraLoc().rot *= Quaternionf{
-            Eigen::AngleAxisf(-w.MouseDeltaScr().x(),
-                              Vector3f::UnitZ()) }; //rotate around world z
-        m.CameraLoc().rot *= Quaternionf{
-            Eigen::AngleAxisf(w.MouseDeltaScr().y(),
-                              //rotate around camera x
-                              m.CameraLoc().rot.conjugate() * Vector3f::UnitX()) };
+		viewPitch -= w.MouseDeltaScr().x();
+		viewYaw += w.MouseDeltaScr().y();
+		position[camera]->rot = Eigen::AngleAxisf(viewYaw, Vector3f::UnitX())
+						      * Eigen::AngleAxisf(viewPitch, Vector3f::UnitZ());
     }
+
+	position[camera]->pos *= (1 - w.ScrollDelta().y()*.05f);
 }
 
 void Edit::DrawTick()

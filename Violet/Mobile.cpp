@@ -3,10 +3,37 @@
 
 #include "Eigen/Core"
 
-Mobile::MoveProxy Mobile::Create(const Transform& loc, std::vector<Render::LocationProxy> targets)
+magic_ptr<Matrix4f>& Mobile::operator[](Object obj)
 {
-	auto ref = data.emplace_back(ObjData{ targets, loc, loc });
-	return MoveProxy{ ref, *this };
+	auto pair = data.try_emplace(obj, ObjData{});
+	auto it = pair.first;
+	if (pair.second) //emplace happened
+	{
+		it->second.loc = *position[obj];
+		//if we remove an object, this will add it back in if the magic_ptr
+		//is assigned. this may or may not be okay.
+		static accessor<Transform, Object> access = {
+			[this](Object o) { return data[o].loc; },
+			[this](Object o, const Transform& val) { data[o].loc = val; }
+		};
+		//we're perfectly capable to keeping track of the position ourself
+		position[obj] = make_magic(access, obj);
+		
+		//need to do this to support pulling the location
+		//however it keeps the combined accessor trick from working
+		//so we just overwrite it in Render. It's kind of dumb but it works
+		static accessor<Matrix4f, Object> targetaccess = {
+			[this](Object o)
+			{ 
+				return interp(data[o].before, data[o].loc, alpha);
+			},
+			[this](Object o, const Matrix4f& val) {}
+		};
+
+		it->second.target = make_magic(targetaccess, obj);
+	}
+
+	return it->second.target;
 }
 
 Matrix4f Mobile::interp(const Transform& before, const Transform& loc, float alpha)
@@ -18,46 +45,15 @@ Matrix4f Mobile::interp(const Transform& before, const Transform& loc, float alp
 		).matrix();
 }
 
-void Mobile::Update(float alpha)
+void Mobile::Update(float a)
 {
+	alpha = a;
 	for (auto& dat : data)
-        for (auto& target : dat.targets)
-            *target = interp(dat.before, dat.loc, alpha);
-	cameraMat = interp(cameraBefore, cameraLoc, alpha);
+		dat.second.target.set(interp(dat.second.before, dat.second.loc, alpha));
 }
 
 void Mobile::Tick()
 {
 	for (auto& dat : data)
-		dat.before = dat.loc;
-	cameraBefore = cameraLoc;
+		dat.second.before = dat.second.loc;
 }
-
-Transform& Mobile::MoveProxy::operator*()
-{
-	return mobile.data.get(ref)->loc;
-}
-
-const Transform& Mobile::MoveProxy::operator*() const
-{
-    return mobile.data.get(ref)->loc;
-}
-
-void Mobile::MoveProxy::Add(Render::LocationProxy target)
-{
-	auto& targets = mobile.data.get(ref)->targets;
-	if (std::find(targets.begin(), targets.end(), target) == targets.end())
-		mobile.data.get(ref)->targets.push_back(target);
-}
-
-void Mobile::MoveProxy::Remove(Render::LocationProxy target)
-{
-	auto& targets = mobile.data.get(ref)->targets;
-	auto it = std::find(targets.begin(), targets.end(), target);
-	if (it == targets.end())
-		mobile.data.get(ref)->targets.erase(it);
-}
-
-Mobile::MoveProxy::MoveProxy(PermaRef ref, Mobile& mobile)
-	: ref(ref), mobile(mobile)
-{}

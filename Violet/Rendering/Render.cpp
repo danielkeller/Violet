@@ -2,29 +2,19 @@
 #include "Render.hpp"
 #include <algorithm>
 
+#include "Position.hpp"
+#include "Mobile.hpp"
+
 using namespace Render_detail;
 
-Render::Render()
-	: simpleShader("assets/simple")
+Render::Render(Position& position, Mobile& m)
+	: position(position), m(m)
+	, simpleShader("assets/simple")
 	, commonUBO(simpleShader.MakeUBO("Common", "Common"))
 	, instanceBuffer()
 {
 	//Assumes no one binds over UBO::Common
 	commonUBO.Bind();
-}
-
-Render::LocationProxy::LocationProxy(
-	InstanceVec* buf, InstanceVec::perma_ref obj)
-	: buf(buf), obj(obj)
-{}
-
-Render::LocationProxy::LocationProxy(LocationProxy&& other)
-	: buf(other.buf), obj(other.obj)
-{}
-
-Matrix4f& Render::LocationProxy::operator*()
-{
-	return buf->get(obj)->mat;
 }
 
 template<class PerShader, class PerMaterial, class PerShape>
@@ -35,11 +25,11 @@ void Render::Iterate(PerShader psh, PerMaterial pm, PerShape ps)
     for (auto shaderit = shaders.begin(); shaderit != shaders.end(); ++shaderit)
     {
         psh(*shaderit);
-        auto nextshader = shaderit + 1 == shaders.end() ? materials.end() : materials.get(shaderit[1].begin);
+        auto nextshader = shaderit + 1 == shaders.end() ? materials.end() : materials.find(shaderit[1].begin);
         for(; materialit != nextshader; ++materialit)
         {
             pm(*materialit);
-            auto nextmaterial = materialit + 1 == materials.end() ? shapes.end() : shapes.get(materialit[1].begin);
+			auto nextmaterial = materialit + 1 == materials.end() ? shapes.end() : shapes.find(materialit[1].begin);
             for (; shapeit != nextmaterial; ++shapeit)
             {
                 ps(*shapeit);
@@ -54,6 +44,7 @@ void Render::PassDefaults(Passes pass, ShaderProgram shader, Material mat)
     defaultMaterial[pass] = passMaterials.insert(mat).first;
 }
 
+//this really should be its own data structure
 template<class data_t, class lower_data_t>
 std::pair<typename lower_data_t::iterator, typename lower_data_t::iterator>
 range_of(typename data_t::iterator it, data_t& data, lower_data_t& lower_data)
@@ -61,14 +52,14 @@ range_of(typename data_t::iterator it, data_t& data, lower_data_t& lower_data)
     if (it == data.end())
         return {lower_data.end(), lower_data.end()};
     else if (it + 1 == data.end())
-        return {lower_data.get(it[0].begin), lower_data.end()};
+        return {lower_data.find(it[0].begin), lower_data.end()};
     else
-        return {lower_data.get(it[0].begin), lower_data.get(it[1].begin)};
+		return{ lower_data.find(it[0].begin), lower_data.find(it[1].begin) };
 }
 
-std::pair<l_bag<Shape>::iterator, Render::LocationProxy>
+l_bag<Shape>::iterator
 Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
-    VertexData vertData, const Matrix4f& loc)
+    VertexData vertData)
 {
     auto shaderit = std::find(shaders.begin(), shaders.end(), shader);
     auto matrange = range_of(shaderit, shaders, materials);
@@ -76,14 +67,13 @@ Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
     auto shaperange = range_of(matit, materials, shapes);
     auto shapeit = std::find(shaperange.first, shaperange.second, vertData);
     auto instrange = range_of(shapeit, shapes, instances);
-	//This call has issues with emplacing normally, because of alignment
-    auto instref = instances.emplace(instrange.second, InstData(loc, obj));
+    auto instref = instances.emplace(instrange.second, obj);
     
     auto shaperef = shapes.get_perma(shapes.end());
     if (shapeit == shaperange.second)
     {
         shaperef = shapes.emplace(shapeit, vertData, shader, instref);
-        shapeit = shapes.get(shaperef);
+        shapeit = shapes.find(shaperef);
     }
     
     if (shaderit == shaders.end())
@@ -95,6 +85,16 @@ Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
     {
         materials.emplace(matit, mat, shaperef);
     }
+	
+	accessor<Matrix4f, InstanceVec::perma_ref> locaccesor = {
+		[this](InstanceVec::perma_ref ref) { return instances.find(ref)->mat; },
+		[this](InstanceVec::perma_ref ref, const Matrix4f& v)
+		{
+			instances.find(ref)->mat = v;
+		}
+	};
+
+	m[obj] = make_magic(locaccesor, instref);
 
 	GLsizei offset = 0;
     Shader* curShader;
@@ -106,8 +106,8 @@ Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
     [](T_Material& m) {},
     [&](Shape& shape)
     {
-        auto instend = &shape == &shapes.back() ? instances.end() : instances.get((&shape)[1].begin);
-		auto numInstances = static_cast<GLsizei>(instend - instances.get(shape.begin));
+        auto instend = &shape == &shapes.back() ? instances.end() : instances.find((&shape)[1].begin);
+		auto numInstances = static_cast<GLsizei>(instend - instances.find(shape.begin));
         shape.vao.BindInstanceData(curShader->program, instanceBuffer, offset, numInstances);
         offset += numInstances;
     });
@@ -115,35 +115,31 @@ Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
     instances.resize(offset);
 	instanceBuffer.Data(offset);
 
-	return {shapeit, {&instances, instref}};
+	return shapeit;
 }
 
-Render::LocationProxy Render::Create(Object obj, ShaderProgram shader, Material mat,
-    VertexData vertData, const Matrix4f& loc)
+void Render::Create(Object obj, ShaderProgram shader, Material mat,
+    VertexData vertData)
 {
-    auto p = InternalCreate(obj, shader, mat, vertData, loc);
+    auto it = InternalCreate(obj, shader, mat, vertData);
 
     for (size_t i = 0; i < NumPasses; ++i)
     {
-        p.first->passShader[i] = defaultShader[i];
-        p.first->passMaterial[i] = defaultMaterial[i];
+        it->passShader[i] = defaultShader[i];
+        it->passMaterial[i] = defaultMaterial[i];
     }
-
-    return p.second;
 }
 
-Render::LocationProxy Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
-    std::array<Material, AllPasses> mat, VertexData vertData, const Matrix4f& loc)
+void Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
+    std::array<Material, AllPasses> mat, VertexData vertData)
 {
-    auto p = InternalCreate(obj, shader[0], mat[0], vertData, loc);
+    auto it = InternalCreate(obj, shader[0], mat[0], vertData);
 
     for (size_t i = 0; i < NumPasses; ++i)
     {
-        p.first->passShader[i] = passShaders.insert(shader[i+1]).first;
-        p.first->passMaterial[i] = passMaterials.insert(mat[i+1]).first;
+        it->passShader[i] = passShaders.insert(shader[i+1]).first;
+        it->passMaterial[i] = passMaterials.insert(mat[i+1]).first;
     }
-
-    return p.second;
 }
 
 void Material::use() const
@@ -205,14 +201,6 @@ void Render::DrawPass(int pass)
         }
         shape.vao.Draw();
     }
-}
-
-Render::LocationProxy Render::GetLocProxyFor(Object obj)
-{
-    auto inst = std::find(instances.begin(), instances.end(), obj);
-    if (inst == instances.end())
-        throw std::runtime_error("No such object " + to_string(obj));
-    return {&instances, instances.get_perma(inst)};
 }
 
 template<>

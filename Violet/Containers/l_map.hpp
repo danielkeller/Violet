@@ -5,10 +5,6 @@
 #include <memory>
 #include "WrappedIterator.hpp"
 
-//alternative: implement this with unordered_map and l_bag
-//pros: O(1) lookup
-//cons: more memory, very slow middle insert/erase
-
 template<class Key, class T,
     class Compare = std::less<Key>,
     class Alloc = std::allocator<std::pair<const Key, T>>>
@@ -48,15 +44,6 @@ public:
     }
 
 private:
-    template<class Iter>
-    class IterBase : public WrappedIterator<IterBase<Iter>, Iter, typename Iter::value_type::second_type>
-    {
-        using Base = WrappedIterator<IterBase<Iter>, Iter, typename Iter::value_type::second_type>;
-    public:
-        using Base::operator*;
-        typename Base::reference operator*() {return Base::it->second;}
-    };
-
     class Comparer
     {
         bool operator()(const key_type& l, const indty& r)
@@ -64,8 +51,8 @@ private:
     };
 public:
 
-	using iterator = IterBase<typename storety::iterator>;
-	using const_iterator = IterBase<typename storety::const_iterator>;
+	using iterator = typename storety::iterator;
+	using const_iterator = typename storety::const_iterator;
 
 	iterator begin() {return store.begin();}
 	iterator end() {return store.end();}
@@ -78,7 +65,10 @@ public:
 	value_type* data() { return store.data(); }
 	const value_type* data() const { return store.data(); }
 
-    iterator at(const key_type& k)
+	//be orthogonal to l_bag
+	using perma_ref = key_type;
+
+	iterator find(const key_type& k)
     {
         auto pos = find_ind(k);
         if(pos == inds.end() || pos->first != k)
@@ -87,7 +77,7 @@ public:
             return store.begin() + pos->second;
     }
 
-    const_iterator at(const key_type& r) const
+	const_iterator find(const key_type& r) const
     {
         return const_cast<l_map*>(this)->at(r);
     }

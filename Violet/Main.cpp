@@ -8,8 +8,11 @@
 #include "Mobile.hpp"
 #include "Editor/Edit.hpp"
 #include "Time.hpp"
+#include "magic_ptr.hpp"
 
 #include <iostream>
+
+Time* globalTime;
 
 int main(void)
 try
@@ -18,9 +21,12 @@ try
 
 	//Components
 	Window w;
-    Render r;
-    Mobile m;
-    Edit edit(r, w, m);
+	Position position;
+	Mobile m(position);
+	Render r(position, m);
+    Edit edit(r, w, position);
+
+	Object camera;
 
     //load the object
 	Object teapotObj, teapot2Obj;
@@ -30,51 +36,54 @@ try
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-    auto locProxy = r.Create(teapotObj, teapot.shaderProgram,
+    r.Create(teapotObj, teapot.shaderProgram,
         {{}, {{"assets/capsule.png"}}},
-        teapot.vertexData, Matrix4f::Identity()*2);
-    //auto locProxyAabb = r.Create(aabbObj, {aabb.shaderProgram, {}}, {},
-	//	aabb.vertData, Matrix4f::Identity());
+        teapot.vertexData);
     
+	position[teapot2Obj]->pos = {2, 0, 0};
     r.Create(teapot2Obj, teapot.shaderProgram,
         {{}, {{"assets/capsule.png"}}},
-        teapot.vertexData, //Matrix4f::Identity());
-        Eigen::Affine3f(Eigen::Translation3f{2,0,0}).matrix()*3);
-
-    auto moveProxy = m.Create(Transform(), {locProxy}); //{locProxy, locProxyAabb});
+        teapot.vertexData);
 
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
 
-	m.CameraLoc().pos = Vector3f(0.f, -3.f, 0.f);
+	position[camera]->pos = Vector3f(0.f, -3.f, 0.f);
 
 	m.Tick();
     
     Time t;
+	globalTime = &t;
     
     auto physTick = [&]()
-    {
+	{
+		if (w.Dim().isZero())
+			return true;
+
         m.Tick();
 
         w.GetInput();
-        edit.PhysTick();
+        edit.PhysTick(camera);
 
         //physics step
-        moveProxy->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
+        position[teapotObj]->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
 
+		w.ClearInput();
         return !w.ShouldClose();
     };
     
     auto renderTick = [&](float alpha)
     {
+		if (w.Dim().isZero())
+			return;
+
         m.Update(alpha);
         edit.DrawTick();
 
         w.PreDraw();
-        r.camera = w.PerspMat() * m.CameraMat();
+        r.camera = w.PerspMat() * *m[camera];
         r.Draw();
         w.PostDraw();
-        
     };
     
     t.MainLoop(physTick, renderTick);
