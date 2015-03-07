@@ -9,7 +9,7 @@ magic_ptr<Matrix4f>& Mobile::operator[](Object obj)
 	auto it = pair.first;
 	if (pair.second) //emplace happened
 	{
-		it->second.loc = *position[obj];
+		it->second.before = it->second.loc = *position[obj];
 		//if we remove an object, this will add it back in if the magic_ptr
 		//is assigned. this may or may not be okay.
 		static accessor<Transform, Object> access = {

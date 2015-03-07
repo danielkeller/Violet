@@ -34,10 +34,10 @@ try
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-    r.Create(teapotObj, teapot.shaderProgram, {{}, {{"assets/capsule.png"}}}, teapot.vertexData);
+    r.Create(teapotObj, teapot.shaderProgram, {{}, {{"assets/capsule.png"}}}, teapot.vertexData, Mobilty::Yes);
     
 	position[teapot2Obj]->pos = {2, 0, 0};
-    r.Create(teapot2Obj, teapot.shaderProgram, {{}, {{"assets/capsule.png"}}}, teapot.vertexData);
+    r.Create(teapot2Obj, teapot.shaderProgram, {{}, {{"assets/capsule.png"}}}, teapot.vertexData, Mobilty::No);
 
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);

@@ -60,7 +60,6 @@ MEMBER_HASH(Material, materialProps)
 class Render
 {
 public:
-	//TODO: make mobility an option
 	void Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
 		std::array<Material, AllPasses> mat, VertexData vertData,
 		Mobilty mobile = Mobilty::No);
@@ -93,27 +92,37 @@ private:
 
     std::unordered_set<ShaderProgram> passShaders;
     std::unordered_set<Material> passMaterials;
-	/*
-    l_bag<Render_detail::Shader> shaders;
-    l_bag<Render_detail::T_Material> materials;
-	l_bag<Render_detail::Shape> shapes;*/
+
 	static const int ShaderLevel = 0, MatLevel = 1, VAOLevel = 2, InstanceLevel = 3;
-	using static_render_t = tuple_tree<ShaderProgram, Material,
+	using render_data_t = tuple_tree<ShaderProgram, Material,
 		Render_detail::Shape, Render_detail::InstData>;
-	static_render_t staticRenderData;
+
+	render_data_t staticRenderData;
 	BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STATIC_DRAW> staticInstanceBuffer;
 
+	//maybe:
 	//l_unordered_map<ShaderProgram, l_unordered_map<Material,
-	//	l_unordered_map<VertexData, Render_detail::Shape>>> dynamicShapes;
-    //Render_detail::InstanceVec instances;
+	//	l_unordered_map<VertexData, Render_detail::Shape>>> renderData;
+
+	render_data_t renderData;
     BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
 
     std::array<std::unordered_set<ShaderProgram>::iterator, NumPasses> defaultShader;
 	std::array<std::unordered_set<Material>::iterator, NumPasses> defaultMaterial;
 
-	static_render_t::iter_t<VAOLevel>
+	Render_detail::Shape&
+		InternalCreateStatic(Object obj, ShaderProgram shader, Material mat,
+		VertexData vertData);
+
+	Render_detail::Shape&
 		InternalCreate(Object obj, ShaderProgram shader, Material mat,
 		VertexData vertData);
+
+	template<class BufferObjTy>
+	void FixInstances(render_data_t& dat, BufferObjTy& buf);
+
+	void DrawBucket(render_data_t& dat);
+	void DrawBucketPass(render_data_t& dat, int pass);
 };
 
 #endif

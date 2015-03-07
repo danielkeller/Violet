@@ -46,7 +46,7 @@ namespace tt_detail
 	template<class Last>
 	struct conts<Last>
 	{
-		using data_t = l_bag<Last>; //, Eigen::aligned_allocator<Last>>;
+		using data_t = l_bag<Last, Eigen::aligned_allocator<Last>>;
 		using tuple_t = std::tuple<data_t>;
 		using perma_refs_t = std::tuple<typename data_t::perma_ref>;
 		using emplace_ret_t = std::tuple<perma_refs_t>;
@@ -80,15 +80,20 @@ public:
 	template<size_t Level>
 	using value_t = typename std::tuple_element<Level, data_t>::type::value_type;
 
-	iter_t<0> begin()
+	template<size_t Level>
+	iter_t<Level> begin()
 	{
-		return std::get<0>(data).begin();
+		return std::get<Level>(data).begin();
 	}
 
-	iter_t<0> end()
+	template<size_t Level>
+	iter_t<Level> end()
 	{
-		return std::get<0>(data).end();
+		return std::get<Level>(data).end();
 	}
+
+	iter_t<0> begin() { return begin<0>(); }
+	iter_t<0> end() { return end<0>(); }
 
 	template<size_t Level>
 	iter_t<Level> find(perma_ref_t<Level> pr)
@@ -162,3 +167,29 @@ private:
 };
 
 #endif
+
+
+/*
+This bug needs to be submitted to MS when their website starts working
+
+struct test
+{
+using tup = std::tuple<std::vector<int>, std::vector<char>, std::vector<float>>;
+
+template<int pos>
+using tup_elem = typename std::tuple_element<pos, tup>::type;
+
+template<int pos>
+using tup_elem_elem = typename tup_elem<pos>::value_type;
+
+template<int pos>
+void bar(tup_elem_elem<pos> val)
+{}
+};
+
+void foo()
+{
+test t;
+t.bar<1>('c');
+}
+*/

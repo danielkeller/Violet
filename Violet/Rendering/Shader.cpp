@@ -241,10 +241,12 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag,
                 uniforms.blocks[uniformBlockIndex].name == "Common" ? UBO::Common : UBO::Material);
 
     //shaders are no longer used now that the program is linked
+#ifdef NDEBUG
     glDetachShader(program, vertShdr);
     glDeleteShader(vertShdr);
     glDetachShader(program, fragShdr);
     glDeleteShader(fragShdr);
+#endif
 }
 
 std::vector<Uniforms::Block> DoQuery(GLuint program)

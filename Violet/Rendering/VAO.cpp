@@ -43,9 +43,10 @@ void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schem
 }
 
 VAO::VAO(const ShaderProgram& program, const VertexData& vertdata)
-	: vertexData(vertdata),
-	numVertecies(vertdata.resource->numVertecies),
-	mode(vertdata.resource->mode)
+	: vertexData(vertdata)
+	, numVertecies(vertdata.resource->numVertecies)
+	, numInstances(0)
+	, mode(vertdata.resource->mode)
 {
 	glGenVertexArrays(1, &vertexArrayObject);
 	auto bound = Bind();
@@ -59,6 +60,7 @@ VAO::VAO(VAO&& other)
 	: vertexArrayObject(other.vertexArrayObject)
 	, vertexData(std::move(other.vertexData))
 	, numVertecies(other.numVertecies)
+	, numInstances(other.numInstances)
 	, mode(other.mode)
 {
 	other.vertexArrayObject = 0;

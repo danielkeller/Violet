@@ -15,27 +15,6 @@ Render::Render(Position& position, Mobile& m)
 	//Assumes no one binds over UBO::Common
 	commonUBO.Bind();
 }
-/*
-template<class PerShader, class PerMaterial, class PerShape>
-void Render::IterateStatic(PerShader psh, PerMaterial pm, PerShape ps)
-{
-    auto materialit = materials.begin();
-    auto shapeit = shapes.begin();
-    for (auto shaderit = shaders.begin(); shaderit != shaders.end(); ++shaderit)
-    {
-        psh(*shaderit);
-        auto nextshader = shaderit + 1 == shaders.end() ? materials.end() : materials.find(shaderit[1].begin);
-        for(; materialit != nextshader; ++materialit)
-        {
-            pm(*materialit);
-			auto nextmaterial = materialit + 1 == materials.end() ? shapes.end() : shapes.find(materialit[1].begin);
-            for (; shapeit != nextmaterial; ++shapeit)
-            {
-                ps(*shapeit);
-            }
-        }
-    }
-}*/
 
 void Render::PassDefaults(Passes pass, ShaderProgram shader, Material mat)
 {
@@ -56,88 +35,104 @@ range_of(typename data_t::iterator it, data_t& data, lower_data_t& lower_data)
 		return{ lower_data.find(it[0].begin), lower_data.find(it[1].begin) };
 }
 
-/*
-This bug needs to be submitted to MS when their website starts working
-
-struct test
+template<class BufferObjTy>
+void Render::FixInstances(render_data_t& dat, BufferObjTy& buf)
 {
-	using tup = std::tuple<std::vector<int>, std::vector<char>, std::vector<float>>;
+	GLsizei offset = 0;
 
-	template<int pos>
-	using tup_elem = typename std::tuple_element<pos, tup>::type;
-
-	template<int pos>
-	using tup_elem_elem = typename tup_elem<pos>::value_type;
-
-	template<int pos>
-	void bar(tup_elem_elem<pos> val)
-	{}
-};
-
-void foo()
-{
-	test t;
-	t.bar<1>('c');
+	for (auto& shader : dat)
+		for (auto& mat : dat.children<MatLevel>(shader))
+			for (auto& vao : dat.children<VAOLevel>(mat))
+			{
+				auto numInstances =
+					static_cast<GLsizei>(dat.children<InstanceLevel>(vao).length());
+				vao.first.vao.BindInstanceData(shader.first, buf, offset, numInstances);
+				offset += numInstances;
+			}
 }
-*/
 
-Render::static_render_t::iter_t<Render::VAOLevel>
-Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
-    VertexData vertData)
+Shape& Render::InternalCreate(Object obj, ShaderProgram shader, Material mat, VertexData vertData)
 {
-	using InstPermaRef = static_render_t::perma_ref_t<InstanceLevel>;
-	accessor<Matrix4f, InstPermaRef> locaccesor = {
-		[this](InstPermaRef ref) { return staticRenderData.find<InstanceLevel>(ref)->mat;
-		},
+	using InstPermaRef = render_data_t::perma_ref_t<InstanceLevel>;
+	static accessor<Matrix4f, InstPermaRef> locaccesor = {
+		[this](InstPermaRef ref) { return renderData.find<InstanceLevel>(ref)->mat; },
 		[this](InstPermaRef ref, const Matrix4f& v)
 		{
-			staticRenderData.find<InstanceLevel>(ref)->mat = v;
+			renderData.find<InstanceLevel>(ref)->mat = v;
 		}
 	};
 
-	auto refs = staticRenderData.emplace(shader, mat, std::tie(shader, vertData), obj);
+	auto refs = renderData.emplace(shader, mat, std::tie(shader, vertData),
+		InstData{ obj, *m[obj] });
+
 	auto instref = std::get<InstanceLevel>(refs);
 	m[obj] = make_magic(locaccesor, instref);
 
-	GLsizei offset = 0;
-	
-	for (auto& shader : staticRenderData)
-		for (auto& mat : staticRenderData.children<MatLevel>(shader))
-			for (auto& vao : staticRenderData.children<VAOLevel>(mat))
-			{
-				auto numInstances = 
-					static_cast<GLsizei>(staticRenderData.children<InstanceLevel>(vao).length());
-				vao.first.vao.BindInstanceData(shader.first, instanceBuffer, offset, numInstances);
-				offset += numInstances;
-			}
-	instanceBuffer.Data(offset);
+	FixInstances(renderData, instanceBuffer);
+	//send the actual data each draw call
+	instanceBuffer.Data(renderData.get_level<InstanceLevel>().size());
 
 	auto vaoref = std::get<VAOLevel>(refs);
-	auto& vaolevel = staticRenderData.get_level<VAOLevel>();
-	return vaolevel.find(vaoref);
+	return renderData.get_level<VAOLevel>().find(vaoref)->first;
+}
+
+Shape& Render::InternalCreateStatic(Object obj, ShaderProgram shader,
+	Material mat, VertexData vertData)
+{
+	using InstPermaRef = render_data_t::perma_ref_t<InstanceLevel>;
+	static accessor<Transform, InstPermaRef> locaccesor = {
+		[this](InstPermaRef ref)
+		{
+			assert(false && "Do not read static object position from Render");
+			return Transform{};
+		},
+		[this](InstPermaRef ref, const Transform& v)
+		{
+			auto& it = staticRenderData.find<InstanceLevel>(ref);
+			it->mat = v.ToMatrix();
+			size_t offset = it - staticRenderData.begin<InstanceLevel>();
+			staticInstanceBuffer.Assign(offset, *it);
+		}
+	};
+
+	auto inst = InstData{ obj, position[obj].get().ToMatrix() };
+	auto refs = staticRenderData.emplace(shader, mat, std::tie(shader, vertData), inst);
+
+	auto instref = std::get<InstanceLevel>(refs);
+	position[obj] += make_magic(locaccesor, instref);
+
+	FixInstances(staticRenderData, staticInstanceBuffer);
+	staticInstanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
+
+	auto vaoref = std::get<VAOLevel>(refs);
+	return staticRenderData.get_level<VAOLevel>().find(vaoref)->first;
 }
 
 void Render::Create(Object obj, ShaderProgram shader, Material mat,
 	VertexData vertData, Mobilty mobile)
 {
-    auto it = InternalCreate(obj, shader, mat, vertData);
+	auto& shape = mobile == Mobilty::Yes
+		? InternalCreate(obj, shader, mat, vertData)
+		: InternalCreateStatic(obj, shader, mat, vertData);
 	
     for (size_t i = 0; i < NumPasses; ++i)
     {
-        it->first.passShader[i] = defaultShader[i];
-		it->first.passMaterial[i] = defaultMaterial[i];
+		shape.passShader[i] = defaultShader[i];
+		shape.passMaterial[i] = defaultMaterial[i];
     }
 }
 
 void Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
 	std::array<Material, AllPasses> mat, VertexData vertData, Mobilty mobile)
 {
-    auto it = InternalCreate(obj, shader[0], mat[0], vertData);
+	auto& shape = mobile == Mobilty::Yes
+		? InternalCreate(obj, shader[0], mat[0], vertData)
+		: InternalCreateStatic(obj, shader[0], mat[0], vertData);
 	
     for (size_t i = 0; i < NumPasses; ++i)
     {
-		it->first.passShader[i] = passShaders.insert(shader[i + 1]).first;
-		it->first.passMaterial[i] = passMaterials.insert(mat[i + 1]).first;
+		shape.passShader[i] = passShaders.insert(shader[i + 1]).first;
+		shape.passMaterial[i] = passMaterials.insert(mat[i + 1]).first;
     }
 }
 
@@ -149,23 +144,51 @@ void Material::use() const
     materialProps.Bind();
 }
 
+void Render::DrawBucket(render_data_t& dat)
+{
+	for (auto& shader : dat)
+	{
+		shader.first.use();
+		for (auto& mat : dat.children<MatLevel>(shader))
+		{
+			mat.first.use();
+			for (auto& vao : dat.children<VAOLevel>(mat))
+			{
+				vao.first.vao.Draw();
+			}
+		}
+	}
+}
+
 void Render::Draw()
 {
 	commonUBO["camera"] = camera;
 	commonUBO.Sync();
 	
-	instanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
-	for (auto& shader : staticRenderData)
+	instanceBuffer.Data(renderData.get_level<InstanceLevel>().vector());
+
+	DrawBucket(renderData);
+	DrawBucket(staticRenderData);
+}
+
+void Render::DrawBucketPass(render_data_t& dat, int pass)
+{
+	auto curShader = passShaders.end();
+	auto curMat = passMaterials.end();
+
+	for (const auto& shape : dat.get_level<VAOLevel>())
 	{
-		shader.first.use();
-		for (auto& mat : staticRenderData.children<MatLevel>(shader))
+		if (curShader != shape.first.passShader[pass])
 		{
-			mat.first.use();
-			for (auto& vao : staticRenderData.children<VAOLevel>(mat))
-			{
-				vao.first.vao.Draw();
-			}
+			curShader = shape.first.passShader[pass];
+			curShader->use();
 		}
+		if (curMat != shape.first.passMaterial[pass])
+		{
+			curMat = shape.first.passMaterial[pass];
+			curMat->use();
+		}
+		shape.first.vao.Draw();
 	}
 }
 
@@ -174,23 +197,8 @@ void Render::DrawPass(int pass)
 	commonUBO["camera"] = camera;
 	commonUBO.Sync();
 
-    auto curShader = passShaders.end();
-    auto curMat = passMaterials.end();
-	
-    for (const auto& shape : staticRenderData.get_level<VAOLevel>())
-    {
-        if (curShader != shape.first.passShader[pass])
-        {
-			curShader = shape.first.passShader[pass];
-            curShader->use();
-        }
-		if (curMat != shape.first.passMaterial[pass])
-        {
-			curMat = shape.first.passMaterial[pass];
-            curMat->use();
-        }
-		shape.first.vao.Draw();
-    }
+	DrawBucketPass(renderData, pass);
+	DrawBucketPass(staticRenderData, pass);
 }
 
 template<>
