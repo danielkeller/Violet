@@ -59,3 +59,12 @@ inline void hash_combine(std::size_t& seed, const T& v)
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
+
+template<class X, class... XS>
+std::tuple<X, XS...> tuple_cons(X x, const std::tuple<XS...>& t)
+{
+	return std::tuple_cat(std::make_tuple(x), t);
+}
+
+template<class X, class Tuple>
+using tuple_cons_t = decltype(tuple_cons(std::declval<X>(), std::declval<Tuple>()));
