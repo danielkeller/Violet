@@ -13,14 +13,16 @@ public:
 	using value_type = ValueTy;
     using iterator_category = std::random_access_iterator_tag;
     using difference_type = ptrdiff_t;
-    using pointer = value_type*;
-    using reference = value_type&;
+	using pointer = value_type*;
+	using const_pointer = const value_type*;
+	using reference = value_type&;
+	using const_reference = value_type&;
 
 	template<class dummy = void> //Don't compile this if it doesn't make sense
 	reference operator*() { return *it; }
-	const reference operator*() const { return *DerivedThisUnconst(); }
+	const_reference operator*() const { return *DerivedThisUnconst(); }
 	pointer operator->() { return &**DerivedThis(); }
-	const pointer operator->() const { return &**DerivedThisUnconst(); }
+	const_pointer operator->() const { return &**DerivedThisUnconst(); }
 	
 	Derived& operator++() { ++it; return *DerivedThis(); }
 	Derived operator++(int) const { auto ret = *DerivedThis(); ++ret; return ret; }
@@ -70,11 +72,29 @@ private:
 	Func func;
 };
 
-
 template<class IterTy, class Func>
 MapIter<IterTy, Func> MakeMapIter(IterTy it, Func f)
 {
 	return{ it, f };
 }
+
+//holds a pair of iterators, can be used in range-for
+template<class Iter>
+class range
+{
+public:
+	using iterator = Iter;
+	range(iterator b, iterator e) : begin_(b), end_(e) {}
+	range(iterator e) : begin_(e), end_(e) {} //empty range
+	iterator begin() { return begin_; }
+	iterator end() { return end_; }
+	typename std::iterator_traits<iterator>::difference_type length()
+	{
+		return end_ - begin_;
+	}
+
+private:
+	iterator begin_, end_;
+};
 
 #endif

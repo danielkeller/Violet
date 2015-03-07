@@ -15,7 +15,9 @@ public:
 
 	VAO(const ShaderProgram& program, const VertexData& vertdata);
 
-    VAO& operator=(const VAO&) = default;
+	VAO& operator=(VAO v);
+
+	friend void swap(VAO& l, VAO& r);
 
 	class Binding
 	{
@@ -45,8 +47,6 @@ public:
 	}
 
 	GLsizei NumInstances() const { return numInstances; };
-
-	BASIC_EQUALITY(VAO, vertexArrayObject)
 	MEMBER_EQUALITY(VertexData, vertexData)
 
 private:

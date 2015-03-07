@@ -131,6 +131,9 @@
     <ClInclude Include="Containers\l_unordered_map.hpp">
       <Filter>Source Files\Containers</Filter>
     </ClInclude>
+    <ClInclude Include="Containers\tuple_tree.hpp">
+      <Filter>Source Files\Containers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">

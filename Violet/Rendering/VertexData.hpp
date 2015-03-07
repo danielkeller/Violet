@@ -67,6 +67,10 @@ private:
     friend struct Wavefront;
     friend class VAO;
     friend struct ShowAABB;
+
+	HAS_HASH
 };
+
+MEMBER_HASH(VertexData, resource)
 
 #endif

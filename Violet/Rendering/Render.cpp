@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Render.hpp"
-#include <algorithm>
 
 #include "Position.hpp"
 #include "Mobile.hpp"
@@ -16,9 +15,9 @@ Render::Render(Position& position, Mobile& m)
 	//Assumes no one binds over UBO::Common
 	commonUBO.Bind();
 }
-
+/*
 template<class PerShader, class PerMaterial, class PerShape>
-void Render::Iterate(PerShader psh, PerMaterial pm, PerShape ps)
+void Render::IterateStatic(PerShader psh, PerMaterial pm, PerShape ps)
 {
     auto materialit = materials.begin();
     auto shapeit = shapes.begin();
@@ -36,7 +35,7 @@ void Render::Iterate(PerShader psh, PerMaterial pm, PerShape ps)
             }
         }
     }
-}
+}*/
 
 void Render::PassDefaults(Passes pass, ShaderProgram shader, Material mat)
 {
@@ -57,88 +56,88 @@ range_of(typename data_t::iterator it, data_t& data, lower_data_t& lower_data)
 		return{ lower_data.find(it[0].begin), lower_data.find(it[1].begin) };
 }
 
-l_bag<Shape>::iterator
+/*
+This bug needs to be submitted to MS when their website starts working
+
+struct test
+{
+	using tup = std::tuple<std::vector<int>, std::vector<char>, std::vector<float>>;
+
+	template<int pos>
+	using tup_elem = typename std::tuple_element<pos, tup>::type;
+
+	template<int pos>
+	using tup_elem_elem = typename tup_elem<pos>::value_type;
+
+	template<int pos>
+	void bar(tup_elem_elem<pos> val)
+	{}
+};
+
+void foo()
+{
+	test t;
+	t.bar<1>('c');
+}
+*/
+
+Render::static_render_t::iter_t<Render::VAOLevel>
 Render::InternalCreate(Object obj, ShaderProgram shader, Material mat,
     VertexData vertData)
 {
-    auto shaderit = std::find(shaders.begin(), shaders.end(), shader);
-    auto matrange = range_of(shaderit, shaders, materials);
-    auto matit = std::find(matrange.first, matrange.second, mat);
-    auto shaperange = range_of(matit, materials, shapes);
-    auto shapeit = std::find(shaperange.first, shaperange.second, vertData);
-    auto instrange = range_of(shapeit, shapes, instances);
-    auto instref = instances.emplace(instrange.second, obj);
-    
-    auto shaperef = shapes.get_perma(shapes.end());
-    if (shapeit == shaperange.second)
-    {
-        shaperef = shapes.emplace(shapeit, vertData, shader, instref);
-        shapeit = shapes.find(shaperef);
-    }
-    
-    if (shaderit == shaders.end())
-    {
-        shaders.emplace(shaderit, shader,
-            materials.emplace(matit, mat, shaperef));
-    }
-    else if (matit == matrange.second)
-    {
-        materials.emplace(matit, mat, shaperef);
-    }
-	
-	accessor<Matrix4f, InstanceVec::perma_ref> locaccesor = {
-		[this](InstanceVec::perma_ref ref) { return instances.find(ref)->mat; },
-		[this](InstanceVec::perma_ref ref, const Matrix4f& v)
+	using InstPermaRef = static_render_t::perma_ref_t<InstanceLevel>;
+	accessor<Matrix4f, InstPermaRef> locaccesor = {
+		[this](InstPermaRef ref) { return staticRenderData.find<InstanceLevel>(ref)->mat;
+		},
+		[this](InstPermaRef ref, const Matrix4f& v)
 		{
-			instances.find(ref)->mat = v;
+			staticRenderData.find<InstanceLevel>(ref)->mat = v;
 		}
 	};
 
+	auto refs = staticRenderData.emplace(shader, mat, std::tie(shader, vertData), obj);
+	auto instref = std::get<InstanceLevel>(refs);
 	m[obj] = make_magic(locaccesor, instref);
 
 	GLsizei offset = 0;
-    Shader* curShader;
-    Iterate(
-    [&](Shader& shader)
-    {
-        curShader = &shader;
-    },
-    [](T_Material& m) {},
-    [&](Shape& shape)
-    {
-        auto instend = &shape == &shapes.back() ? instances.end() : instances.find((&shape)[1].begin);
-		auto numInstances = static_cast<GLsizei>(instend - instances.find(shape.begin));
-        shape.vao.BindInstanceData(curShader->program, instanceBuffer, offset, numInstances);
-        offset += numInstances;
-    });
-
-    instances.resize(offset);
+	
+	for (auto& shader : staticRenderData)
+		for (auto& mat : staticRenderData.children<MatLevel>(shader))
+			for (auto& vao : staticRenderData.children<VAOLevel>(mat))
+			{
+				auto numInstances = 
+					static_cast<GLsizei>(staticRenderData.children<InstanceLevel>(vao).length());
+				vao.first.vao.BindInstanceData(shader.first, instanceBuffer, offset, numInstances);
+				offset += numInstances;
+			}
 	instanceBuffer.Data(offset);
 
-	return shapeit;
+	auto vaoref = std::get<VAOLevel>(refs);
+	auto& vaolevel = staticRenderData.get_level<VAOLevel>();
+	return vaolevel.find(vaoref);
 }
 
 void Render::Create(Object obj, ShaderProgram shader, Material mat,
-    VertexData vertData)
+	VertexData vertData, Mobilty mobile)
 {
     auto it = InternalCreate(obj, shader, mat, vertData);
-
+	
     for (size_t i = 0; i < NumPasses; ++i)
     {
-        it->passShader[i] = defaultShader[i];
-        it->passMaterial[i] = defaultMaterial[i];
+        it->first.passShader[i] = defaultShader[i];
+		it->first.passMaterial[i] = defaultMaterial[i];
     }
 }
 
 void Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
-    std::array<Material, AllPasses> mat, VertexData vertData)
+	std::array<Material, AllPasses> mat, VertexData vertData, Mobilty mobile)
 {
     auto it = InternalCreate(obj, shader[0], mat[0], vertData);
-
+	
     for (size_t i = 0; i < NumPasses; ++i)
     {
-        it->passShader[i] = passShaders.insert(shader[i+1]).first;
-        it->passMaterial[i] = passMaterials.insert(mat[i+1]).first;
+		it->first.passShader[i] = passShaders.insert(shader[i + 1]).first;
+		it->first.passMaterial[i] = passMaterials.insert(mat[i + 1]).first;
     }
 }
 
@@ -154,29 +153,20 @@ void Render::Draw()
 {
 	commonUBO["camera"] = camera;
 	commonUBO.Sync();
-
+	
+	instanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
+	for (auto& shader : staticRenderData)
 	{
-		//auto mapping = instanceBuffer.Map(GL_WRITE_ONLY);
-        //auto mapit = instances.begin(); //mapping.begin();
-        //for (auto& shape : shapes)
-         //   mapit = std::copy(shape.instances->begin(), shape.instances->end(), mapit);
-        instanceBuffer.Data(instances.vector());
-	} //unmap
-    
-    Iterate(
-    [](Shader& shader)
-    {
-        shader.program.use();
-    },
-    [](T_Material& material)
-    {
-        material.mat.use();
-    },
-    [](Shape& shape)
-    {
-        shape.vao.Draw();
-    });
-
+		shader.first.use();
+		for (auto& mat : staticRenderData.children<MatLevel>(shader))
+		{
+			mat.first.use();
+			for (auto& vao : staticRenderData.children<VAOLevel>(mat))
+			{
+				vao.first.vao.Draw();
+			}
+		}
+	}
 }
 
 void Render::DrawPass(int pass)
@@ -186,20 +176,20 @@ void Render::DrawPass(int pass)
 
     auto curShader = passShaders.end();
     auto curMat = passMaterials.end();
-
-    for (const auto& shape : shapes)
+	
+    for (const auto& shape : staticRenderData.get_level<VAOLevel>())
     {
-        if (curShader != shape.passShader[pass])
+        if (curShader != shape.first.passShader[pass])
         {
-            curShader = shape.passShader[pass];
+			curShader = shape.first.passShader[pass];
             curShader->use();
         }
-        if (curMat != shape.passMaterial[pass])
+		if (curMat != shape.first.passMaterial[pass])
         {
-            curMat = shape.passMaterial[pass];
+			curMat = shape.first.passMaterial[pass];
             curMat->use();
         }
-        shape.vao.Draw();
+		shape.first.vao.Draw();
     }
 }
 

@@ -32,7 +32,7 @@ public:
 		auto screenAxes = PerspMat() * modelview;
 		Vector4f screenVec;
 		screenVec << MousePosScr()*screenAxes(3, 3), screenAxes(2, 3), screenAxes(3, 3);
-		Vector4f worldVec = screenAxes.householderQr().solve(screenVec);
+		Vector4f worldVec(screenAxes.householderQr().solve(screenVec));
 		return worldVec.block<3, 1>(0, 0) / worldVec[3];
 	}
     

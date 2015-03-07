@@ -2,7 +2,7 @@
 //TODO: split into gl, math, etc
 
 #include "GL/gl_core_3_3.h"
-#include "Eigen/Dense"
+#include "Eigen/Core"
 #include "Eigen/Geometry"
 #include <vector>
 

@@ -726,9 +726,10 @@ public:
         return static_cast<pointer>( internal::aligned_malloc( num * sizeof(T) ) );
     }
 
-    void construct( pointer p, const T& value )
+	template<class U, class... Args>
+	void construct(U* p, Args&&... args)
     {
-        ::new( p ) T( value );
+		::new(p) U(std::forward<Args>(args)...);
     }
 
     void destroy( pointer p )

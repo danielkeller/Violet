@@ -69,6 +69,21 @@ VAO::~VAO()
 	glDeleteVertexArrays(1, &vertexArrayObject);
 }
 
+VAO& VAO::operator=(VAO v)
+{
+	swap(*this, v);
+	return *this;
+}
+
+void swap(VAO& l, VAO& r)
+{
+	swap(l.vertexArrayObject, r.vertexArrayObject);
+	swap(l.vertexData, r.vertexData);
+	swap(l.numVertecies, r.numVertecies);
+	swap(l.numInstances, r.numInstances);
+	swap(l.mode, r.mode);
+}
+
 GLuint VAO::Binding::current = 0;
 
 VAO::Binding::Binding(GLuint next)

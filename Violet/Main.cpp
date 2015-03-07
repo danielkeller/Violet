@@ -12,8 +12,6 @@
 
 #include <iostream>
 
-Time* globalTime;
-
 int main(void)
 try
 {
@@ -36,24 +34,19 @@ try
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-    r.Create(teapotObj, teapot.shaderProgram,
-        {{}, {{"assets/capsule.png"}}},
-        teapot.vertexData);
+    r.Create(teapotObj, teapot.shaderProgram, {{}, {{"assets/capsule.png"}}}, teapot.vertexData);
     
 	position[teapot2Obj]->pos = {2, 0, 0};
-    r.Create(teapot2Obj, teapot.shaderProgram,
-        {{}, {{"assets/capsule.png"}}},
-        teapot.vertexData);
+    r.Create(teapot2Obj, teapot.shaderProgram, {{}, {{"assets/capsule.png"}}}, teapot.vertexData);
 
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
 
-	position[camera]->pos = Vector3f(0.f, -3.f, 0.f);
+	position[camera]->pos = {0, -3, 0};
 
 	m.Tick();
     
     Time t;
-	globalTime = &t;
     
     auto physTick = [&]()
 	{

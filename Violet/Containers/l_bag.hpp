@@ -2,6 +2,23 @@
 #define L_BAG_HPP
 #include <vector>
 
+template<class T, class DiffT>
+class perma_ref
+{
+public:
+	perma_ref(const perma_ref& other) = default;
+	perma_ref(const perma_ref&& other) : it(other.it) {}
+	perma_ref& operator=(const perma_ref& other) = default;
+	BASIC_EQUALITY(perma_ref, it)
+
+private:
+	perma_ref(DiffT it) : it(it) {}
+	DiffT it;
+
+	template<class T, class Alloc>
+	friend class l_bag;
+};
+
 //Vector with iterator-like objects that can't be invalidated
 template<class T, class Alloc = std::allocator<T>>
 class l_bag
@@ -9,6 +26,7 @@ class l_bag
 public:
 	using value_type = T;
 	using size_type = typename std::vector<value_type, Alloc>::size_type;
+	using difference_type = typename std::allocator_traits<Alloc>::difference_type;
 private:
 	using storety = std::vector<value_type, Alloc>;
     //trick for declaring integral constants in the header
@@ -60,17 +78,7 @@ public:
     bool empty() const { return store.empty(); }
     const storety& vector() const {return store;}
 
-	class perma_ref
-	{
-	public:
-		perma_ref(const perma_ref& other) = default;
-		BASIC_EQUALITY(perma_ref, it)
-
-	private:
-		perma_ref(typename indsty::difference_type it) : it(it) {}
-		typename indsty::difference_type it;
-		friend class l_bag;
-	};
+	using perma_ref = perma_ref<T, difference_type>;
 
     iterator find(perma_ref r)
     {
@@ -129,8 +137,7 @@ public:
         if (count < size())
         {
             store.resize(count);
-            inds.erase(std::remove_if(inds.begin(), inds.end(), [=](indty ind){return ind >= count;}),
-                inds.end());
+			for (auto& ind : inds) if (ind >= count) ind = INVALID_IND;
         }
         else
         {
@@ -168,7 +175,7 @@ public:
     */
 
 private:
-    typename indsty::difference_type new_ind()
+    difference_type new_ind()
     {
         auto indIt = std::find(inds.begin(), inds.end(), INVALID_IND);
         if (indIt == inds.end())

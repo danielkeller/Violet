@@ -52,10 +52,6 @@ void Tool::SetTarget(magic_ptr<Transform> t)
 		move->pos = Vector3f::Zero(); //better, hide the tool;
 }
 
-#include "Time.hpp"
-
-extern Time* globalTime;
-
 void Tool::Update(Window& w, Object camera, Object focused)
 {
     if (!w.LeftMouse())

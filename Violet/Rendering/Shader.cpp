@@ -423,7 +423,7 @@ UBO::Proxy& UBO::Proxy::operator=(const uint32_t& v)
 UBO::Proxy UBO::Proxy::operator[](GLuint offset)
 {
 	if (unif.size <= offset)
-		throw std::runtime_error(offset + " is is past the end of " + unif.name);
+		throw std::runtime_error(std::to_string(offset) + " is is past the end of " + unif.name);
 
 	Uniform offsetted = unif;
 	offsetted.offset = unif.offset + unif.stride * offset;

@@ -60,16 +60,16 @@ void MappedFile::Open(const std::string& name)
 {
 	isopen = false;
 	//TODO: This prevents other processes from modifying the file
-	HandleRAII fileHandle = CreateFile(name.c_str(), GENERIC_READ, 0, nullptr,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HandleRAII fileHandle{ CreateFile(name.c_str(), GENERIC_READ, 0, nullptr,
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr) };
 	if (fileHandle.h == INVALID_HANDLE_VALUE)
 	{
 		ThrowErrno("CreateFile");
 		return;
 	}
 
-	HandleRAII fileMapping = CreateFileMapping(
-		fileHandle.h, nullptr, PAGE_READONLY, 0, 0, nullptr);
+	HandleRAII fileMapping{ CreateFileMapping(
+		fileHandle.h, nullptr, PAGE_READONLY, 0, 0, nullptr) };
 	if (fileMapping.h == nullptr) //Windows is so consistent
 	{
 		ThrowErrno("CreateFileMapping");

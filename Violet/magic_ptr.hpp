@@ -7,10 +7,9 @@
 //basically, a machine-word worth of something
 using key_ty = std::aligned_storage_t<sizeof(nullptr)>;
 
-template<class T>
-class accessor_impl
+namespace magic_detail
 {
-protected:
+	template<class T>
 	struct acc_base
 	{
 		virtual void setter(key_ty key, const T& val) = 0;
@@ -18,15 +17,16 @@ protected:
 		virtual ~acc_base() {}
 	};
 
-	struct null_acc_derived : acc_base
+	template<class T>
+	struct null_acc_derived : acc_base<T>
 	{
 		void setter(key_ty key, const T& val) {}
 		T getter(key_ty key) { assert(false && "Reading null magic_ptr"); return{}; }
 		static std::shared_ptr<null_acc_derived> instance;
 	};
 
-	template<class Getter, class Setter>
-	struct acc_derived : acc_base
+	template<class T, class Getter, class Setter>
+	struct acc_derived : acc_base<T>
 	{
 		Getter myGetter;
 		Setter mySetter;
@@ -45,8 +45,8 @@ protected:
 		}
 	};
 
-	template<class Getter, class Setter, class Key>
-	struct keyed_acc_derived : acc_base
+	template<class T, class Getter, class Setter, class Key>
+	struct keyed_acc_derived : acc_base<T>
 	{
 		Getter myGetter;
 		Setter mySetter;
@@ -64,39 +64,33 @@ protected:
 			return myGetter(*static_cast<const Key*>(static_cast<const void*>(&key)));
 		}
 	};
-
-	accessor_impl(std::shared_ptr<acc_base> watcher)
-		: watcher(watcher)
-	{}
-
-	//consider making this another special kind of pointer that copies
-	//its pointee when it is copied
-	std::shared_ptr<acc_base> watcher;
 };
 template<class T, class Key = key_ty>
-class accessor : accessor_impl<T>
+class accessor
 {
 	template<class T1, class Key1>
 	friend class accessor;
 
+	std::shared_ptr<magic_detail::acc_base<T>> watcher;
+
 public:
 	//null magic pointers are valid and do nothing
 	accessor()
-		: accessor_impl<T>(null_acc_derived::instance)
+		: watcher(magic_detail::null_acc_derived<T>::instance)
 	{}
 	
 	template<class Getter, class Setter,
 		typename = decltype(std::declval<Getter>()()),
 		typename = decltype(std::declval<Setter>()(std::declval<T>()))>
 		accessor(Getter g, Setter s)
-		: accessor_impl<T>(std::make_shared<acc_derived<Getter, Setter>>(g, s))
+		: watcher(std::make_shared<magic_detail::acc_derived<T, Getter, Setter>>(g, s))
 	{}
 	
 	template<class Getter, class Setter,
 		typename = decltype(std::declval<Getter>()(std::declval<Key>())),
 		typename = decltype(std::declval<Setter>()(std::declval<Key>(), std::declval<T>()))>
 		accessor(Getter g, Setter s, int = 0)
-		: accessor_impl<T>(std::make_shared<keyed_acc_derived<Getter, Setter, Key>>(g, s))
+		: watcher(std::make_shared<magic_detail::keyed_acc_derived<T, Getter, Setter, Key>>(g, s))
 	{}
 
 	//erase the key type
@@ -109,7 +103,7 @@ public:
 
 	explicit operator bool()
 	{
-		return watcher != null_acc_derived::instance;
+		return watcher != magic_detail::null_acc_derived<T>::instance;
 	}
 
 	bool operator==(const accessor<T, Key>& other) const
@@ -151,10 +145,10 @@ class magic_ptr
 #endif
 		{}
 		T temp;
+		magic_ptr& owner;
 #ifndef NDEBUG
 		T orig;
 #endif
-		magic_ptr& owner;
 		T* operator->() { return &temp; }
 		~arrow_helper()
 		{
@@ -275,9 +269,9 @@ public:
 };
 
 template<class T>
-std::shared_ptr<typename accessor_impl<T>::null_acc_derived>
-accessor_impl<T>::null_acc_derived::instance =
-std::make_shared<typename accessor_impl<T>::null_acc_derived>();
+std::shared_ptr<magic_detail::null_acc_derived<T>>
+magic_detail::null_acc_derived<T>::instance =
+std::make_shared<magic_detail::null_acc_derived<T>>();
 
 //deduce type from arguments
 template<class T, class Key>
