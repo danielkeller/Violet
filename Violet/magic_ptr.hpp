@@ -207,7 +207,7 @@ public:
 		: acc(acc)
 	{
 		new (&key) nullptr_t();
-		static_assert(sizeof(k) <= sizeof(key),// && __alignof(k) <= __alignof(key),
+		static_assert(sizeof(k) <= sizeof(key),// || __alignof(k) <= __alignof(key),
 			"Key type does not fit size and alignment requirements");
 		static_assert(std::is_trivially_copyable<Key>::value
 			&& std::is_trivially_destructible<Key>::value,
