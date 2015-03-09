@@ -45,7 +45,7 @@ void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schem
 VAO::VAO(const ShaderProgram& program, const VertexData& vertdata)
 	: vertexData(vertdata)
 	, numVertecies(vertdata.resource->numVertecies)
-	, numInstances(0)
+	, numInstances(1)
 	, mode(vertdata.resource->mode)
 {
 	glGenVertexArrays(1, &vertexArrayObject);

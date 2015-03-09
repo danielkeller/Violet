@@ -5,17 +5,20 @@
 #include "Window.hpp"
 
 Picker::Picker(Render& r, Window& w)
-    : shader("assets/picker"), tex(TexDim{512, 512}), fbo(tex)
-    , hlShader("assets/picker_hl"), hlMat(hlShader.MakeUBO("Material", "pickerMat"))
-    , r(r), w(w), pickedObj(Object::none)
+	: shader("assets/picker")
+	, r(r), w(w), pickedObj(Object::none)
 {
-    fbo.AttachDepth(RenderBuffer{GL_DEPTH_COMPONENT, {512, 512}});
-    fbo.CheckStatus();
-    
-    Object pickerObj;
-    hlMat["selected"] = Object::none.Id();
-    hlMat.Sync();
-    r.Create(pickerObj, {hlShader, {}}, {{{hlMat, {tex}}, {}}}, UnitBox);
+	r.PassDefaults(PickerPass, shader, {});
+}
+
+TypedTex<std::uint32_t> Picker::WindowResize(Eigen::Vector2i size)
+{
+	auto tex = TypedTex<std::uint32_t>{ size };
+	fbo.AttachTex(tex);
+	fbo.AttachDepth(RenderBuffer{ GL_DEPTH_COMPONENT, size });
+	fbo.CheckStatus();
+
+	return tex;
 }
 
 void Picker::Pick()
@@ -32,10 +35,4 @@ void Picker::Pick()
 Object Picker::Picked() const
 {
     return pickedObj;
-}
-
-void Picker::Highlight(Object o, Highlights type)
-{
-    hlMat["selected"][type] = o.Id();
-    hlMat.Sync(); //TODO: this is redundant
 }

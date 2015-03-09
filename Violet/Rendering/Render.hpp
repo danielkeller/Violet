@@ -4,56 +4,24 @@
 #include "Shader.hpp"
 #include "Object.hpp"
 #include "VAO.hpp"
-#include "Texture.hpp"
-#include "Containers/l_bag.hpp"
-#include "Containers/l_unordered_map.hpp"
-#include "Containers/tuple_tree.hpp"
-#include <unordered_set>
+#include "RenderPasses.hpp"
+#include "Material.hpp"
 
+#include "Containers/l_bag.hpp"
+#include "Containers/tuple_tree.hpp"
+
+#include <unordered_set>
 #include <vector>
-#include <memory>
 #include <array>
 
 class Position;
 class Mobile;
-
-enum Passes
-{
-    PickerPass,
-    NumPasses,
-    AllPasses
-};
 
 enum class Mobilty
 {
 	Yes,
 	No
 };
-
-struct Material
-{
-    UBO materialProps;
-    std::vector<Tex> textures;
-
-    bool operator==(const Material& t) const
-    {
-        return materialProps == t.materialProps && textures == t.textures;
-    }
-    bool operator!=(const Material& t) const
-    {
-        return !(*this == t);
-    }
-    void use() const;
-    
-    Material() = default;
-    Material(const UBO& props) : materialProps(props) {}
-    Material(const UBO& props, const std::vector<Tex>& texs)
-        : materialProps(props) , textures(texs){}
-
-    HAS_HASH
-};
-
-MEMBER_HASH(Material, materialProps)
 
 #include "Render_detail.hpp"
 

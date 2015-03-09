@@ -134,6 +134,12 @@
     <ClInclude Include="Containers\tuple_tree.hpp">
       <Filter>Source Files\Containers</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\RenderPasses.hpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Material.hpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -205,6 +211,9 @@
     <ClCompile Include="Position.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\RenderPasses.cpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\simple.frag">
@@ -247,6 +256,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\assets\tool_arrow_picker.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\screen.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\screen.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -65,8 +65,21 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	getWindow(window)->scrollAmt += Vector2f(xoffset, yoffset);
 }
 
-Window::Window()
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
+	glViewport(0, 0, width, height);
+	getWindow(window)->dim.set(Eigen::Vector2i(width, height));
+}
+
+Window::Window()
+	: dimVec(640, 480)
+{
+	accessor<Eigen::Vector2i> dimAcc = {
+		[this]() { return dimVec; },
+		[this](Eigen::Vector2i d) {dimVec = d; }
+	};
+	dim = dimAcc;
+
     //set up glfw
     glfwSetErrorCallback(error_callback);
     if (!glfwInit()) 
@@ -84,7 +97,7 @@ Window::Window()
 #endif
 
     //create the window
-    window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
+	window = glfwCreateWindow(dimVec.x(), dimVec.y(), "Simple example", NULL, NULL);
     if (!window)
 		throw "Could not create window";
 
@@ -95,6 +108,7 @@ Window::Window()
 	//add our input callbacks
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     //set the window as current. note that this won't work right with multiple windows.
     glfwMakeContextCurrent(window);
@@ -133,7 +147,7 @@ void Window::GetInput()
     double x, y;
 	glfwGetCursorPos(window, &x, &y);
 	//opengl and glfw use opposite viewport coordinates
-	mouseCur << float(x), float(dim.y() - y);
+	mouseCur << float(x), float(dimVec.y() - y);
 }
 
 void Window::ClearInput()
@@ -148,17 +162,17 @@ Vector2f Window::MouseDeltaScr() const
 
 Vector2f Window::MousePosScr() const
 {
-    return mouseCur.array() / dim.cast<float>().array() * 2.f - 1.f;
+	return mouseCur.array() / dimVec.cast<float>().array() * 2.f - 1.f;
 }
 
 Vector2f Window::MouseDeltaView() const
 {
-    return (mouseCur - mouseOld).array() / dim.cast<float>().array();
+	return (mouseCur - mouseOld).array() / dimVec.cast<float>().array();
 }
 
 Vector2f Window::MousePosView() const
 {
-    return mouseCur.array() / dim.cast<float>().array();
+	return mouseCur.array() / dimVec.cast<float>().array();
 }
 
 Vector2f Window::MouseDeltaPxl() const
@@ -176,16 +190,8 @@ Vector2f Window::ScrollDelta() const
 	return scrollAmt;
 }
 
-Vector2i Window::Dim()
-{
-    return dim;
-}
-
 void Window::PreDraw()
 {
-	//set the GL draw surface to the same size as the window
-	glfwGetFramebufferSize(window, &dim.x(), &dim.y());
-	glViewport(0, 0, (GLsizei)dim.x(), (GLsizei)dim.y());
 	//clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -209,7 +215,8 @@ Matrix4f Window::PerspMat() const
 		0, 0, 1, 0,
 		0, 1, 0, 0,
 		0, 0, 0, 1;
-	return perspective((float)M_PI / 2.f, (float)dim.x() / dim.y(), .01f, 100.f) * z_upToY_up;
+	return perspective((float)M_PI / 2.f, (float)dimVec.x() / dimVec.y(),
+		.01f, 100.f) * z_upToY_up;
 }
 
 bool Window::LeftMouse() const

@@ -136,14 +136,6 @@ void Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
     }
 }
 
-void Material::use() const
-{
-    for (GLuint i = 0; i < textures.size(); ++i)
-        textures[i].Bind(i);
-
-    materialProps.Bind();
-}
-
 void Render::DrawBucket(render_data_t& dat)
 {
 	for (auto& shader : dat)

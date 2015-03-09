@@ -49,6 +49,7 @@ public:
     Matrix4f PerspMat() const;
     void CheckStatus() const; //throws on error
     Pixel ReadPixel(Vector2f windowPos);
+	TypedTex<Pixel>& Texture() { return *tex; }
 
 private:
     GLuint fbo;

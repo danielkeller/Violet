@@ -42,7 +42,7 @@ struct PixelTraits
 
 using RGBA8Px = Eigen::Matrix<unsigned char, 4, 1>;
 
-template<class Pixel>
+template<class Pixel = RGBA8Px>
 class TypedTex : public Tex
 {
 public:

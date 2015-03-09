@@ -29,7 +29,8 @@ template<class Pixel>
 TypedTex<Pixel>::TypedTex(TexDim dim)
     : Tex(std::make_shared<TexResource>(dim))
 {
-    Bind(0);
+	//Bind(0);
+	glBindTexture(GL_TEXTURE_2D, textureObject);
     //https://www.opengl.org/wiki/Common_Mistakes#Creating_a_complete_texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);

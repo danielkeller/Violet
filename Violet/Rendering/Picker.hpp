@@ -24,15 +24,11 @@ public:
 		Selected,
 		Hovered,
 	};
-
-    //set the highlighted object
-    void Highlight(Object o, Highlights type);
     
+	TypedTex<std::uint32_t> WindowResize(Eigen::Vector2i size);
+
 private:
-    TypedTex<std::uint32_t> tex;
     FBO<std::uint32_t> fbo;
-    const ShaderProgram hlShader;
-    UBO hlMat;
     Render& r;
     Window& w;
     Object pickedObj;

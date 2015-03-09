@@ -56,12 +56,32 @@ namespace magic_detail
 
 		void setter(key_ty key, const T& val)
 		{
-			mySetter(*static_cast<const Key*>(static_cast<const void*>(&key)), val);
+			mySetter(*reinterpret_cast<const Key*>(&key), val);
 		}
 
 		T getter(key_ty key)
 		{
-			return myGetter(*static_cast<const Key*>(static_cast<const void*>(&key)));
+			return myGetter(*reinterpret_cast<const Key*>(&key));
+		}
+	};
+
+	template<class T, class Getter, class Setter, class Class>
+	struct member_acc_derived : acc_base<T>
+	{
+		Getter myGetter;
+		Setter mySetter;
+		member_acc_derived(Getter g, Setter s)
+			: myGetter(g), mySetter(s)
+		{}
+
+		void setter(key_ty key, const T& val)
+		{
+			((*reinterpret_cast<Class*>(&key))->*mySetter)(val);
+		}
+
+		T getter(key_ty key)
+		{
+			return ((*reinterpret_cast<Class*>(&key))->*myGetter)();
 		}
 	};
 };
@@ -91,6 +111,13 @@ public:
 		typename = decltype(std::declval<Setter>()(std::declval<Key>(), std::declval<T>()))>
 		accessor(Getter g, Setter s, int = 0)
 		: watcher(std::make_shared<magic_detail::keyed_acc_derived<T, Getter, Setter, Key>>(g, s))
+	{}
+
+	template<class Getter, class Setter,
+		typename = decltype((std::declval<Key>()->*std::declval<Getter>())()),
+		typename = decltype((std::declval<Key>()->*std::declval<Setter>())(std::declval<T>()))>
+		accessor(Getter g, Setter s, int = 0, int = 0)
+		: watcher(std::make_shared<magic_detail::member_acc_derived<T, Getter, Setter, Key>>(g, s))
 	{}
 
 	//erase the key type
@@ -170,6 +197,10 @@ public:
 		//clear out the key
 		new (&key) nullptr_t();
 	}
+
+	magic_ptr(accessor<T> acc)
+		: acc(acc)
+	{}
 
 	template<typename Key>
 	magic_ptr(accessor<T, Key> acc, const Key& k)

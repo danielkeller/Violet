@@ -3,6 +3,8 @@
 
 struct GLFWwindow;
 
+#include "magic_ptr.hpp"
+
 class Window
 {
 public:
@@ -38,7 +40,7 @@ public:
     
 	Vector2f ScrollDelta() const;
 
-    Vector2i Dim();
+    magic_ptr<Vector2i> dim;
 
     bool LeftMouse() const;
     bool RightMouse() const;
@@ -47,11 +49,12 @@ public:
 
 private:
     GLFWwindow* window;
-    Vector2i dim;
+    Vector2i dimVec;
     
 	Vector2f mouseOld, mouseCur, scrollAmt;
 
 	friend void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+	friend void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 };
 
 //print out a message if there are GL errors

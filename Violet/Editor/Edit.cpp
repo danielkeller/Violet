@@ -3,12 +3,11 @@
 #include "Window.hpp"
 #include "Rendering/Render.hpp"
 
-Edit::Edit(Render& r, Window& w, Position& position)
-	: r(r), w(w), position(position), pick(r, w), tool(r, position)
+Edit::Edit(Render& r, RenderPasses& rp, Window& w, Position& position)
+	: r(r), w(w), pick(rp.Picker()), rp(rp), position(position), tool(r, position)
     , focused(Object::none), mouseDown(false)
 	, viewPitch(0), viewYaw(0)
 {
-    r.PassDefaults(PickerPass, pick.shader, {});
 }
 
 void Edit::Editable(Object o)
@@ -44,9 +43,9 @@ void Edit::PhysTick(Object camera)
         mouseDown = false;
 	}
 
-	pick.Highlight(pick.Picked(), Picker::Hovered);
-	pick.Highlight(focused, Picker::Focused);
-	pick.Highlight(selected, Picker::Selected);
+	rp.Highlight(pick.Picked(), Picker::Hovered);
+	rp.Highlight(focused, Picker::Focused);
+	rp.Highlight(selected, Picker::Selected);
     
 	//right mouse to rotate
     if (w.RightMouse())

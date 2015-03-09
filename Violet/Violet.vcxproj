@@ -160,8 +160,10 @@
     <ClInclude Include="Rendering\BufferObject.hpp" />
     <ClInclude Include="Rendering\FBO.hpp" />
     <ClInclude Include="Rendering\FBO_detail.hpp" />
+    <ClInclude Include="Rendering\Material.hpp" />
     <ClInclude Include="Rendering\Picker.hpp" />
     <ClInclude Include="Rendering\Render.hpp" />
+    <ClInclude Include="Rendering\RenderPasses.hpp" />
     <ClInclude Include="Rendering\Render_detail.hpp" />
     <ClInclude Include="Rendering\Shader.hpp" />
     <ClInclude Include="Rendering\Texture.hpp" />
@@ -210,6 +212,7 @@
     <ClCompile Include="Rendering\FBO.cpp" />
     <ClCompile Include="Rendering\Picker.cpp" />
     <ClCompile Include="Rendering\Render.cpp" />
+    <ClCompile Include="Rendering\RenderPasses.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\VAO.cpp" />
@@ -235,6 +238,8 @@
     <None Include="..\assets\picker.vert" />
     <None Include="..\assets\picker_hl.frag" />
     <None Include="..\assets\picker_hl.vert" />
+    <None Include="..\assets\screen.frag" />
+    <None Include="..\assets\screen.vert" />
     <None Include="..\assets\simple.frag" />
     <None Include="..\assets\simple.vert" />
     <None Include="..\assets\tool_arrow.frag" />

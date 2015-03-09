@@ -9,6 +9,7 @@
 #include "Editor/Edit.hpp"
 #include "Time.hpp"
 #include "magic_ptr.hpp"
+#include "Rendering/RenderPasses.hpp"
 
 #include <iostream>
 
@@ -22,7 +23,8 @@ try
 	Position position;
 	Mobile m(position);
 	Render r(position, m);
-    Edit edit(r, w, position);
+	RenderPasses passes(w, r);
+    Edit edit(r, passes, w, position);
 
 	Object camera;
 
@@ -50,7 +52,7 @@ try
     
     auto physTick = [&]()
 	{
-		if (w.Dim().isZero())
+		if (w.dim.get().isZero())
 			return true;
 
         m.Tick();
@@ -66,16 +68,16 @@ try
     };
     
     auto renderTick = [&](float alpha)
-    {
-		if (w.Dim().isZero())
+	{
+		if (w.dim.get().isZero())
 			return;
 
         m.Update(alpha);
-        edit.DrawTick();
+        //edit.DrawTick();
 
         w.PreDraw();
         r.camera = w.PerspMat() * *m[camera];
-        r.Draw();
+		passes.Draw();
         w.PostDraw();
     };
     

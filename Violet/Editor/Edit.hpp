@@ -7,11 +7,12 @@
 
 class Window;
 class Render;
+class RenderPasses;
 
 class Edit
 {
 public:
-    Edit(Render& r, Window& w, Position& position);
+	Edit(Render& r, RenderPasses& rp, Window& w, Position& position);
 
     void Editable(Object o);
 
@@ -21,8 +22,9 @@ public:
 private:
 	Render& r;
     Window& w;
+	Picker& pick;
+	RenderPasses& rp;
 	Position& position;
-    Picker pick;
     Tool tool;
 
     std::unordered_set<Object> editable;
