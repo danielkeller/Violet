@@ -48,6 +48,10 @@ using Eigen::Quaternionf;
     operator()(const type& v) const\
         { return std::hash<decltype(type::member)>()(v.member);}
 
+#define EXCEPT_INFO_BEGIN try {
+#define EXCEPT_INFO_END(str) } catch (std::runtime_error& err) { \
+	throw std::runtime_error(std::string("for ") + str + ": " + err.what());}
+
 #include <utility>
 //combine std and :: overload set for swap
 using std::swap;

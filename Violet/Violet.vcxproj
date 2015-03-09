@@ -195,10 +195,10 @@
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MappedFile.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Mobile.cpp" />
     <ClCompile Include="Object.cpp" />
@@ -236,8 +236,6 @@
     <None Include="..\assets\color.vert" />
     <None Include="..\assets\picker.frag" />
     <None Include="..\assets\picker.vert" />
-    <None Include="..\assets\picker_hl.frag" />
-    <None Include="..\assets\picker_hl.vert" />
     <None Include="..\assets\screen.frag" />
     <None Include="..\assets\screen.vert" />
     <None Include="..\assets\simple.frag" />

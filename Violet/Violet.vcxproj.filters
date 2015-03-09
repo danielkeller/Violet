@@ -240,12 +240,6 @@
     <None Include="..\assets\picker.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\assets\picker_hl.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\picker_hl.vert">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="..\assets\tool_arrow.frag">
       <Filter>Resource Files</Filter>
     </None>

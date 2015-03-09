@@ -4,17 +4,26 @@
 #include <string>
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN 1
 #include <Windows.h>
+#include <memory>
 #endif
 
 class MappedFile
 {
 public:
+#ifdef _WIN32
     MappedFile()
-        : isopen(false), dothrow(false), ptr(nullptr), length(0)
+        : dothrow(false), ptr(nullptr, &::UnmapViewOfFile), length(0)
     {}
+#else
+	MappedFile()
+		: dothrow(false), ptr(nullptr), length(0)
+	{}
+#endif
 
     MappedFile(const std::string& name)
+		: MappedFile()
     {
         Open(name);
     }
@@ -23,11 +32,14 @@ public:
     MappedFile(MappedFile&&);
     MappedFile& operator=(MappedFile f);
 
-    ~MappedFile()
-    {
+#ifdef _WIN32
+#else //todo: get rid of this
+	~MappedFile()
+	{
 		dothrow = false; //Close can throw
-        Close();
-    }
+		Close();
+	}
+#endif
 
     void Throws(bool dothrow_)
     {
@@ -39,7 +51,7 @@ public:
 
     bool operator!()
     {
-        return !isopen;
+        return !ptr;
     }
     explicit operator bool()
     {
@@ -49,7 +61,7 @@ public:
     template<class T>
     const T* Data()
     {
-        return static_cast<T*>(ptr);
+        return static_cast<T*>(ptr.get());
     }
     size_t Size()
     {
@@ -57,12 +69,12 @@ public:
     }
 
 private:
-    bool isopen;
-    bool dothrow;
-    void* ptr;
+	bool dothrow;
     size_t length;
 #ifdef _WIN32
+	std::unique_ptr<void, decltype(&::UnmapViewOfFile)> ptr;
 #else
+	void* ptr;
     int fd; //TODO: this isn't actually needed
 #endif
 

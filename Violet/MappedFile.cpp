@@ -1,10 +1,11 @@
+#include "stdafx.h"
 #include "MappedFile.hpp"
 #include <tuple>
 
 MappedFile& MappedFile::operator=(MappedFile f)
 {
-	auto other = std::tie(f.isopen, f.dothrow, f.ptr, f.length);
-	std::tie(isopen, dothrow, ptr, length).swap(other);
+	auto other = std::tie(f.dothrow, f.ptr, f.length);
+	std::tie(dothrow, ptr, length).swap(other);
 #ifdef _WIN32
 #else
 	std::swap(fd, f.fd);
@@ -13,13 +14,12 @@ MappedFile& MappedFile::operator=(MappedFile f)
 }
 
 MappedFile::MappedFile(MappedFile&& f)
-    : isopen(f.isopen), dothrow(f.dothrow), ptr(f.ptr), length(f.length)
+    : dothrow(f.dothrow), ptr(std::move(f.ptr)), length(f.length)
 #ifdef _WIN32
 #else
     ,fd(f.fd)
 #endif
 {
-    f.isopen = false;
 }
 
 #ifdef _WIN32
@@ -42,83 +42,60 @@ void MappedFile::ThrowErrno(const std::string& text)
 	}
 }
 
-struct HandleRAII
-{
-	HANDLE h;
-	HandleRAII(HANDLE h_) : h(h_) {}
-	HandleRAII(const HandleRAII&) = delete;
-	~HandleRAII() { if (h) CloseHandle(h); }
-	bool CheckedClose()
-	{
-		bool result = CloseHandle(h) != 0;
-		h = nullptr;
-		return result;
-	}
-};
+//need the return in case exceptions are off
+#define MAP_FILE_ERR(str) do {ThrowErrno(str); return;} while(false)
+#define CHECKED_CLOSE(ptr, str) do { \
+	if(!ptr.get_deleter()(ptr.release())) MAP_FILE_ERR(str);} while(false)
 
 void MappedFile::Open(const std::string& name)
 {
-	isopen = false;
+	EXCEPT_INFO_BEGIN
+
+	ptr.reset();
+
+	using HandleRAII = std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&::CloseHandle)>;
+
 	//TODO: This prevents other processes from modifying the file
-	HandleRAII fileHandle{ CreateFile(name.c_str(), GENERIC_READ, 0, nullptr,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr) };
-	if (fileHandle.h == INVALID_HANDLE_VALUE)
-	{
-		ThrowErrno("CreateFile");
-		return;
-	}
+	HandleRAII fileHandle(CreateFile(name.c_str(), GENERIC_READ, 0, nullptr,
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr), &::CloseHandle);
+
+	if (fileHandle.get() == INVALID_HANDLE_VALUE)
+		MAP_FILE_ERR("CreateFile");
 
 	HandleRAII fileMapping{ CreateFileMapping(
-		fileHandle.h, nullptr, PAGE_READONLY, 0, 0, nullptr) };
-	if (fileMapping.h == nullptr) //Windows is so consistent
-	{
-		ThrowErrno("CreateFileMapping");
-		return;
-	}
+		fileHandle.get(), nullptr, PAGE_READONLY, 0, 0, nullptr), &::CloseHandle };
 
-	if (!fileHandle.CheckedClose())
-	{
-		ThrowErrno("CloseHandle(fileHandle)");
-		return;
-	}
+	if (fileMapping.get() == nullptr) //Windows is so consistent
+		MAP_FILE_ERR("CreateFileMapping");
 
-	ptr = MapViewOfFile(fileMapping.h, FILE_MAP_READ, 0, 0, 0);
-	if (ptr == nullptr)
-	{
-		ThrowErrno("MapViewOfFile");
-		return;
-	}
+	CHECKED_CLOSE(fileHandle, "CloseHandle(fileHandle)");
+	
+	std::unique_ptr<void, decltype(&::UnmapViewOfFile)> ptr1(
+		MapViewOfFile(fileMapping.get(), FILE_MAP_READ, 0, 0, 0), &::UnmapViewOfFile);
 
-	if (!fileMapping.CheckedClose())
-	{
-		auto err = GetLastError();
-		UnmapViewOfFile(ptr);
-		SetLastError(err);
-		ThrowErrno("CloseHandle(fileHandle)");
-		return;
-	}
+	if (ptr1 == nullptr)
+		MAP_FILE_ERR("MapViewOfFile");
+
+	CHECKED_CLOSE(fileMapping, "CloseHandle(fileMapping)");
 
 	MEMORY_BASIC_INFORMATION memInfo;
-	if (VirtualQuery(ptr, &memInfo, sizeof(memInfo)) == 0)
-	{
-		auto err = GetLastError();
-		UnmapViewOfFile(ptr);
-		SetLastError(err);
-		ThrowErrno("VirtualQuery");
-		return;
-	}
+	if (VirtualQuery(ptr1.get(), &memInfo, sizeof(memInfo)) == 0)
+		MAP_FILE_ERR("VirtualQuery");
+
 	length = memInfo.RegionSize;
-	isopen = true;
+
+	//set the pointer, making the MappedFile open
+	ptr = std::move(ptr1);
+
+	EXCEPT_INFO_END("MappedFile " + name)
 }
 
 void MappedFile::Close()
 {
-	if (!isopen)
+	if (!*this)
 		return;
-	isopen = false;
-
-	if (UnmapViewOfFile(ptr) == 0)
-		ThrowErrno("UnmapViewOfFile");
+	
+	CHECKED_CLOSE(ptr, "UnmapViewOfFile");
 }
 
 #else
@@ -175,16 +152,17 @@ void MappedFile::Close()
 {
     if (!isopen)
         return;
-    isopen = false;
+	auto ptr1 = ptr;
+	ptr = nullptr;
 
     if (close(fd) == -1)
     {
         int temp = errno;
-        munmap(ptr, length);
+		munmap(ptr1, length);
         errno = temp;
         ThrowErrno("close");
     }
-    if (munmap(ptr, length) == -1)
+	if (munmap(ptr1, length) == -1)
     {
         ThrowErrno("munmap");
     }
