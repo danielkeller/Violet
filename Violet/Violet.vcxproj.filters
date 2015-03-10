@@ -166,9 +166,6 @@
     <ClCompile Include="Rendering\VAO.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\Lodepng\lodepng.cpp">
-      <Filter>Source Files\Libs</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\Texture.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>

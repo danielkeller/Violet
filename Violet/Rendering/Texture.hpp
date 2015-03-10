@@ -2,10 +2,6 @@
 #define TEXTURE_HPP
 
 #include "Resource.hpp"
-#include "MappedFile.hpp"
-#include "Lodepng/lodepng.hpp"
-#include <iostream>
-#include <fstream>
 
 using TexDim = Eigen::Matrix<GLsizei, 2, 1>;
 

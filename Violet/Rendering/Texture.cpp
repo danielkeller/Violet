@@ -3,9 +3,13 @@
 #include "Texture.hpp"
 
 #include "MappedFile.hpp"
-#include "Lodepng/lodepng.hpp"
-#include <iostream>
-#include <fstream>
+#include "Profiling.hpp"
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG //enable additional ones as needed
+#define STBI_FAILURE_USERMSG
+#include "stb/stb_image.h"
+
 #include <cstdint>
 
 Tex::Tex(std::string path)
@@ -28,35 +32,22 @@ Tex::TexResource::TexResource(TexDim dim)
 Tex::TexResource::TexResource(std::string path)
 	: ResourceTy(path)
 {
-    MappedFile file;
-    file.Throws(true);
-    file.Open(path);
+	auto p = Profile::Profile("texture load");
 
-	if (!file)
-		throw std::runtime_error("Could not open texture '" + path + "'");
+	int width, height, components;
+	std::unique_ptr<unsigned char, decltype(&::stbi_image_free)> data
+		(stbi_load(path.c_str(), &width, &height, &components, 0), &::stbi_image_free);
 
-	std::vector<unsigned char> magic(file.Data<unsigned char>(), file.Data<unsigned char>() + 4);
+	if (!data)
+		throw std::runtime_error("Could not open texture '" + path + "', " + stbi_failure_reason());
 
-	std::vector<unsigned char> image;
-
-	if (magic == PNGmagic)
-	{
-        unsigned int width, height;
-		unsigned int error = lodepng::decode(image, width, height, file.Data<unsigned char>(), file.Size());
-		if (error)
-			throw std::runtime_error(std::string("PNG decoding error: ") + lodepng_error_text(error));
-        dim << width, height;
-	}
-	else
-	{
-		throw std::runtime_error("Not a recognized image file type '" + path + "'");
-	}
+	dim << width, height;
 
 	glGenTextures(1, &textureObject);
 	glBindTexture(GL_TEXTURE_2D, textureObject);
 	//Ideally this would be GL_BGRA for performance, but lodepng doesn't support it
 	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_RGBA), dim.x(), dim.y(), 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+		GL_RGBA, GL_UNSIGNED_BYTE, data.get());
 
 	//set some reasonable defaults
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -64,8 +55,6 @@ Tex::TexResource::TexResource(std::string path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(GL_LINEAR));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(GL_MIRRORED_REPEAT));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(GL_MIRRORED_REPEAT));
-
-    file.Close();
 }
 
 Tex::TexResource::~TexResource()

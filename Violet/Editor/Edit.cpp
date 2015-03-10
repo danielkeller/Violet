@@ -4,7 +4,7 @@
 #include "Rendering/Render.hpp"
 
 Edit::Edit(Render& r, RenderPasses& rp, Window& w, Position& position)
-	: r(r), w(w), pick(rp.Picker()), rp(rp), position(position), tool(r, position)
+	: w(w), pick(rp.Picker()), rp(rp), position(position), tool(r, position)
     , focused(Object::none), mouseDown(false)
 	, viewPitch(0), viewYaw(0)
 {
@@ -57,9 +57,4 @@ void Edit::PhysTick(Object camera)
     }
 
 	position[camera]->pos *= (1 - w.ScrollDelta().y()*.05f);
-}
-
-void Edit::DrawTick()
-{
-    pick.Pick();
 }

@@ -17,10 +17,8 @@ public:
     void Editable(Object o);
 
     void PhysTick(Object camera);
-    void DrawTick();
 
 private:
-	Render& r;
     Window& w;
 	Picker& pick;
 	RenderPasses& rp;

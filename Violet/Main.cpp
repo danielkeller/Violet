@@ -2,7 +2,6 @@
 #include "Wavefront.hpp"
 #include "Window.hpp"
 #include "Rendering/Render.hpp"
-#include "Geometry/Mesh.hpp"
 #include "Geometry/AABB.hpp"
 #include "Profiling.hpp"
 #include "Mobile.hpp"
@@ -30,16 +29,17 @@ try
 
     //load the object
 	Object teapotObj, teapot2Obj;
-	Wavefront teapot{"assets/capsule.obj"};
+	Wavefront teapot = "assets/capsule.obj";
+	Tex capsuleTex = "assets/capsule.png";
 
 	//AABB teapotAabb(teapot.mesh);
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-    r.Create(teapotObj, teapot.shaderProgram, {{}, {{"assets/capsule.png"}}}, teapot.vertexData, Mobilty::Yes);
+    r.Create(teapotObj, teapot.shaderProgram, {{}, {capsuleTex}}, teapot.vertexData, Mobilty::Yes);
     
 	position[teapot2Obj]->pos = {2, 0, 0};
-    r.Create(teapot2Obj, teapot.shaderProgram, {{}, {{"assets/capsule.png"}}}, teapot.vertexData, Mobilty::No);
+    r.Create(teapot2Obj, teapot.shaderProgram, {{}, {capsuleTex}}, teapot.vertexData, Mobilty::No);
 
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
@@ -73,7 +73,6 @@ try
 			return;
 
         m.Update(alpha);
-        //edit.DrawTick();
 
         w.PreDraw();
         r.camera = w.PerspMat() * *m[camera];
@@ -83,6 +82,8 @@ try
     
     t.MainLoop(physTick, renderTick);
     
+	Profile::Print();
+
     return EXIT_SUCCESS;
 }
 catch (const char* mesg)
