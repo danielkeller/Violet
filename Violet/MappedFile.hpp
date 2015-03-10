@@ -14,7 +14,7 @@ class MappedFile
 public:
 #ifdef _WIN32
     MappedFile()
-        : dothrow(false), ptr(nullptr, &::UnmapViewOfFile), length(0)
+		: dothrow(false), length(0), ptr(nullptr, &::UnmapViewOfFile)
     {}
 #else
 	MappedFile()

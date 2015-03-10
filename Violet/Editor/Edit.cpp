@@ -21,7 +21,7 @@ void Edit::PhysTick(Object camera)
 	if (w.LeftMouse() && !mouseDown) //just clicked
     {
         Object picked = pick.Picked();
-		if (selected == picked) //click to deselect
+		if (picked == Object::none) //click outside to deselect
 		{
 			if (selected != Object::none)
 				tool.SetTarget({});

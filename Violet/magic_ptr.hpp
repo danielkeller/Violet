@@ -4,126 +4,114 @@
 #include <memory>
 #include <map>
 
+#define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
+
 namespace magic_detail
 {
 	//basically, a machine-word worth of something
 	using key_ty = std::aligned_storage_t<sizeof(nullptr)>;
 
 	template<class T>
-	struct acc_base
-	{
-		virtual void setter(key_ty key, const T& val) = 0;
-		virtual T getter(key_ty key) = 0;
-		virtual ~acc_base() {}
-	};
+	using getter_t = std::function<T(key_ty key)>;
+	template<class T>
+	using setter_t = std::function<void(key_ty key, const T& val)>;
 
 	template<class T>
-	struct null_acc_derived : acc_base<T>
+	struct acc_heap_obj
 	{
-		void setter(key_ty key, const T& val) {}
-		T getter(key_ty key) { assert(false && "Reading null magic_ptr"); return{}; }
-		static std::shared_ptr<null_acc_derived> instance;
-	};
+		setter_t<T> setter;
+		getter_t<T> getter;
 
-	template<class T, class Getter, class Setter>
-	struct acc_derived : acc_base<T>
-	{
-		Getter myGetter;
-		Setter mySetter;
-		acc_derived(Getter g, Setter s)
-			: myGetter(g), mySetter(s)
+		acc_heap_obj() = default;
+		acc_heap_obj(setter_t<T> s, getter_t<T> g)
+			: setter(s), getter(g)
 		{}
 
-		void setter(key_ty key, const T& val)
-		{
-			mySetter(val);
-		}
-
-		T getter(key_ty key)
-		{
-			return myGetter();
-		}
+		static std::shared_ptr<magic_detail::acc_heap_obj<T>> null_acc_heap_obj;
 	};
 
-	template<class T, class Getter, class Setter, class Key>
-	struct keyed_acc_derived : acc_base<T>
+	template<class T, class Key>
+	getter_t<T> make_getter()
 	{
-		Getter myGetter;
-		Setter mySetter;
-		keyed_acc_derived(Getter g, Setter s)
-			: myGetter(g), mySetter(s)
-		{}
+		return [](key_ty key) { assert(false && "get called on set-only accessor"); return T{}; };
+	}
 
-		void setter(key_ty key, const T& val)
-		{
-			mySetter(*reinterpret_cast<const Key*>(&key), val);
-		}
-
-		T getter(key_ty key)
-		{
-			return myGetter(*reinterpret_cast<const Key*>(&key));
-		}
-	};
-
-	template<class T, class Getter, class Setter, class Class>
-	struct member_acc_derived : acc_base<T>
+	template<class Key, class Getter,
+		class T = decltype(std::declval<Getter>()())>
+	getter_t<T> make_getter(Getter g)
 	{
-		Getter myGetter;
-		Setter mySetter;
-		member_acc_derived(Getter g, Setter s)
-			: myGetter(g), mySetter(s)
-		{}
+		return [g] (key_ty key) { return g(); };
+	}
 
-		void setter(key_ty key, const T& val)
-		{
-			((*reinterpret_cast<Class*>(&key))->*mySetter)(val);
-		}
+	template<class Key, class Getter,
+		typename T = decltype(std::declval<Getter>()(std::declval<Key>()))>
+	getter_t<T> make_getter(Getter g, int = 0)
+	{
+		return [g] (key_ty key) { return g(*reinterpret_cast<const Key*>(&key)); };
+	}
+	
+	template<class Class, class Getter,
+		typename T = decltype(CALL_MEMBER_FN(*std::declval<Class>(), std::declval<Getter>())())>
+		getter_t<T> make_getter(Getter g, int = 0, int = 0)
+	{
+		return [g](key_ty key)	{ return CALL_MEMBER_FN(**reinterpret_cast<Class*>(&key), g)(); };
+	}
 
-		T getter(key_ty key)
-		{
-			return ((*reinterpret_cast<Class*>(&key))->*myGetter)();
-		}
-	};
+	template<class T, class Key, class Setter,
+	class = decltype(std::declval<Setter>()(std::declval<T>()))>
+		setter_t<T> make_setter(Setter s)
+	{
+		return [s](key_ty key, const T& val) mutable { return s(val); };
+	}
+
+	template<class T, class Key, class Setter,
+		typename = decltype(std::declval<Setter>()(std::declval<Key>(), std::declval<T>()))>
+		setter_t<T> make_setter(Setter s, int = 0)
+	{
+		return [s](key_ty key, const T& val) mutable
+		{ return s(*reinterpret_cast<const Key*>(&key), val); };
+	}
+
+	template<class T, class Class, class Setter,
+		typename = decltype(CALL_MEMBER_FN(*std::declval<Class>(), std::declval<Setter>())
+			(std::declval<T>()))>
+		setter_t<T> make_setter(Setter s, int = 0, int = 0)
+	{
+		return [s](key_ty key, const T& val) mutable
+		{ return CALL_MEMBER_FN(**reinterpret_cast<Class*>(&key), s)(val); };
+	}
 };
 
 template<class T, class Key = magic_detail::key_ty>
 class accessor
 {
+	using this_ty = accessor<T, Key>;
 	using key_ty = magic_detail::key_ty;
 	template<class T1, class Key1>
 	friend class accessor;
 
-	std::shared_ptr<magic_detail::acc_base<T>> watcher;
+	std::shared_ptr<magic_detail::acc_heap_obj<T>> watcher;
 
-	accessor(std::shared_ptr<magic_detail::acc_base<T>> w)
+	accessor(std::shared_ptr<magic_detail::acc_heap_obj<T>> w)
 		: watcher(w)
 	{}
 
 public:
 	//null magic pointers are valid and do nothing
 	accessor()
-		: watcher(magic_detail::null_acc_derived<T>::instance)
-	{}
-	
-	template<class Getter, class Setter,
-		typename = decltype(std::declval<Getter>()()),
-		typename = decltype(std::declval<Setter>()(std::declval<T>()))>
-		accessor(Getter g, Setter s)
-		: watcher(std::make_shared<magic_detail::acc_derived<T, Getter, Setter>>(g, s))
-	{}
-	
-	template<class Getter, class Setter,
-		typename = decltype(std::declval<Getter>()(std::declval<Key>())),
-		typename = decltype(std::declval<Setter>()(std::declval<Key>(), std::declval<T>()))>
-		accessor(Getter g, Setter s, int = 0)
-		: watcher(std::make_shared<magic_detail::keyed_acc_derived<T, Getter, Setter, Key>>(g, s))
+		: watcher(magic_detail::acc_heap_obj<T>::null_acc_heap_obj)
 	{}
 
-	template<class Getter, class Setter,
-		typename = decltype((std::declval<Key>()->*std::declval<Getter>())()),
-		typename = decltype((std::declval<Key>()->*std::declval<Setter>())(std::declval<T>()))>
-		accessor(Getter g, Setter s, int = 0, int = 0)
-		: watcher(std::make_shared<magic_detail::member_acc_derived<T, Getter, Setter, Key>>(g, s))
+	template<class Setter>
+	accessor(Setter s)
+		: watcher(std::make_shared<magic_detail::acc_heap_obj<T>>(
+		magic_detail::make_setter<T, Key>(s), magic_detail::make_getter<T, Key>()))
+	{}
+
+	template<class Getter, class Setter>
+	accessor(Getter g, Setter s)
+		: watcher(std::make_shared<magic_detail::acc_heap_obj<T>>(
+		magic_detail::make_setter<T, Key>(s), magic_detail::make_getter<Key>(g)))
 	{}
 
 	//erase the key type
@@ -134,13 +122,10 @@ public:
 
 	explicit operator bool() const
 	{
-		return watcher != magic_detail::null_acc_derived<T>::instance;
+		return watcher != magic_detail::acc_heap_obj<T>::null_acc_heap_obj;
 	}
 
-	bool operator==(const accessor<T, Key>& other) const
-	{
-		return watcher == other.watcher;
-	}
+	BASIC_EQUALITY(this_ty, watcher)
 
 	bool operator<(const accessor<T, Key>& other) const
 	{
@@ -306,9 +291,9 @@ public:
 };
 
 template<class T>
-std::shared_ptr<magic_detail::null_acc_derived<T>>
-magic_detail::null_acc_derived<T>::instance =
-std::make_shared<magic_detail::null_acc_derived<T>>();
+std::shared_ptr<magic_detail::acc_heap_obj<T>>
+magic_detail::acc_heap_obj<T>::null_acc_heap_obj =
+std::make_shared<magic_detail::acc_heap_obj<T>>();
 
 //deduce type from arguments
 template<class T, class Key>

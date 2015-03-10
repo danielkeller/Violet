@@ -13,8 +13,7 @@ RenderPasses::RenderPasses(Window& w, Render& r)
 	screenShader.TextureOrder({ "color", "picker" });
 	WindowResize(w.dim.get());
 
-	accessor<Eigen::Vector2i, RenderPasses*> acc =
-		{ &RenderPasses::GetDim, &RenderPasses::WindowResize };
+	accessor<Eigen::Vector2i, RenderPasses*> acc = &RenderPasses::WindowResize;
 	w.dim += make_magic(acc, this);
 }
 

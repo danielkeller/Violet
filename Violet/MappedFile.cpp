@@ -14,7 +14,7 @@ MappedFile& MappedFile::operator=(MappedFile f)
 }
 
 MappedFile::MappedFile(MappedFile&& f)
-    : dothrow(f.dothrow), ptr(std::move(f.ptr)), length(f.length)
+	: dothrow(f.dothrow), length(f.length), ptr(std::move(f.ptr))
 #ifdef _WIN32
 #else
     ,fd(f.fd)

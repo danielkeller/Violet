@@ -39,7 +39,7 @@ Tool::Tool(Render& r, Position& position)
 
 	//i'm still not totally okay with having to save this after the calls to
 	//r.Create, but the alternative of making magic_ptrs shallow-copy
-	//seems somehow more janky and prone to breakage
+	//requires creating a separate heap object for each one, defeating the purpose
 	move = position[x] + position[y] + position[z];
 }
 

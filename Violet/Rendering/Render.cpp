@@ -80,20 +80,14 @@ Shape& Render::InternalCreateStatic(Object obj, ShaderProgram shader,
 	Material mat, VertexData vertData)
 {
 	using InstPermaRef = render_data_t::perma_ref_t<InstanceLevel>;
-	static accessor<Transform, InstPermaRef> locaccesor = {
-		[this](InstPermaRef ref)
-		{
-			assert(false && "Do not read static object position from Render");
-			return Transform{};
-		},
-		[this](InstPermaRef ref, const Transform& v)
+	static accessor<Transform, InstPermaRef> locaccesor = 
+		[this](InstPermaRef ref, const Transform& v) mutable
 		{
 			auto& it = staticRenderData.find<InstanceLevel>(ref);
 			it->mat = v.ToMatrix();
 			size_t offset = it - staticRenderData.begin<InstanceLevel>();
 			staticInstanceBuffer.Assign(offset, *it);
-		}
-	};
+		};
 
 	auto inst = InstData{ obj, position[obj].get().ToMatrix() };
 	auto refs = staticRenderData.emplace(shader, mat, std::tie(shader, vertData), inst);

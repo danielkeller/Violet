@@ -38,8 +38,6 @@ private:
 	ShaderProgram screenShader;
 	Material screenMat;
 	VAO screenQuad;
-
-	Eigen::Vector2i GetDim() { return{}; }
 };
 
 #endif
