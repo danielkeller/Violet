@@ -16,8 +16,7 @@ magic_ptr<Matrix4f>& Mobile::operator[](Object obj)
 			[this](Object o) { return data[o].loc; },
 			[this](Object o, const Transform& val) { data[o].loc = val; }
 		};
-		//we're perfectly capable to keeping track of the position ourself
-		position[obj] = make_magic(access, obj);
+		position[obj] += make_magic(access, obj);
 		
 		//need to do this to support pulling the location
 		//however it keeps the combined accessor trick from working

@@ -4,11 +4,11 @@
 #include <memory>
 #include <map>
 
-//basically, a machine-word worth of something
-using key_ty = std::aligned_storage_t<sizeof(nullptr)>;
-
 namespace magic_detail
 {
+	//basically, a machine-word worth of something
+	using key_ty = std::aligned_storage_t<sizeof(nullptr)>;
+
 	template<class T>
 	struct acc_base
 	{
@@ -85,13 +85,19 @@ namespace magic_detail
 		}
 	};
 };
-template<class T, class Key = key_ty>
+
+template<class T, class Key = magic_detail::key_ty>
 class accessor
 {
+	using key_ty = magic_detail::key_ty;
 	template<class T1, class Key1>
 	friend class accessor;
 
 	std::shared_ptr<magic_detail::acc_base<T>> watcher;
+
+	accessor(std::shared_ptr<magic_detail::acc_base<T>> w)
+		: watcher(w)
+	{}
 
 public:
 	//null magic pointers are valid and do nothing
@@ -121,14 +127,12 @@ public:
 	{}
 
 	//erase the key type
-	operator accessor<T>()
+	accessor<T> eraseType()
 	{
-		accessor<T> ret;
-		ret.watcher = watcher;
-		return ret;
+		return{ watcher };
 	}
 
-	explicit operator bool()
+	explicit operator bool() const
 	{
 		return watcher != magic_detail::null_acc_derived<T>::instance;
 	}
@@ -157,6 +161,8 @@ public:
 template<class T>
 class magic_ptr
 {
+	using key_ty = magic_detail::key_ty;
+
 	key_ty key;
 	accessor<T> acc;
 
@@ -195,18 +201,18 @@ public:
 	magic_ptr()
 	{
 		//clear out the key
-		new (&key) nullptr_t();
+		new (&key) nullptr_t(nullptr);
 	}
-
+	
 	magic_ptr(accessor<T> acc)
 		: acc(acc)
 	{}
 
 	template<typename Key>
 	magic_ptr(accessor<T, Key> acc, const Key& k)
-		: acc(acc)
+		: acc(acc.eraseType())
 	{
-		new (&key) nullptr_t();
+		new (&key) nullptr_t(nullptr);
 		static_assert(sizeof(k) <= sizeof(key),// || __alignof(k) <= __alignof(key),
 			"Key type does not fit size and alignment requirements");
 		static_assert(std::is_trivially_copyable<Key>::value
@@ -223,7 +229,7 @@ public:
 		[other](const T& v) mutable { *other = v; })
 	{}
 
-	explicit operator bool()
+	explicit operator bool() const
 	{
 		return bool(acc);
 	}
