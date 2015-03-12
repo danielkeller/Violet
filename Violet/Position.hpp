@@ -33,15 +33,26 @@ struct Transform
 		return !operator==(other);
 	}
 
+	friend std::ostream & operator<<(std::ostream &os, const Transform& p)
+	{
+		return os << p.pos.transpose() << ", " << p.rot.w() << ' ' << p.rot.vec().transpose()
+			<< ", " << p.scale;
+	}
+
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
+
+class Persist;
 
 class Position
 {
 	struct ObjData;
 
 public:
+	Position(Persist& persist);
+
 	magic_ptr<Transform>& operator[](Object obj);
+	void Save(Object obj);
 
 private:
 	struct ObjData
@@ -53,6 +64,10 @@ private:
 
 	std::unordered_map<Object, ObjData, std::hash<Object>, std::equal_to<Object>,
 		Eigen::aligned_allocator<std::pair<Object, ObjData>>> data;
+
+	Persist& persist;
 };
+
+MAKE_PERSIST_TRAITS(Position, Object, Transform)
 
 #endif

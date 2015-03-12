@@ -137,8 +137,6 @@ private:
 		T ConvertOpHelper() const;
 		template<GLenum ty, typename T>
 		UBO::Proxy& AssignOpHelper(const T&);
-		template<typename T, GLenum ty>
-		T ScalarConvertOpHelper() const;
 		template<GLenum ty, typename T>
 		UBO::Proxy& ScalarAssignOpHelper(const T&);
 	};

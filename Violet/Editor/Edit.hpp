@@ -8,6 +8,7 @@
 class Window;
 class Render;
 class RenderPasses;
+class Persist;
 
 class Edit
 {

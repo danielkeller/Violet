@@ -8,7 +8,7 @@
 class Profile
 {
 public:
-	using clock = std::chrono::high_resolution_clock;
+	using clock = std::chrono::steady_clock;
 	using duration = clock::duration;
 
 	Profile(const char * name)
@@ -26,7 +26,7 @@ public:
 
 private:
 	const char* name;
-	const std::chrono::high_resolution_clock::time_point began;
+	const clock::time_point began;
 
 	static duration comp;
 	static std::map<const char*, duration> data;

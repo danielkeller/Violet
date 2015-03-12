@@ -3,6 +3,7 @@
 
 #include "l_bag.hpp"
 #include "WrappedIterator.hpp"
+#include "Utils/Template.hpp"
 
 //todo: don't aligned allocate everything
 

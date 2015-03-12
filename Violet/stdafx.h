@@ -48,9 +48,17 @@ using Eigen::Quaternionf;
     operator()(const type& v) const\
         { return std::hash<decltype(type::member)>()(v.member);}
 
+#define MAKE_PERSIST_TRAITS(Class, Key, ...) \
+	template<class Subsystem> struct PersistTraits;\
+	template<> struct PersistTraits<Class> { \
+		using key = Key; \
+		using data = std::tuple<Key, ##__VA_ARGS__>; };
+
 #define EXCEPT_INFO_BEGIN try {
 #define EXCEPT_INFO_END(str) } catch (std::runtime_error& err) { \
-	throw std::runtime_error(std::string("for ") + str + ": " + err.what());}
+	throw std::runtime_error(std::string("for ") + str + ": " + err.what());} \
+	catch (std::logic_error& err) { \
+	throw std::logic_error(std::string("for ") + str + ": " + err.what());}
 
 #include <utility>
 //combine std and :: overload set for swap
@@ -63,12 +71,3 @@ inline void hash_combine(std::size_t& seed, const T& v)
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
-
-template<class X, class... XS>
-std::tuple<X, XS...> tuple_cons(X x, const std::tuple<XS...>& t)
-{
-	return std::tuple_cat(std::make_tuple(x), t);
-}
-
-template<class X, class Tuple>
-using tuple_cons_t = decltype(tuple_cons(std::declval<X>(), std::declval<Tuple>()));

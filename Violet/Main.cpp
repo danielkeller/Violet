@@ -9,6 +9,7 @@
 #include "Time.hpp"
 #include "magic_ptr.hpp"
 #include "Rendering/RenderPasses.hpp"
+#include "Persist.hpp"
 
 #include <iostream>
 
@@ -18,44 +19,43 @@ try
 	Profile::CalibrateProfiling();
 
 	//Components
+	Persist persist;
+	Object::Init(persist);
+	ObjectName objName(persist);
+
 	Window w;
-	Position position;
+	Position position(persist);
 	Mobile m(position);
 	Render r(position, m);
 	RenderPasses passes(w, r);
-    Edit edit(r, passes, w, position);
+	Edit edit(r, passes, w, position);
 
-	Object camera;
+	Object camera = objName["camera"];
 
-    //load the object
-	Object teapotObj, teapot2Obj;
-	Wavefront teapot = "assets/capsule.obj";
-	Tex capsuleTex = "assets/capsule.png";
+	Object teapotObj = objName["teapot"];
+	Object teapot2Obj = objName["teapot2"];
+
+	//load the object
+	Wavefront teapot{ "assets/capsule.obj" };
+	Tex capsuleTex{ "assets/capsule.png" };
 
 	//AABB teapotAabb(teapot.mesh);
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
     r.Create(teapotObj, teapot.shaderProgram, {{}, {capsuleTex}}, teapot.vertexData, Mobilty::Yes);
-    
-	position[teapot2Obj]->pos = {2, 0, 0};
     r.Create(teapot2Obj, teapot.shaderProgram, {{}, {capsuleTex}}, teapot.vertexData, Mobilty::No);
 
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
 
 	position[camera]->pos = {0, -3, 0};
-
-	m.Tick();
     
     Time t;
     
     auto physTick = [&]()
 	{
-		if (w.dim.get().isZero())
-			return true;
-
-        m.Tick();
+		m.Tick();
 
         w.GetInput();
         edit.PhysTick(camera);
@@ -69,13 +69,10 @@ try
     
     auto renderTick = [&](float alpha)
 	{
-		if (w.dim.get().isZero())
-			return;
-
-        m.Update(alpha);
+		m.Update(alpha);
 
         w.PreDraw();
-        r.camera = w.PerspMat() * *m[camera];
+        r.camera = w.PerspMat() * *m[camera]; //FIXME
 		passes.Draw();
         w.PostDraw();
     };

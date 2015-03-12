@@ -2,11 +2,12 @@
 #include "Edit.hpp"
 #include "Window.hpp"
 #include "Rendering/Render.hpp"
+#include "Persist.hpp"
 
 Edit::Edit(Render& r, RenderPasses& rp, Window& w, Position& position)
-	: w(w), pick(rp.Picker()), rp(rp), position(position), tool(r, position)
-    , focused(Object::none), mouseDown(false)
-	, viewPitch(0), viewYaw(0)
+	: w(w), pick(rp.Picker()), rp(rp), position(position)
+	, tool(r, position), focused(Object::none)
+	, mouseDown(false), viewPitch(0), viewYaw(0)
 {
 }
 
@@ -17,7 +18,6 @@ void Edit::Editable(Object o)
 
 void Edit::PhysTick(Object camera)
 {
-    tool.Update(w, camera, focused);
 	if (w.LeftMouse() && !mouseDown) //just clicked
     {
         Object picked = pick.Picked();
@@ -25,6 +25,7 @@ void Edit::PhysTick(Object camera)
 		{
 			if (selected != Object::none)
 				tool.SetTarget({});
+
 			selected = Object::none;
 		}
 		else if (editable.count(picked)) //click to select
@@ -38,10 +39,16 @@ void Edit::PhysTick(Object camera)
     }
 	else if (!w.LeftMouse() && mouseDown) //just released
     {
+		//save the object once we stop moving
+		if (selected != Object::none)
+			position.Save(selected);
+
 		//focus reverts to the selectable object that was selected
 		focused = selected;
         mouseDown = false;
 	}
+
+	tool.Update(w, camera, focused);
 
 	rp.Highlight(pick.Picked(), Picker::Hovered);
 	rp.Highlight(focused, Picker::Focused);

@@ -4,6 +4,8 @@
 #include <fstream>
 #include <vector>
 
+#include "Utils/Template.hpp"
+
 struct Uniforms
 {
 	Uniforms() = default;
@@ -353,8 +355,7 @@ template<typename T, GLenum ty>
 T UBO::Proxy::ConvertOpHelper() const
 {
 	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform " + unif.name);
-	return Eigen::Map<const T>(reinterpret_cast<const typename T::Scalar*>(
-        ubo.resource->data.data() + unif.offset));
+	return FromBytes<T>()(ubo.resource->data.data() + unif.offset);
 }
 
 template<GLenum ty, typename T>
@@ -367,17 +368,10 @@ UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 	return *this;
 }
 
-template<typename T, GLenum ty>
-T UBO::Proxy::ScalarConvertOpHelper() const
-{
-	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform " + unif.name);
-	return *reinterpret_cast<const T*>(ubo.resource->data.data() + unif.offset);
-}
-
 template<GLenum ty, typename T>
 UBO::Proxy& UBO::Proxy::ScalarAssignOpHelper(const T& val)
 {
-	assert(unif.type == ty);
+	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform " + unif.name);
 	*reinterpret_cast<T*>(ubo.resource->data.data() + unif.offset) = val;
 	return *this;
 }
@@ -414,7 +408,7 @@ UBO::Proxy& UBO::Proxy::operator=(const Matrix4f& v)
 
 UBO::Proxy::operator uint32_t() const
 {
-	return ScalarConvertOpHelper<uint32_t, GL_UNSIGNED_INT>();
+	return ConvertOpHelper<uint32_t, GL_UNSIGNED_INT>();
 }
 
 UBO::Proxy& UBO::Proxy::operator=(const uint32_t& v)

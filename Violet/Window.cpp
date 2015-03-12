@@ -67,8 +67,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	glViewport(0, 0, width, height);
-	getWindow(window)->dim.set(Eigen::Vector2i(width, height));
+	if (width != 0 && height != 0)
+	{
+		glViewport(0, 0, width, height);
+		getWindow(window)->dim.set(Eigen::Vector2i(width, height));
+	}
 }
 
 Window::Window()

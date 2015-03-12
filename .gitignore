@@ -190,3 +190,6 @@ violet.o
 
 #Xcode stuff
 xcuserdata
+
+#game database files (for now)
+data.db*

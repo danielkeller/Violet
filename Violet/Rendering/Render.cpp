@@ -45,7 +45,7 @@ void Render::FixInstances(render_data_t& dat, BufferObjTy& buf)
 			for (auto& vao : dat.children<VAOLevel>(mat))
 			{
 				auto numInstances =
-					static_cast<GLsizei>(dat.children<InstanceLevel>(vao).length());
+					static_cast<GLsizei>(dat.children<InstanceLevel>(vao).size());
 				vao.first.vao.BindInstanceData(shader.first, buf, offset, numInstances);
 				offset += numInstances;
 			}

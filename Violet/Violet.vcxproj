@@ -155,6 +155,8 @@
     <ClInclude Include="MappedFile.hpp" />
     <ClInclude Include="Mobile.hpp" />
     <ClInclude Include="Object.hpp" />
+    <ClInclude Include="Persist.hpp" />
+    <ClInclude Include="Persist_detail.hpp" />
     <ClInclude Include="Position.hpp" />
     <ClInclude Include="Profiling.hpp" />
     <ClInclude Include="Rendering\BufferObject.hpp" />
@@ -173,11 +175,18 @@
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Time.hpp" />
+    <ClInclude Include="Utils\Template.hpp" />
     <ClInclude Include="Wavefront.hpp" />
     <ClInclude Include="Window.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GL\gl_core_3_3.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\sqlite\sqlite3.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -196,6 +205,7 @@
     </ClCompile>
     <ClCompile Include="Mobile.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Persist.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="Profiling.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>

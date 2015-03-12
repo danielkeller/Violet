@@ -12,9 +12,6 @@
     <Filter Include="Source Files\Rendering">
       <UniqueIdentifier>{3902fd21-2fe5-4a70-a3d8-4941d1c8ca2c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Libs">
-      <UniqueIdentifier>{c3815a18-e4ed-4320-8957-77e2b7e080cb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Geometry">
       <UniqueIdentifier>{3e521d01-afc8-4a40-af25-9d72c805def7}</UniqueIdentifier>
     </Filter>
@@ -23,6 +20,12 @@
     </Filter>
     <Filter Include="Source Files\Containers">
       <UniqueIdentifier>{93bdf5f6-a93f-4efc-8f8b-577daca88de6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utils">
+      <UniqueIdentifier>{e4463c8f-9c8d-4a1a-b055-f8b759c6e25e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libs">
+      <UniqueIdentifier>{c3815a18-e4ed-4320-8957-77e2b7e080cb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -140,6 +143,15 @@
     <ClInclude Include="Rendering\Material.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Persist.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Persist_detail.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Template.hpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -185,7 +197,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\GL\gl_core_3_3.c">
-      <Filter>Source Files\Libs</Filter>
+      <Filter>Libs</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\VertexData.cpp">
       <Filter>Source Files\Rendering</Filter>
@@ -210,6 +222,12 @@
     </ClCompile>
     <ClCompile Include="Rendering\RenderPasses.cpp">
       <Filter>Source Files\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sqlite\sqlite3.c">
+      <Filter>Libs</Filter>
+    </ClCompile>
+    <ClCompile Include="Persist.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

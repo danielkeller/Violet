@@ -88,7 +88,7 @@ public:
 	range(iterator e) : begin_(e), end_(e) {} //empty range
 	iterator begin() { return begin_; }
 	iterator end() { return end_; }
-	typename std::iterator_traits<iterator>::difference_type length()
+	typename std::iterator_traits<iterator>::difference_type size()
 	{
 		return end_ - begin_;
 	}
@@ -96,5 +96,8 @@ public:
 private:
 	iterator begin_, end_;
 };
+
+template<class Iter>
+range<Iter> make_range(Iter b, Iter e) { return{ b, e }; }
 
 #endif
