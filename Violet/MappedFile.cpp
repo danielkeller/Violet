@@ -2,6 +2,7 @@
 #include "MappedFile.hpp"
 #include <tuple>
 
+
 MappedFile& MappedFile::operator=(MappedFile f)
 {
 	auto other = std::tie(f.dothrow, f.ptr, f.length);
@@ -23,6 +24,12 @@ MappedFile::MappedFile(MappedFile&& f)
 }
 
 #ifdef _WIN32
+#undef APIENTRY
+#include <Windows.h>
+
+MappedFile::MappedFile()
+	: dothrow(false), length(0), ptr(nullptr, &::UnmapViewOfFile)
+{}
 
 void MappedFile::ThrowErrno(const std::string& text)
 {

@@ -4,8 +4,6 @@
 #include <string>
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN 1
-#include <Windows.h>
 #include <memory>
 #endif
 
@@ -13,9 +11,7 @@ class MappedFile
 {
 public:
 #ifdef _WIN32
-    MappedFile()
-		: dothrow(false), length(0), ptr(nullptr, &::UnmapViewOfFile)
-    {}
+	MappedFile();
 #else
 	MappedFile()
 		: dothrow(false), ptr(nullptr), length(0)
@@ -72,7 +68,8 @@ private:
 	bool dothrow;
     size_t length;
 #ifdef _WIN32
-	std::unique_ptr<void, decltype(&::UnmapViewOfFile)> ptr;
+	typedef int __stdcall deleter(const void*);
+	std::unique_ptr<void, deleter*> ptr;
 #else
 	void* ptr;
     int fd; //TODO: this isn't actually needed

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Wavefront.hpp"
 #include "Geometry/Mesh.hpp"
+#include "Profiling.hpp"
 
 #include <fstream>
 
@@ -25,6 +26,8 @@ Wavefront::Wavefront(std::string filename)
 	//shader appropriate for wavefront objects
 	: shaderProgram("assets/simple")
 {
+	auto p = Profile::Profile("wavefront load");
+
 	shaderProgram.TextureOrder({ "tex" });
 
 	std::shared_ptr<VertexData::VertexDataResource> vertptr

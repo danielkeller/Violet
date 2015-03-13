@@ -1,6 +1,8 @@
 //Big headers go here
 //TODO: split into gl, math, etc
 
+//ffs don't include windows.h
+#define APIENTRY __stdcall
 #include "GL/gl_core_3_3.h"
 #include "Eigen/Core"
 #include "Eigen/Geometry"
