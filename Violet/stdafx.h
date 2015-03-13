@@ -24,7 +24,7 @@ using Eigen::Quaternionf;
 #define GLFW_INCLUDE_NONE
 
 //enable stack traces on GL errors
-#if !defined(__APPLE__) && !defined(WIN32)
+#if !defined(__APPLE__) && !defined(_WIN32)
 #define GL_DEBUG
 #endif
 

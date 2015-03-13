@@ -2,6 +2,8 @@
 #include "Window.hpp"
 #include "GLMath.h"
 
+#include "Profiling.hpp"
+
 #include "GLFW/glfw3.h"
 
 #include <iostream>
@@ -201,6 +203,7 @@ void Window::PreDraw()
 
 void Window::PostDraw()
 {
+	auto p = Profile::Profile("waiting for vsync");
 	//swap draw buffer and visible buffer
 	glfwSwapBuffers(window);
 	glfwPollEvents();

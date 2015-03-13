@@ -55,6 +55,7 @@ try
     
     auto physTick = [&]()
 	{
+		auto p = Profile::Profile("physics");
 		m.Tick();
 
         w.GetInput();
@@ -69,11 +70,14 @@ try
     
     auto renderTick = [&](float alpha)
 	{
-		m.Update(alpha);
+		{
+			auto p = Profile::Profile("rendering");
+			m.Update(alpha);
 
-        w.PreDraw();
-        r.camera = w.PerspMat() * *m[camera]; //FIXME
-		passes.Draw();
+			w.PreDraw();
+			r.camera = w.PerspMat() * *m[camera]; //FIXME
+			passes.Draw();
+		}
         w.PostDraw();
     };
     

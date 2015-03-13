@@ -4,6 +4,8 @@
 #ifdef PROFILE
 #include <chrono>
 #include <map>
+#include <string>
+#include <iomanip>
 
 class Profile
 {
@@ -18,7 +20,10 @@ public:
 	~Profile()
 	{
 		auto ended = clock::now();
-		data[name] += (ended - began) - comp;
+		int n = data[name].first;
+		//running average
+		data[name].second = ((ended - began) - comp + n*data[name].second)/(n+1);
+		data[name].first = n + 1;
 	}
 
 	static void CalibrateProfiling();
@@ -29,7 +34,9 @@ private:
 	const clock::time_point began;
 
 	static duration comp;
-	static std::map<const char*, duration> data;
+	static std::map<const char*, std::pair<int, duration>> data;
+
+	static inline std::string niceUnits(duration d);
 };
 
 inline void Profile::CalibrateProfiling()
@@ -44,11 +51,28 @@ inline void Profile::CalibrateProfiling()
 	comp /= 1000;
 }
 
+inline std::string Profile::niceUnits(duration d)
+{
+	if (d < std::chrono::milliseconds(5))
+		return std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(d).count()) + "us";
+	else
+		return std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(d).count()) + "ms";
+}
+
 inline void Profile::Print()
 {
+	std::cout << std::setw(20) << "name"
+		<< std::setw(8) << "total"
+		<< std::setw(8) << "avg\n";
+
 	for (const auto& datapt : data)
-		std::cout << datapt.first << ": "
-			<< std::chrono::duration_cast<std::chrono::milliseconds>(datapt.second).count() << "ms \n";
+	{
+		int n = datapt.second.first;
+		duration t = datapt.second.second;
+		std::cout << std::setw(20) << datapt.first
+			<< std::setw(8) << niceUnits(t*n)
+			<< std::setw(8) << niceUnits(t) << "\n";
+	}
 }
 
 #else
