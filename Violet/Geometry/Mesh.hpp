@@ -84,6 +84,9 @@ using ConstMeshIter = MeshIterBase < std::vector<TriInd>::const_iterator, ConstT
 class Mesh
 {
 public:
+	Mesh(std::string file);
+	Mesh(std::string name, vectorVector3f p, std::vector<TriInd> i);
+
 	//the non-const functions assume you will be modifying the mesh,
 	//so they copy the data.
 	MeshIter begin();

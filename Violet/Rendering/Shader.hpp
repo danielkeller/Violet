@@ -10,6 +10,10 @@
 
 class UBO;
 
+struct ResourcePersistTag;
+struct EmbeddedResourcePersistTag;
+class Persist;
+
 class ShaderProgram
 {
 	struct ShaderResource;
@@ -33,6 +37,8 @@ public:
 	UBO MakeUBO(const std::string& block, const std::string& name) const;
 	//Set the order of textures in the associated material
 	void TextureOrder(const std::vector<std::string>& order);
+
+	using PersistCategory = ResourcePersistTag;
 
 private:
 	ShaderProgram(std::shared_ptr<ShaderResource> ptr);
@@ -85,9 +91,9 @@ class UBO
 
 public:
 	//It should be possible to call Bind with no ill effects
-	UBO()
-		: bindProxy(Material)
-	{}
+	UBO();
+
+	UBO(std::string name, ShaderProgram shader, std::string block, std::vector<char> data);
 
 	BASIC_EQUALITY(UBO, bindProxy)
 
@@ -99,8 +105,13 @@ public:
 	//Associates this UBO with its binding point.
 	void Bind() const;
 
+	std::string Name() const;
+	void Save(Persist&) const;
+
 	friend struct Proxy;
 	friend class ShaderProgram;
+
+	using PersistCategory = EmbeddedResourcePersistTag;
 
 private:
 	using BufferTy = char; //typename std::aligned_storage<sizeof(char), alignof(Matrix4f)>::type;
@@ -144,5 +155,7 @@ private:
 };
 
 MEMBER_HASH(UBO, resource)
+
+MAKE_PERSIST_TRAITS(UBO, std::string, ShaderProgram, std::string, std::vector<char>)
 
 #endif

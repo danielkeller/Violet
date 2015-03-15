@@ -61,4 +61,16 @@ struct FromBytes<Eigen::Matrix<Scalar, Rows, Cols>>
 	}
 };
 
+template<typename F, typename... Args, size_t... inds>
+std::result_of_t<F(Args...)> invokeImpl(F f, std::tuple<Args...> args, seq<inds...>)
+{
+	return f(std::get<inds>(args)...);
+}
+
+template<typename F, typename... Args>
+std::result_of_t<F(Args...)> invoke(F f, std::tuple<Args...> args)
+{
+	return invokeImpl(f, args, gen_seq<sizeof...(Args));
+}
+
 #endif

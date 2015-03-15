@@ -214,6 +214,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Rendering\FBO.cpp" />
+    <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\Picker.cpp" />
     <ClCompile Include="Rendering\Render.cpp" />
     <ClCompile Include="Rendering\RenderPasses.cpp" />

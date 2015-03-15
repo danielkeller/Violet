@@ -13,7 +13,7 @@
 using namespace Persist_detail;
 
 PreparedStmtImpl::PreparedStmtImpl()
-	: stmt(nullptr, &sqlite3_finalize), lastResult(-1)
+	: stmt(nullptr, &sqlite3_finalize), lastResult(-1), persist(nullptr)
 {}
 
 #ifndef NDEBUG
@@ -26,14 +26,14 @@ PreparedStmtImpl::~PreparedStmtImpl()
 }
 #endif
 
-PreparedStmt::PreparedStmt(sqlite3* db, const std::string& sql)
+PreparedStmt::PreparedStmt(Persist* persist_, sqlite3* db, const std::string& sql)
 {
 	auto p = Profile::Profile("sql compilation");
 
+	persist = persist_;
+
 	sqlite3_stmt *stmtPtr;
-
-	int result = sqlite3_prepare_v2(db, sql.c_str(), sql.size(), &stmtPtr, nullptr);
-
+	int result = sqlite3_prepare_v2(db, sql.c_str(), static_cast<int>(sql.size()), &stmtPtr, nullptr);
 	if (result != SQLITE_OK)
 		throw std::logic_error("'" + sql + "'\n" + sqlite3_errmsg(db));
 
@@ -43,7 +43,7 @@ PreparedStmt::PreparedStmt(sqlite3* db, const std::string& sql)
 }
 
 PreparedStmtImpl::PreparedStmtImpl(PreparedStmtImpl&& other)
-	: stmt(std::move(other.stmt)), lastResult(other.lastResult)
+	: stmt(std::move(other.stmt)), lastResult(other.lastResult), persist(other.persist)
 {}
 
 PreparedStmt::PreparedStmt(PreparedStmt&& other)
@@ -54,6 +54,7 @@ PreparedStmtImpl& PreparedStmtImpl::operator=(PreparedStmtImpl other)
 {
 	swap(stmt, other.stmt);
 	swap(lastResult, other.lastResult);
+	swap(persist, other.persist);
 	return *this;
 }
 
@@ -92,6 +93,11 @@ void PreparedStmtImpl::Bind1(int num, std::int64_t val)
 	SQLITE_CHECK_OK(sqlite3_bind_int64(stmt.get(), num, val));
 }
 
+void PreparedStmtImpl::Bind1(int num, bool val)
+{
+	Bind1(num, val ? 1ll : 0ll);
+}
+
 void PreparedStmtImpl::Bind1(int num, Object val)
 {
 	SQLITE_CHECK_OK(sqlite3_bind_int(stmt.get(), num, val.Id()));
@@ -103,9 +109,26 @@ void PreparedStmtImpl::Bind1(int num, std::string val)
 		val.data(), val.size(), SQLITE_TRANSIENT, SQLITE_UTF8));
 }
 
-void PreparedStmtImpl::Bind1(int num, const void* val, std::uint64_t len)
+void PreparedStmtImpl::Bind1(int num, std::vector<char> val)
 {
-	SQLITE_CHECK_OK(sqlite3_bind_blob64(stmt.get(), num, val, len, SQLITE_TRANSIENT));
+	Bind1(num, range<const char*>{ &*val.begin(), &*val.end() });
+}
+
+void PreparedStmtImpl::Bind1(int num, std::vector<std::string> val)
+{
+	std::string concat;
+	for (const auto& str : val)
+		concat += str + '\t';
+
+	concat.erase(concat.end() - 1, concat.end());
+
+	Bind1(num, concat);
+}
+
+void PreparedStmtImpl::Bind1(int num, range<const char*> val)
+{
+	SQLITE_CHECK_OK(sqlite3_bind_blob64(stmt.get(), num,
+		val.begin(), val.size(), SQLITE_TRANSIENT));
 }
 
 template<>
@@ -127,6 +150,27 @@ bool PreparedStmtImpl::Get1<bool>(int num)
 }
 
 template<>
+std::vector<char> PreparedStmtImpl::Get1<std::vector<char>>(int num)
+{
+	auto r = GetBlob(num);
+	return{ r.begin(), r.end() };
+}
+
+template<>
+std::vector<std::string> PreparedStmtImpl::Get1<std::vector<std::string>>(int num)
+{
+	auto str = Get1<std::string>(num);
+	std::vector<std::string> ret;
+	std::string temp;
+
+	std::stringstream ss(str);
+	while (std::getline(ss, temp, '\t'))
+		ret.push_back(temp);
+	
+	return ret;
+}
+
+template<>
 std::string PreparedStmtImpl::Get1<std::string>(int num)
 {
 	const unsigned char* text = sqlite3_column_text(stmt.get(), num);
@@ -141,8 +185,8 @@ range<const char*> PreparedStmtImpl::GetBlob(int num)
 	return{ blob, blob + len };
 }
 
-Database::Database(std::string file)
-	: db(nullptr, &sqlite3_close)
+Database::Database(Persist* persist, std::string file)
+	: db(nullptr, &sqlite3_close), persist(persist)
 {
 	EXCEPT_INFO_BEGIN
 
@@ -162,38 +206,22 @@ Database::Database(std::string file)
 
 PreparedStmt Database::MakeStmt(const std::string& sql)
 {
-	return{ db.get(), sql };
+	return{ persist, db.get(), sql };
 }
 
 Persist::Persist()
-	: database("data.db")
+	: database(this, "data.db")
 {
 }
 
-const char* TypeName(Column::Affinity type)
+void Database::Track(const char* name, Columns cols)
 {
-	switch (type)
-	{
-	case Column::INTEGER:
-		return "INTEGER";
-	case Column::REAL:
-		return "REAL";
-	case Column::TEXT:
-		return "TEXT";
-	case Column::BLOB:
-		return "BLOB";
-	case Column::NONE:
-		return "NONE";
-	default:
-		throw std::domain_error("Invalid column affinity");
-	}
-}
+	if (schema.count(name))
+		return;
 
-void Persist::Track(const char* name, std::initializer_list<Column> cols)
-{
 	schema[name] = cols;
 
-	const Column& key = *cols.begin();
+	const char * const key = *cols.begin();
 	bool has_fk = false;
 
 	std::stringstream command;
@@ -203,11 +231,11 @@ void Persist::Track(const char* name, std::initializer_list<Column> cols)
 	{
 		if (&col != cols.begin()) command << ", ";
 
-		command << col.name << ' ' << TypeName(col.affinity); 
+		command << col; 
 		
 		if (&col == cols.begin()) command << " primary key not null";
 
-		if (col.name == std::string("object"))
+		if (col == std::string("object"))
 		{
 			command << " references object(object) on delete cascade"; //?
 			has_fk = true;
@@ -216,7 +244,7 @@ void Persist::Track(const char* name, std::initializer_list<Column> cols)
 
 	command << ")";
 
-	database.MakeStmt(command.str()).Step();
+	MakeStmt(command.str()).Step();
 
 	if (has_fk)
 	{
@@ -227,51 +255,51 @@ void Persist::Track(const char* name, std::initializer_list<Column> cols)
 			"before insert on " << name << " begin "
 			"insert into object(object) select NEW.object "
 			"where NEW.object not in (select object from object); end";
-		database.MakeStmt(trigger.str()).Step();
+		MakeStmt(trigger.str()).Step();
 	}
 }
 
 
-PreparedStmt Persist::MakeSelectAllStmt(const char* subsystem)
+PreparedStmt Database::MakeSelectAllStmt(const char* subsystem)
 {
-	std::initializer_list<Column> cols = schema[subsystem];
+	Columns cols = schema[subsystem];
 	auto rest = make_range(cols.begin() + 1, cols.end());
 
 	std::stringstream command;
-	command << "select " << cols.begin()->name;
+	command << "select " << *cols.begin();
 	for (const auto& col : rest)
-		command << ", " << col.name;
+		command << ", " << col;
 	command << " from " << subsystem;
 
-	return database.MakeStmt(command.str());
+	return MakeStmt(command.str());
 }
 
-PreparedStmt Persist::MakeSelectSomeStmt(const char* subsystem, const char* col)
+PreparedStmt Database::MakeSelectSomeStmt(const char* subsystem, const char* col)
 {
-	std::initializer_list<Column> cols = schema[subsystem];
-	const Column& key = *schema[subsystem].begin();
+	Columns cols = schema[subsystem];
+	const char * const key = *schema[subsystem].begin();
 	auto rest = make_range(cols.begin() + 1, cols.end());
 
 	std::stringstream command;
-	command << "select " << key.name;
+	command << "select " << key;
 	for (const auto& col : rest)
-		command << ", " << col.name;
+		command << ", " << col;
 	command << " from " << subsystem
 		<< " where " << col << " = ?";
 
-	return database.MakeStmt(command.str());
+	return MakeStmt(command.str());
 }
 
-PreparedStmt Persist::MakeInsertStmt(const char* subsystem)
+PreparedStmt Database::MakeInsertStmt(const char* subsystem)
 {
-	std::initializer_list<Column> cols = schema[subsystem];
+	Columns cols = schema[subsystem];
 	auto rest = make_range(cols.begin() + 1, cols.end());
 
 	std::stringstream command;
-	command << "insert or replace into " << subsystem << " (" << cols.begin()->name;
+	command << "insert or replace into " << subsystem << " (" << *cols.begin();
 
 	for (const auto& col : rest)
-		command << ", " << col.name;
+		command << ", " << col;
 
 	command << ") values (?";
 
@@ -279,18 +307,18 @@ PreparedStmt Persist::MakeInsertStmt(const char* subsystem)
 		command << ", ?";
 	command << ")";
 
-	return database.MakeStmt(command.str());
+	return MakeStmt(command.str());
 }
 
-PreparedStmt Persist::MakeExistsStmt(const char* subsystem)
+PreparedStmt Database::MakeExistsStmt(const char* subsystem)
 {
-	const Column& key = *schema[subsystem].begin();
+	const char* const key = *schema[subsystem].begin();
 
 	std::stringstream command;
 	command << "select (exists (select * from " << subsystem
-		<< " where " << key.name << " = ?))";
+		<< " where " << key << " = ?))";
 
-	return database.MakeStmt(command.str());
+	return MakeStmt(command.str());
 }
 
 Object Persist::NextObject()

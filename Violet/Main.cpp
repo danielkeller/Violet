@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "Wavefront.hpp"
 #include "Window.hpp"
 #include "Rendering/Render.hpp"
 #include "Geometry/AABB.hpp"
@@ -26,7 +25,7 @@ try
 	Window w;
 	Position position(persist);
 	Mobile m(position);
-	Render r(position, m);
+	Render r(position, m, persist);
 	RenderPasses passes(w, r);
 	Edit edit(r, passes, w, position);
 
@@ -35,16 +34,23 @@ try
 	Object teapotObj = objName["teapot"];
 	Object teapot2Obj = objName["teapot2"];
 
-	//load the object
-	Wavefront teapot{ "assets/capsule.obj" };
-	Tex capsuleTex{ "assets/capsule.png" };
+	r.Load();
 
 	//AABB teapotAabb(teapot.mesh);
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-    r.Create(teapotObj, teapot.shaderProgram, {{}, {capsuleTex}}, teapot.vertexData, Mobilty::Yes);
-    r.Create(teapot2Obj, teapot.shaderProgram, {{}, {capsuleTex}}, teapot.vertexData, Mobilty::No);
+	if (!persist.Exists<Render>(teapotObj))
+	{
+		//load the object
+		Tex capsuleTex{ "assets/capsule.png" };
+		ShaderProgram shdr{ "assets/simple" };
+		VertexData capsule{ "assets/capsule.obj" };
+
+		r.Create(teapotObj, shdr, { {}, { capsuleTex } }, capsule, Mobilty::Yes);
+		r.Create(teapot2Obj, shdr, { {}, { capsuleTex } }, capsule, Mobilty::No);
+		r.Save(teapotObj); r.Save(teapot2Obj);
+	}
 
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "VertexData.hpp"
 #include "Geometry/Mesh.hpp"
+#include "Wavefront.hpp"
 
 struct SimpleVert
 {
@@ -24,6 +25,23 @@ VertexData::VertexData(UnitBoxT)
     resource = VertexDataResource::FindResource("UnitBox");
     if (!resource)
         resource = VertexDataResource::MakeShared("UnitBox", boxVerts, boxInds);
+}
+
+VertexData::VertexData(const std::string& file)
+{
+	resource = VertexDataResource::FindResource(file);
+	if (!resource)
+	{
+		if (ends_with(file, ".obj"))
+			*this = WavefrontVertexData(file);
+		else
+			throw std::runtime_error("Unrecognized object file " + file);
+	}
+}
+
+std::string VertexData::Name() const
+{
+	return resource->Key();
 }
 
 template<>

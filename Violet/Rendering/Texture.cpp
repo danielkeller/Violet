@@ -21,6 +21,11 @@ Tex::Tex(std::shared_ptr<TexResource> ptr)
 	, resource(ptr)
 {}
 
+std::string Tex::Name() const
+{
+	return resource->Key();
+}
+
 std::vector<unsigned char> PNGmagic = { 0x89, 0x50, 0x4e, 0x47 };
 
 Tex::TexResource::TexResource(TexDim dim)

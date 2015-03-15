@@ -1,12 +1,10 @@
-#include "Rendering/VertexData.hpp"
-#include "Rendering/Shader.hpp"
-#include "Geometry/Mesh.hpp"
-#include <tuple>
+#ifndef WAVEFRONT_HPP
+#define WAVEFRONT_HPP
 
-struct Wavefront
-{
-	VertexData vertexData;
-	Mesh mesh;
-	ShaderProgram shaderProgram;
-	Wavefront(std::string filename);
-};
+class VertexData;
+class Mesh;
+
+VertexData WavefrontVertexData(std::string filename);
+Mesh WavefrontMesh(std::string filename);
+
+#endif

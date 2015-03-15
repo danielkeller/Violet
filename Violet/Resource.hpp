@@ -55,6 +55,11 @@ public:
 			ptr = MakeShared(key);
 		return ptr;
 	}
+
+	K Key() const
+	{
+		return key;
+	}
 };
 
 template<class T, class K>

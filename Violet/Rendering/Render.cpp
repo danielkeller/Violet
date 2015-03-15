@@ -3,17 +3,27 @@
 
 #include "Position.hpp"
 #include "Mobile.hpp"
+#include "Persist.hpp"
 
 using namespace Render_detail;
 
-Render::Render(Position& position, Mobile& m)
-	: position(position), m(m)
+Render::Render(Position& position, Mobile& m, Persist& persist)
+	: position(position), m(m), persist(persist)
 	, simpleShader("assets/simple")
 	, commonUBO(simpleShader.MakeUBO("Common", "Common"))
 	, instanceBuffer()
 {
 	//Assumes no one binds over UBO::Common
 	commonUBO.Bind();
+}
+
+void Render::Load()
+{
+	for (const auto& row : persist.GetAll<Render>())
+	{
+		Create(std::get<0>(row), std::get<2>(row), std::get<3>(row), std::get<4>(row),
+			std::get<1>(row) ? Mobilty::Yes : Mobilty::No);
+	}
 }
 
 void Render::PassDefaults(Passes pass, ShaderProgram shader, Material mat)
@@ -65,6 +75,8 @@ Shape& Render::InternalCreate(Object obj, ShaderProgram shader, Material mat, Ve
 	auto refs = renderData.emplace(shader, mat, std::tie(shader, vertData),
 		InstData{ obj, *m[obj] });
 
+	objs.insert(std::make_pair(obj, refs));
+
 	auto instref = std::get<InstanceLevel>(refs);
 	m[obj] = make_magic(locaccesor, instref);
 
@@ -91,6 +103,8 @@ Shape& Render::InternalCreateStatic(Object obj, ShaderProgram shader,
 
 	auto inst = InstData{ obj, position[obj].get().ToMatrix() };
 	auto refs = staticRenderData.emplace(shader, mat, std::tie(shader, vertData), inst);
+
+	staticObjs.insert(std::make_pair(obj, refs));
 
 	auto instref = std::get<InstanceLevel>(refs);
 	position[obj] += make_magic(locaccesor, instref);
@@ -192,3 +206,28 @@ const Schema AttribTraits<InstData>::schema = {
     { "transform", GL_FLOAT, false, 0, {4, 4}, 4 * sizeof(float) },
     { "object", GL_UNSIGNED_INT, true, 16 * sizeof(float), {1, 1}, 0 },
 };
+
+void Render::Save(Object obj)
+{
+	if (objs.count(obj))
+	{
+		auto refs = objs.find(obj)->second;
+		persist.Set<Render>(obj, false,
+			renderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
+			renderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
+			renderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.vao.GetVertexData());
+	}
+	else if (staticObjs.count(obj))
+	{
+		auto refs = staticObjs.find(obj)->second;
+		persist.Set<Render>(obj, false,
+			staticRenderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
+			staticRenderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
+			staticRenderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.vao.GetVertexData());
+	}
+}
+
+template<>
+const char* PersistSchema<Render>::name = "render";
+template<>
+Columns PersistSchema<Render>::cols = { "object", "static", "shader", "mat", "vertdata" };

@@ -3,6 +3,8 @@
 
 #include "Resource.hpp"
 
+struct ResourcePersistTag;
+
 using TexDim = Eigen::Matrix<GLsizei, 2, 1>;
 
 class Tex
@@ -14,7 +16,11 @@ public:
     GLuint Handle() const;
     TexDim Dim() const;
 
-	BASIC_EQUALITY(Tex, textureObject)
+	BASIC_EQUALITY(Tex, textureObject);
+
+	std::string Name() const;
+
+	using PersistCategory = ResourcePersistTag;
 
 protected:
 	GLuint textureObject;

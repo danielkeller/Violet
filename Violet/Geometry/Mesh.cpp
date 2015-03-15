@@ -1,10 +1,30 @@
 #include "stdafx.h"
 #include "Mesh.hpp"
 #include "Collide.hpp"
+#include "Wavefront.hpp"
 #include <functional>
 #include <iostream>
 
 using namespace std::placeholders;
+
+Mesh::Mesh(std::string file)
+{
+	resource = MeshResource::FindResource(file);
+	if (!resource)
+	{
+		if (ends_with(file, ".obj"))
+			*this = WavefrontMesh(file);
+		else
+			throw std::runtime_error("Unrecognized object file " + file);
+	}
+}
+
+Mesh::Mesh(std::string name, vectorVector3f p, std::vector<TriInd> i)
+{
+	resource = MeshResource::FindResource(name);
+	if (!resource)
+		resource = MeshResource::MakeShared(name, p, i);
+}
 
 MeshIter Mesh::begin()
 {

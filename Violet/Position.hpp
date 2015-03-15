@@ -5,6 +5,9 @@
 #include "magic_ptr.hpp"
 #include "Object.hpp"
 
+struct BinaryPersistTag;
+class Persist;
+
 struct Transform
 {
 	Vector3f pos;
@@ -40,9 +43,9 @@ struct Transform
 	}
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
 
-class Persist;
+	using PersistCategory = BinaryPersistTag;
+};
 
 class Position
 {

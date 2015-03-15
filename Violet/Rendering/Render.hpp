@@ -11,11 +11,13 @@
 #include "Containers/tuple_tree.hpp"
 
 #include <unordered_set>
+#include <unordered_map>
 #include <vector>
 #include <array>
 
 class Position;
 class Mobile;
+class Persist;
 
 enum class Mobilty
 {
@@ -33,18 +35,21 @@ public:
 		Mobilty mobile = Mobilty::No);
     //create with defaults
 	void Create(Object obj, ShaderProgram shader, Material mat,
-		VertexData vertData,
-		Mobilty mobile = Mobilty::No);
+		VertexData vertData, Mobilty mobile = Mobilty::No);
 
-	void Destroy(Object obj);
+	void Remove(Object obj);
+
+	void Save(Object obj);
+	void Load();
 
 	void Draw();
     void DrawPass(int pass);
 	Matrix4f camera;
 
+	//FIXME: this is bad!
     void PassDefaults(Passes pass, ShaderProgram shader, Material mat);
 
-	Render(Position&, Mobile&);
+	Render(Position&, Mobile&, Persist&);
 	Render(const Render&) = delete;
 	void operator=(const Render&) = delete;
 
@@ -53,6 +58,7 @@ public:
 private:
 	Position& position;
 	Mobile& m;
+	Persist& persist;
 
 	//UBO shared with all shaders
 	ShaderProgram simpleShader;
@@ -68,12 +74,16 @@ private:
 	render_data_t staticRenderData;
 	BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STATIC_DRAW> staticInstanceBuffer;
 
+	std::unordered_map<Object, render_data_t::perma_refs_t> staticObjs;
+
 	//maybe:
 	//l_unordered_map<ShaderProgram, l_unordered_map<Material,
 	//	l_unordered_map<VertexData, Render_detail::Shape>>> renderData;
 
 	render_data_t renderData;
     BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
+
+	std::unordered_map<Object, render_data_t::perma_refs_t> objs;
 
     std::array<std::unordered_set<ShaderProgram>::iterator, NumPasses> defaultShader;
 	std::array<std::unordered_set<Material>::iterator, NumPasses> defaultMaterial;
@@ -92,5 +102,7 @@ private:
 	void DrawBucket(render_data_t& dat);
 	void DrawBucketPass(render_data_t& dat, int pass);
 };
+
+MAKE_PERSIST_TRAITS(Render, Object, bool, ShaderProgram, Material, VertexData);
 
 #endif

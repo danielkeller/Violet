@@ -23,8 +23,6 @@ magic_ptr<Transform>& Position::operator[](Object obj)
 Position::Position(Persist& persist)
 	: persist(persist)
 {
-	persist.Track<Position>();
-
 	for (const auto& row : persist.GetAll<Position>())
 		(*this)[std::get<0>(row)].set(std::get<1>(row));
 }
@@ -34,6 +32,7 @@ void Position::Save(Object obj)
 	persist.Set<Position>(obj, data[obj].loc);
 }
 
+template<>
 const char* PersistSchema<Position>::name = "position";
-const std::initializer_list<Column> PersistSchema<Position>::cols =
-	{ objKey, { "transform", Column::BLOB } };
+template<>
+Columns PersistSchema<Position>::cols = {"object", "transform"};

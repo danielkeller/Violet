@@ -46,7 +46,9 @@ public:
 		numInstances = len;
 	}
 
-	GLsizei NumInstances() const { return numInstances; };
+	GLsizei NumInstances() const { return numInstances; }
+	VertexData GetVertexData() const { return vertexData; }
+
 	MEMBER_EQUALITY(VertexData, vertexData)
 
 private:

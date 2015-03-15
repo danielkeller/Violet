@@ -23,15 +23,15 @@ const Object Object::none{static_cast<std::uint32_t>(-2)};
 
 std::uint32_t Object::next = static_cast<std::uint32_t>(-1);
 
+template<>
 const char* PersistSchema<Object>::name = "object";
-const std::initializer_list<Column> PersistSchema<Object>::cols = { objKey };
+template<>
+Columns PersistSchema<Object>::cols = { "object" };
 
 
 ObjectName::ObjectName(Persist& persist)
 	: persist(persist)
-{
-	persist.Track<ObjectName>();
-}
+{}
 
 std::string ObjectName::operator[](Object obj)
 {
@@ -55,6 +55,7 @@ void ObjectName::Rename(Object obj, const std::string& str)
 	persist.Set<ObjectName>(str, obj);
 }
 
+template<>
 const char* PersistSchema<ObjectName>::name = "objectname";
-const std::initializer_list<Column>
-PersistSchema<ObjectName>::cols = { { "name", Column::TEXT }, objKey };
+template<>
+Columns PersistSchema<ObjectName>::cols = {"name", "object"};

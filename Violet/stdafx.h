@@ -54,7 +54,7 @@ using Eigen::Quaternionf;
 	template<class Subsystem> struct PersistTraits;\
 	template<> struct PersistTraits<Class> { \
 		using key = Key; \
-		using data = std::tuple<Key, ##__VA_ARGS__>; };
+		using data = std::tuple<Key, __VA_ARGS__>; };
 
 #define EXCEPT_INFO_BEGIN try {
 #define EXCEPT_INFO_END(str) } catch (std::runtime_error& err) { \
@@ -72,4 +72,10 @@ inline void hash_combine(std::size_t& seed, const T& v)
 {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
+inline bool ends_with(std::string const & value, std::string const & ending)
+{
+	if (ending.size() > value.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }

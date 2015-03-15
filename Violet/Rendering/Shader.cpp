@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Utils/Template.hpp"
+#include "Persist.hpp"
 
 struct Uniforms
 {
@@ -13,6 +14,8 @@ struct Uniforms
 
 	struct Block
 	{
+		Block() : byte_size(0) {}
+
 		std::string name;
 		MEMBER_EQUALITY(std::string, name)
 
@@ -74,8 +77,9 @@ struct UBO::UBOResource : public Resource<UBOResource>
 	//with those that are not (ie, material).
 	Type type;
 	Uniforms::Block block;
+	ShaderProgram shader;
 	const Uniforms::Block& Block() { return block; }
-	UBOResource(const std::string& name, const Uniforms::Block& block);
+	UBOResource(const std::string& name, ShaderProgram shader, const Uniforms::Block& block);
 };
 
 ShaderProgram::ShaderResource::ShaderResource(std::string path)
@@ -139,11 +143,10 @@ GLint ShaderProgram::GetAttribLocation(const std::string& name) const
 
 UBO ShaderProgram::MakeUBO(const std::string& block, const std::string& name) const
 {
-    std::string qualName = block + "#" + name;
-	auto res = UBO::UBOResource::FindResource(qualName);
+	auto res = UBO::UBOResource::FindResource(name);
 	if (res)
 		return res;
-	return UBO::UBOResource::MakeShared(qualName, resource->uniforms[block]);
+	return UBO::UBOResource::MakeShared(name, *this, resource->uniforms[block]);
 }
 
 //These should stay the same for much of the shader's lifetime
@@ -325,16 +328,36 @@ const Uniforms::Block& Uniforms::operator[](const std::string& n) const
 	return *it;
 }
 
-UBO::UBOResource::UBOResource(const std::string& name, const Uniforms::Block& block)
+UBO::UBOResource::UBOResource(const std::string& name, ShaderProgram shader,
+	const Uniforms::Block& block)
 	: Resource(name), data(block.byte_size)
     , bufferObject(block.byte_size)
 	, type(block.name == "Common" ? UBO::Common : UBO::Material), block(block)
+	, shader(shader)
 {}
+
+UBO::UBO()
+	: bindProxy(Material)
+{
+	static auto nullUbo = UBOResource::MakeShared(
+		"null", ShaderProgram(), Uniforms::Block());
+	resource = nullUbo;
+}
 
 UBO::UBO(std::shared_ptr<UBOResource> r)
 	: bindProxy(r->bufferObject.GetIndexedBindProxy(r->type))
 	, resource(r)
 {}
+
+UBO::UBO(std::string name, ShaderProgram shader, std::string block, std::vector<char> data)
+	: UBO(shader.MakeUBO(block, name))
+{
+	if (resource->data.size() != data.size())
+		throw std::runtime_error("Wrong amount of saved data for " + shader.Name() + "." + block);
+
+	resource->data = data;
+	Sync();
+}
 
 void UBO::Sync() const
 {
@@ -346,10 +369,27 @@ void UBO::Bind() const
 	bindProxy.Bind();
 }
 
+std::string UBO::Name() const
+{
+	return resource->Key();
+}
+
+void UBO::Save(Persist& persist) const
+{
+	if (resource)
+		persist.Set<UBO>(resource->Key(), resource->shader,
+			resource->block.name, resource->data);
+}
+
 UBO::Proxy UBO::operator[](const std::string& name)
 {
 	return Proxy(*this, resource->Block()[name]);
 }
+
+template<>
+const char* PersistSchema<UBO>::name = "ubo";
+template<>
+Columns PersistSchema<UBO>::cols = {"name", "shader", "block", "data"};
 
 template<typename T, GLenum ty>
 T UBO::Proxy::ConvertOpHelper() const

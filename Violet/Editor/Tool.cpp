@@ -49,7 +49,7 @@ void Tool::SetTarget(magic_ptr<Transform> t)
 	if (t)
 		move->pos = t.get().pos; //snap over to moved object
 	else
-		move->pos = Vector3f::Zero(); //better, hide the tool;
+		move->pos = Vector3f::Zero(); //better, hide the tool
 }
 
 void Tool::Update(Window& w, Object camera, Object focused)

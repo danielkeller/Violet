@@ -4,6 +4,8 @@
 #include "Resource.hpp"
 #include "BufferObject.hpp"
 
+struct ResourcePersistTag;
+
 struct AttribProperties
 {
 	std::string name;
@@ -27,16 +29,23 @@ static UnitBoxT UnitBox;
 class VertexData
 {
 public:
-    BASIC_EQUALITY(VertexData, resource)
     VertexData(UnitBoxT);
     
+	VertexData(const std::string& file);
+
     template<class V, class VAlloc, class I, class IAlloc>
     VertexData(const std::string& name, const std::vector<V, VAlloc>& verts, const std::vector<I, IAlloc>& inds)
     {
         resource = VertexDataResource::FindResource(name);
         if (!resource)
             resource = VertexDataResource::MakeShared(name, verts, inds);
-    }
+	}
+
+	BASIC_EQUALITY(VertexData, resource);
+
+	std::string Name() const;
+
+	using PersistCategory = ResourcePersistTag;
 
 private:
     struct VertexDataResource : public Resource<VertexDataResource>

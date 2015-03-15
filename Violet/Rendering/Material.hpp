@@ -2,37 +2,37 @@
 #define MATERIAL_HPP
 
 #include "Texture.hpp"
+#include "Shader.hpp"
+
+class Persist;
+struct EmbeddedResourcePersistTag;
 
 struct Material
 {
 	UBO materialProps;
 	std::vector<Tex> textures;
 
-	bool operator==(const Material& t) const
-	{
-		return materialProps == t.materialProps && textures == t.textures;
-	}
-	bool operator!=(const Material& t) const
-	{
-		return !(*this == t);
-	}
+	bool operator==(const Material& t) const;
+	bool operator!=(const Material& t) const;
 
-	void use() const
-	{
-		for (GLuint i = 0; i < textures.size(); ++i)
-			textures[i].Bind(i);
+	void use() const;
 
-		materialProps.Bind();
-	}
+	std::string Name() const;
+	void Save(Persist& persist) const;
 
 	Material() = default;
-	Material(const UBO& props) : materialProps(props) {}
-	Material(const UBO& props, const std::vector<Tex>& texs)
-		: materialProps(props), textures(texs){}
+	Material(const UBO& props);
+	Material(const UBO& props, const std::vector<Tex>& texs);
+	Material(const std::string&, const UBO& props, const std::vector<Tex>& texs);
+
+	//I guess
+	using PersistCategory = EmbeddedResourcePersistTag;
 
 	HAS_HASH
 };
 
 MEMBER_HASH(Material, materialProps)
+
+MAKE_PERSIST_TRAITS(Material, std::string, UBO, std::vector<Tex>)
 
 #endif
