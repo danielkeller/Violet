@@ -92,12 +92,6 @@
     <ClInclude Include="Rendering\FBO.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\FBO_detail.hpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Picker.hpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Render_detail.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
@@ -205,9 +199,6 @@
     <ClCompile Include="Rendering\FBO.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Picker.cpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\Edit.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
@@ -252,22 +243,10 @@
     <None Include="..\assets\blank.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\assets\picker.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\picker.vert">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="..\assets\tool_arrow.frag">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\assets\tool_arrow.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\tool_arrow_picker.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\tool_arrow_picker.vert">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\assets\screen.frag">

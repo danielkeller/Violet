@@ -1,4 +1,7 @@
-out vec4 outputColor;
+out vec4 color;
+out uint picker;
+
+flat in uint objectFrag;
 
 uniform Material
 {
@@ -7,5 +10,6 @@ uniform Material
 
 void main()
 {
-    outputColor = vec4(direction, 1);
+    color = vec4(direction, 1);
+    picker = objectFrag;
 }

@@ -26,39 +26,49 @@ private:
     GLuint read_prev, draw_prev;
     static GLuint read_current, draw_current;
 
-    template<class Pixel>
     friend class FBO;
 };
 
-template<class Pixel = RGBA8Px>
 class FBO
 {
 public:
     FBO();
-    FBO(TypedTex<Pixel> t);
     FBO(FBO&&);
     FBO(const FBO&) = delete;
     ~FBO();
     
-    FBOBindObject Bind(GLenum target) const;
+	void AttachTexes(std::vector<Tex> ts);
+	void AttachDepth(RenderBuffer&& rb);
+	Tex& Texture(GLuint num) { return texes[num]; }
 
-    void AttachTex(TypedTex<Pixel> t);
-    void AttachDepth(RenderBuffer&& rb);
     void PreDraw();
-    void PreDraw(const Eigen::Matrix<GLuint, 4, 1>& clearColor);
+
+	//this is a little dumb
+	using ClearColorsT = std::vector<Eigen::Matrix<GLuint, 4, 1>,
+		Eigen::aligned_allocator<Eigen::Matrix<GLuint, 4, 1>>>;
+	void PreDraw(const ClearColorsT& clearColors);
+
+	FBOBindObject Bind(GLenum target) const;
     Matrix4f PerspMat() const;
     void CheckStatus() const; //throws on error
-    Pixel ReadPixel(Vector2f windowPos);
-	TypedTex<Pixel>& Texture() { return *tex; }
+
+	template<typename Pixel>
+	Pixel ReadPixel(GLuint texNum, Vector2f windowPos) const
+	{
+		auto bound = Bind(GL_READ_FRAMEBUFFER);
+		Pixel ret;
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + texNum);
+		glReadPixels(GLint(dim.x()*windowPos.x()), GLint(dim.y()*windowPos.y()), 1, 1,
+			PixelTraits<Pixel>::format, PixelTraits<Pixel>::type, &ret);
+		return ret;
+	}
 
 private:
     GLuint fbo;
     TexDim dim;
-    //keep a reference to the texture
-    std::unique_ptr<TypedTex<Pixel>> tex;
+    //keep a reference to the textures
+    std::vector<Tex> texes;
     std::unique_ptr<RenderBuffer> depth;
 };
-
-#include "FBO_detail.hpp"
 
 #endif

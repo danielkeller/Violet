@@ -26,12 +26,6 @@ void Render::Load()
 	}
 }
 
-void Render::PassDefaults(Passes pass, ShaderProgram shader, Material mat)
-{
-    defaultShader[pass] = passShaders.insert(shader).first;
-    defaultMaterial[pass] = passMaterials.insert(mat).first;
-}
-
 //this really should be its own data structure
 template<class data_t, class lower_data_t>
 std::pair<typename lower_data_t::iterator, typename lower_data_t::iterator>
@@ -56,12 +50,12 @@ void Render::FixInstances(render_data_t& dat, BufferObjTy& buf)
 			{
 				auto numInstances =
 					static_cast<GLsizei>(dat.children<InstanceLevel>(vao).size());
-				vao.first.vao.BindInstanceData(shader.first, buf, offset, numInstances);
+				vao.first.BindInstanceData(shader.first, buf, offset, numInstances);
 				offset += numInstances;
 			}
 }
 
-Shape& Render::InternalCreate(Object obj, ShaderProgram shader, Material mat, VertexData vertData)
+void Render::InternalCreate(Object obj, ShaderProgram shader, Material mat, VertexData vertData)
 {
 	using InstPermaRef = render_data_t::perma_ref_t<InstanceLevel>;
 	static accessor<Matrix4f, InstPermaRef> locaccesor = {
@@ -83,12 +77,9 @@ Shape& Render::InternalCreate(Object obj, ShaderProgram shader, Material mat, Ve
 	FixInstances(renderData, instanceBuffer);
 	//send the actual data each draw call
 	instanceBuffer.Data(renderData.get_level<InstanceLevel>().size());
-
-	auto vaoref = std::get<VAOLevel>(refs);
-	return renderData.get_level<VAOLevel>().find(vaoref)->first;
 }
 
-Shape& Render::InternalCreateStatic(Object obj, ShaderProgram shader,
+void Render::InternalCreateStatic(Object obj, ShaderProgram shader,
 	Material mat, VertexData vertData)
 {
 	using InstPermaRef = render_data_t::perma_ref_t<InstanceLevel>;
@@ -111,37 +102,15 @@ Shape& Render::InternalCreateStatic(Object obj, ShaderProgram shader,
 
 	FixInstances(staticRenderData, staticInstanceBuffer);
 	staticInstanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
-
-	auto vaoref = std::get<VAOLevel>(refs);
-	return staticRenderData.get_level<VAOLevel>().find(vaoref)->first;
 }
 
 void Render::Create(Object obj, ShaderProgram shader, Material mat,
 	VertexData vertData, Mobilty mobile)
 {
-	auto& shape = mobile == Mobilty::Yes
-		? InternalCreate(obj, shader, mat, vertData)
-		: InternalCreateStatic(obj, shader, mat, vertData);
-	
-    for (size_t i = 0; i < NumPasses; ++i)
-    {
-		shape.passShader[i] = defaultShader[i];
-		shape.passMaterial[i] = defaultMaterial[i];
-    }
-}
-
-void Render::Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
-	std::array<Material, AllPasses> mat, VertexData vertData, Mobilty mobile)
-{
-	auto& shape = mobile == Mobilty::Yes
-		? InternalCreate(obj, shader[0], mat[0], vertData)
-		: InternalCreateStatic(obj, shader[0], mat[0], vertData);
-	
-    for (size_t i = 0; i < NumPasses; ++i)
-    {
-		shape.passShader[i] = passShaders.insert(shader[i + 1]).first;
-		shape.passMaterial[i] = passMaterials.insert(mat[i + 1]).first;
-    }
+	if (mobile == Mobilty::Yes)
+		InternalCreate(obj, shader, mat, vertData);
+	else
+		InternalCreateStatic(obj, shader, mat, vertData);
 }
 
 void Render::DrawBucket(render_data_t& dat)
@@ -154,7 +123,7 @@ void Render::DrawBucket(render_data_t& dat)
 			mat.first.use();
 			for (auto& vao : dat.children<VAOLevel>(mat))
 			{
-				vao.first.vao.Draw();
+				vao.first.Draw();
 			}
 		}
 	}
@@ -171,36 +140,6 @@ void Render::Draw()
 	DrawBucket(staticRenderData);
 }
 
-void Render::DrawBucketPass(render_data_t& dat, int pass)
-{
-	auto curShader = passShaders.end();
-	auto curMat = passMaterials.end();
-
-	for (const auto& shape : dat.get_level<VAOLevel>())
-	{
-		if (curShader != shape.first.passShader[pass])
-		{
-			curShader = shape.first.passShader[pass];
-			curShader->use();
-		}
-		if (curMat != shape.first.passMaterial[pass])
-		{
-			curMat = shape.first.passMaterial[pass];
-			curMat->use();
-		}
-		shape.first.vao.Draw();
-	}
-}
-
-void Render::DrawPass(int pass)
-{
-	commonUBO["camera"] = camera;
-	commonUBO.Sync();
-
-	DrawBucketPass(renderData, pass);
-	DrawBucketPass(staticRenderData, pass);
-}
-
 template<>
 const Schema AttribTraits<InstData>::schema = {
     { "transform", GL_FLOAT, false, 0, {4, 4}, 4 * sizeof(float) },
@@ -215,7 +154,7 @@ void Render::Save(Object obj)
 		persist.Set<Render>(obj, false,
 			renderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
 			renderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
-			renderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.vao.GetVertexData());
+			renderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());
 	}
 	else if (staticObjs.count(obj))
 	{
@@ -223,7 +162,7 @@ void Render::Save(Object obj)
 		persist.Set<Render>(obj, false,
 			staticRenderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
 			staticRenderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
-			staticRenderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.vao.GetVertexData());
+			staticRenderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());
 	}
 }
 

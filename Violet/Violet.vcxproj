@@ -161,9 +161,7 @@
     <ClInclude Include="Profiling.hpp" />
     <ClInclude Include="Rendering\BufferObject.hpp" />
     <ClInclude Include="Rendering\FBO.hpp" />
-    <ClInclude Include="Rendering\FBO_detail.hpp" />
     <ClInclude Include="Rendering\Material.hpp" />
-    <ClInclude Include="Rendering\Picker.hpp" />
     <ClInclude Include="Rendering\Render.hpp" />
     <ClInclude Include="Rendering\RenderPasses.hpp" />
     <ClInclude Include="Rendering\Render_detail.hpp" />
@@ -215,7 +213,6 @@
     </ClCompile>
     <ClCompile Include="Rendering\FBO.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />
-    <ClCompile Include="Rendering\Picker.cpp" />
     <ClCompile Include="Rendering\Render.cpp" />
     <ClCompile Include="Rendering\RenderPasses.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
@@ -239,16 +236,12 @@
     <None Include="..\assets\blank.vert" />
     <None Include="..\assets\color.frag" />
     <None Include="..\assets\color.vert" />
-    <None Include="..\assets\picker.frag" />
-    <None Include="..\assets\picker.vert" />
     <None Include="..\assets\screen.frag" />
     <None Include="..\assets\screen.vert" />
     <None Include="..\assets\simple.frag" />
     <None Include="..\assets\simple.vert" />
     <None Include="..\assets\tool_arrow.frag" />
     <None Include="..\assets\tool_arrow.vert" />
-    <None Include="..\assets\tool_arrow_picker.frag" />
-    <None Include="..\assets\tool_arrow_picker.vert" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\GLFW\glfw3_32.lib" />

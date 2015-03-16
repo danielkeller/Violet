@@ -1,10 +1,13 @@
-out vec4 outputColor;
+out vec4 color;
+out uint picker;
 
+flat in uint objectFrag;
 in vec2 texCoordFrag;
 
 uniform sampler2D tex;
 
 void main()
 {
-   outputColor = texture(tex, texCoordFrag);
+   color = texture(tex, texCoordFrag);
+   picker = objectFrag;
 }

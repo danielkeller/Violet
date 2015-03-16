@@ -23,7 +23,6 @@ Tool::Tool(Render& r, Position& position)
 	VertexData arrow("ToolArrow", arrowVerts, arrowInds);
 
 	ShaderProgram arrowShader{ "assets/tool_arrow" };
-	ShaderProgram arrowPicker{ "assets/tool_arrow_picker" };
 	UBO xMat = arrowShader.MakeUBO("Material", "ToolX");
 	xMat["direction"] = Vector3f{ 1, 0, 0 }; //Vector3f::UnitX();
 	xMat.Sync();
@@ -33,9 +32,9 @@ Tool::Tool(Render& r, Position& position)
 	UBO zMat = arrowShader.MakeUBO("Material", "ToolZ");
 	zMat["direction"] = Vector3f{ 0, 0, 1 };
 	zMat.Sync();
-	r.Create(x, { arrowShader, arrowPicker }, { xMat, xMat }, arrow, Mobilty::Yes);
-	r.Create(y, { arrowShader, arrowPicker }, { yMat, yMat }, arrow, Mobilty::Yes);
-	r.Create(z, { arrowShader, arrowPicker }, { zMat, zMat }, arrow, Mobilty::Yes);
+	r.Create(x, arrowShader, xMat, arrow, Mobilty::Yes);
+	r.Create(y, arrowShader, yMat, arrow, Mobilty::Yes);
+	r.Create(z, arrowShader, zMat, arrow, Mobilty::Yes);
 
 	//i'm still not totally okay with having to save this after the calls to
 	//r.Create, but the alternative of making magic_ptrs shallow-copy

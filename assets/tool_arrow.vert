@@ -1,5 +1,9 @@
 in vec3 position;
+
 in mat4 transform;
+in uint object;
+
+flat out uint objectFrag;
 
 uniform Common
 {
@@ -29,4 +33,6 @@ void main()
     gl_Position = realTransform * vec4(position, 1);
 	//gl_Position = camera * transform * vec4(position, 1);
 	//gl_Position.z = .01;
+
+    objectFrag = object;
 }

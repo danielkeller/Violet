@@ -5,7 +5,7 @@
 #include "Persist.hpp"
 
 Edit::Edit(Render& r, RenderPasses& rp, Window& w, Position& position)
-	: w(w), pick(rp.Picker()), rp(rp), position(position)
+	: w(w), rp(rp), position(position)
 	, tool(r, position), focused(Object::none)
 	, mouseDown(false), viewPitch(0), viewYaw(0)
 {
@@ -18,9 +18,10 @@ void Edit::Editable(Object o)
 
 void Edit::PhysTick(Object camera)
 {
+	Object picked = rp.Pick(w.MousePosView());
+
 	if (w.LeftMouse() && !mouseDown) //just clicked
     {
-        Object picked = pick.Picked();
 		if (picked == Object::none) //click outside to deselect
 		{
 			if (selected != Object::none)
@@ -50,9 +51,9 @@ void Edit::PhysTick(Object camera)
 
 	tool.Update(w, camera, focused);
 
-	rp.Highlight(pick.Picked(), Picker::Hovered);
-	rp.Highlight(focused, Picker::Focused);
-	rp.Highlight(selected, Picker::Selected);
+	rp.Highlight(picked, RenderPasses::Hovered);
+	rp.Highlight(focused, RenderPasses::Focused);
+	rp.Highlight(selected, RenderPasses::Selected);
     
 	//right mouse to rotate
     if (w.RightMouse())

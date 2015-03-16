@@ -5,17 +5,10 @@
 #include "Shader.hpp"
 #include "Material.hpp"
 #include "VAO.hpp"
-#include "Picker.hpp"
+#include "Object.hpp"
 
 class Render;
 class Window;
-
-enum Passes
-{
-	PickerPass,
-	NumPasses,
-	AllPasses
-};
 
 class RenderPasses
 {
@@ -25,19 +18,35 @@ public:
 	void WindowResize(Eigen::Vector2i size);
 	void Draw();
 
+	enum Passes
+	{
+		MainPass,
+		PickerPass,
+		NumPasses,
+	};
+
+	enum Highlights
+	{
+		//Ordered by priority
+		Focused = 0,
+		Selected,
+		Hovered,
+	};
+
 	//set the highlighted object
-	void Highlight(Object o, Picker::Highlights type);
-	Picker& Picker() { return pickerPass; }
+	void Highlight(Object o, Highlights type);
+	Object Pick(Vector2f posView) const;
 
 private:
 	Render& r;
 
-	FBO<> mainPass;
-	::Picker pickerPass;
+	FBO fbo;
 
 	ShaderProgram screenShader;
 	Material screenMat;
 	VAO screenQuad;
 };
+
+static const char* shaderOutputs[] = { "color", "picker" };
 
 #endif

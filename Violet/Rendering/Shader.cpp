@@ -6,6 +6,7 @@
 
 #include "Utils/Template.hpp"
 #include "Persist.hpp"
+#include "RenderPasses.hpp"
 
 struct Uniforms
 {
@@ -221,6 +222,10 @@ void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag,
     for (const auto& pair : standardAttribs)
         glBindAttribLocation(program, pair.second, pair.first.c_str());
     
+	int colorBuffer = 0;
+	for (const auto& str : shaderOutputs)
+		glBindFragDataLocation(program, colorBuffer++, str);
+
     //link the program Render
     glLinkProgram(program);
 

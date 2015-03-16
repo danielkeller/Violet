@@ -30,10 +30,6 @@ enum class Mobilty
 class Render
 {
 public:
-	void Create(Object obj, std::array<ShaderProgram, AllPasses> shader,
-		std::array<Material, AllPasses> mat, VertexData vertData,
-		Mobilty mobile = Mobilty::No);
-    //create with defaults
 	void Create(Object obj, ShaderProgram shader, Material mat,
 		VertexData vertData, Mobilty mobile = Mobilty::No);
 
@@ -43,11 +39,7 @@ public:
 	void Load();
 
 	void Draw();
-    void DrawPass(int pass);
 	Matrix4f camera;
-
-	//FIXME: this is bad!
-    void PassDefaults(Passes pass, ShaderProgram shader, Material mat);
 
 	Render(Position&, Mobile&, Persist&);
 	Render(const Render&) = delete;
@@ -64,12 +56,8 @@ private:
 	ShaderProgram simpleShader;
     UBO commonUBO;
 
-    std::unordered_set<ShaderProgram> passShaders;
-    std::unordered_set<Material> passMaterials;
-
 	static const int ShaderLevel = 0, MatLevel = 1, VAOLevel = 2, InstanceLevel = 3;
-	using render_data_t = tuple_tree<ShaderProgram, Material,
-		Render_detail::Shape, Render_detail::InstData>;
+	using render_data_t = tuple_tree<ShaderProgram, Material, VAO, Render_detail::InstData>;
 
 	render_data_t staticRenderData;
 	BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STATIC_DRAW> staticInstanceBuffer;
@@ -85,22 +73,16 @@ private:
 
 	std::unordered_map<Object, render_data_t::perma_refs_t> objs;
 
-    std::array<std::unordered_set<ShaderProgram>::iterator, NumPasses> defaultShader;
-	std::array<std::unordered_set<Material>::iterator, NumPasses> defaultMaterial;
-
-	Render_detail::Shape&
-		InternalCreateStatic(Object obj, ShaderProgram shader, Material mat,
+	void InternalCreateStatic(Object obj, ShaderProgram shader, Material mat,
 		VertexData vertData);
 
-	Render_detail::Shape&
-		InternalCreate(Object obj, ShaderProgram shader, Material mat,
+	void InternalCreate(Object obj, ShaderProgram shader, Material mat,
 		VertexData vertData);
 
 	template<class BufferObjTy>
 	void FixInstances(render_data_t& dat, BufferObjTy& buf);
 
 	void DrawBucket(render_data_t& dat);
-	void DrawBucketPass(render_data_t& dat, int pass);
 };
 
 MAKE_PERSIST_TRAITS(Render, Object, bool, ShaderProgram, Material, VertexData);

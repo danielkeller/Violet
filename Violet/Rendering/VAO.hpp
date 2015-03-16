@@ -14,6 +14,8 @@ public:
 	~VAO();
 
 	VAO(const ShaderProgram& program, const VertexData& vertdata);
+	VAO(std::tuple<ShaderProgram&, VertexData&> tup)
+		: VAO(std::get<0>(tup), std::get<1>(tup)) {}
 
 	VAO& operator=(VAO v);
 
@@ -49,7 +51,13 @@ public:
 	GLsizei NumInstances() const { return numInstances; }
 	VertexData GetVertexData() const { return vertexData; }
 
-	MEMBER_EQUALITY(VertexData, vertexData)
+	MEMBER_EQUALITY(VertexData, vertexData);
+
+	//HACK
+	bool operator==(std::tuple<ShaderProgram&, VertexData&> tup) const
+	{ return *this == std::get<1>(tup); }
+	bool operator!=(std::tuple<ShaderProgram&, VertexData&> tup) const
+	{ return *this != std::get<1>(tup);	}
 
 private:
 	void BindArrayBufToShader(const ShaderProgram& program, const Schema& schema,

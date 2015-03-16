@@ -1,7 +1,6 @@
 #ifndef EDIT_HPP
 #define EDIT_HPP
 
-#include "Rendering/Picker.hpp"
 #include "Editor/Tool.hpp"
 #include <unordered_set>
 
@@ -21,7 +20,6 @@ public:
 
 private:
     Window& w;
-	Picker& pick;
 	RenderPasses& rp;
 	Position& position;
     Tool tool;
