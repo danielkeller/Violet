@@ -30,12 +30,14 @@ namespace magic_detail
 		static std::shared_ptr<magic_detail::acc_heap_obj<T>> null_acc_heap_obj;
 	};
 
+	//Trivial getter
 	template<class T, class Key>
 	getter_t<T> make_getter()
 	{
 		return [](key_ty key) { assert(false && "get called on set-only accessor"); return T{}; };
 	}
 
+	//plain callable
 	template<class Key, class Getter,
 		class T = decltype(std::declval<Getter>()())>
 	getter_t<T> make_getter(Getter g)
@@ -43,6 +45,7 @@ namespace magic_detail
 		return [g] (key_ty key) { return g(); };
 	}
 
+	//callable taking key
 	template<class Key, class Getter,
 		typename T = decltype(std::declval<Getter>()(std::declval<Key>()))>
 	getter_t<T> make_getter(Getter g, int = 0)
@@ -50,6 +53,7 @@ namespace magic_detail
 		return [g] (key_ty key) { return g(*reinterpret_cast<const Key*>(&key)); };
 	}
 	
+	//pointer to member function
 	template<class Class, class Getter,
 		typename T = decltype(CALL_MEMBER_FN(*std::declval<Class>(), std::declval<Getter>())())>
 		getter_t<T> make_getter(Getter g, int = 0, int = 0)
@@ -57,28 +61,49 @@ namespace magic_detail
 		return [g](key_ty key)	{ return CALL_MEMBER_FN(**reinterpret_cast<Class*>(&key), g)(); };
 	}
 
+	//pointer to data member
+	template<class Class, class Getter,
+		typename T = std::remove_reference_t
+		<decltype(std::declval<Class>()->*std::declval<Getter>())>>
+		getter_t<T> make_getter(Getter g, int = 0, int = 0, int = 0)
+	{
+		return [g](key_ty key)	{ return *reinterpret_cast<Class*>(&key)->*g; };
+	}
+
+	//plain callable
 	template<class T, class Key, class Setter,
 	class = decltype(std::declval<Setter>()(std::declval<T>()))>
 		setter_t<T> make_setter(Setter s)
 	{
-		return [s](key_ty key, const T& val) mutable { return s(val); };
+		return [s](key_ty key, const T& val) mutable { s(val); };
 	}
 
+	//callable taking key
 	template<class T, class Key, class Setter,
 		typename = decltype(std::declval<Setter>()(std::declval<Key>(), std::declval<T>()))>
 		setter_t<T> make_setter(Setter s, int = 0)
 	{
 		return [s](key_ty key, const T& val) mutable
-		{ return s(*reinterpret_cast<const Key*>(&key), val); };
+		{ s(*reinterpret_cast<const Key*>(&key), val); };
 	}
 
+	//pointer to member function
 	template<class T, class Class, class Setter,
 		typename = decltype(CALL_MEMBER_FN(*std::declval<Class>(), std::declval<Setter>())
 			(std::declval<T>()))>
 		setter_t<T> make_setter(Setter s, int = 0, int = 0)
 	{
 		return [s](key_ty key, const T& val) mutable
-		{ return CALL_MEMBER_FN(**reinterpret_cast<Class*>(&key), s)(val); };
+		{ CALL_MEMBER_FN(**reinterpret_cast<Class*>(&key), s)(val); };
+	}
+
+	//pointer to data member
+	template<class T, class Class, class Setter>
+		auto make_setter(Setter s, int = 0, int = 0, int = 0) ->
+			setter_t<std::remove_reference_t<decltype(std::declval<Class>()->*s)>>
+	{
+		return [s](key_ty key, const T& val) mutable
+		{ *reinterpret_cast<Class*>(&key)->*s = val; };
 	}
 };
 
@@ -206,6 +231,16 @@ public:
 		new(&key) Key(k);
 	}
 
+	template<class Class>
+	magic_ptr(void (Class::* memPtr)(T), Class* classPtr)
+		: magic_ptr(accessor<T, Class*>(memPtr), classPtr)
+	{}
+
+	template<class Class>
+	magic_ptr(T Class::* memPtr, Class* classPtr)
+		: magic_ptr(accessor<T, Class*>(memPtr, memPtr), classPtr)
+	{}
+
 	//converting magic_ptr
 	template<class U, typename = typename std::enable_if_t<
 		std::is_convertible<T, U>::value && std::is_convertible<U, T>::value >>
@@ -300,6 +335,18 @@ template<class T, class Key>
 magic_ptr<T> make_magic(accessor<T, Key> acc, Key k)
 {
 	return{ acc, k };
+}
+
+template<class Class, class Mem>
+magic_ptr<Mem> make_magic(Mem Class::* memPtr, Class* classPtr)
+{
+	return{ memPtr, classPtr };
+}
+
+template<class Class, class T>
+magic_ptr<T> make_magic(void (Class::* memPtr)(T), Class* classPtr)
+{
+	return{ memPtr, classPtr };
 }
 
 #endif

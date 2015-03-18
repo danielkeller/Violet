@@ -7,7 +7,7 @@
 Edit::Edit(Render& r, RenderPasses& rp, Window& w, Position& position)
 	: w(w), rp(rp), position(position)
 	, tool(r, position), focused(Object::none)
-	, mouseDown(false), viewPitch(0), viewYaw(0)
+	, viewPitch(0), viewYaw(0)
 {
 }
 
@@ -20,7 +20,7 @@ void Edit::PhysTick(Object camera)
 {
 	Object picked = rp.Pick(w.MousePosView());
 
-	if (w.LeftMouse() && !mouseDown) //just clicked
+	if (w.LeftMouseClick())
     {
 		if (picked == Object::none) //click outside to deselect
 		{
@@ -36,9 +36,8 @@ void Edit::PhysTick(Object camera)
 				tool.SetTarget(position[selected]);
 		}
 		focused = picked;
-        mouseDown = true;
     }
-	else if (!w.LeftMouse() && mouseDown) //just released
+	else if (w.LeftMouseRelease()) //just released
     {
 		//save the object once we stop moving
 		if (selected != Object::none)
@@ -46,7 +45,6 @@ void Edit::PhysTick(Object camera)
 
 		//focus reverts to the selectable object that was selected
 		focused = selected;
-        mouseDown = false;
 	}
 
 	tool.Update(w, camera, focused);

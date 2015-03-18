@@ -221,7 +221,6 @@ void Database::Track(const char* name, Columns cols)
 
 	schema[name] = cols;
 
-	const char * const key = *cols.begin();
 	bool has_fk = false;
 
 	std::stringstream command;

@@ -148,11 +148,15 @@ Window::~Window()
 
 void Window::GetInput()
 {
+	leftMouseOld = leftMouseCur; rightMouseOld = rightMouseCur;
 	mouseOld = mouseCur;
     double x, y;
 	glfwGetCursorPos(window, &x, &y);
 	//opengl and glfw use opposite viewport coordinates
 	mouseCur << float(x), float(dimVec.y() - y);
+
+	leftMouseCur = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	rightMouseCur = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
 }
 
 void Window::ClearInput()
@@ -227,12 +231,32 @@ Matrix4f Window::PerspMat() const
 
 bool Window::LeftMouse() const
 {
-    return glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	return leftMouseCur;
+}
+
+bool Window::LeftMouseClick() const
+{
+	return leftMouseCur && !leftMouseOld;
+}
+
+bool Window::LeftMouseRelease() const
+{
+	return !leftMouseCur && leftMouseOld;
 }
 
 bool Window::RightMouse() const
 {
-    return glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+	return rightMouseCur;
+}
+
+bool Window::RightMouseClick() const
+{
+	return rightMouseCur && !rightMouseOld;
+}
+
+bool Window::RightMouseRelease() const
+{
+	return !rightMouseCur && rightMouseOld;
 }
 
 bool Window::ShouldClose() const

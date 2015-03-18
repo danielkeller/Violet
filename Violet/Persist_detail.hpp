@@ -46,7 +46,7 @@ namespace Persist_detail
 			BindAll(GenSeq<sizeof...(vs)+1>(), vs...);
 		}
 
-		template<typename... Values, size_t... Inds>
+		template<typename... Values, unsigned... Inds>
 		void BindAll(seq<0, Inds...>, const Values&... vs)
 		{
 			std::make_tuple((Bind1(Inds, vs), 0)...);
@@ -101,7 +101,7 @@ namespace Persist_detail
 			return GetAll<Values...>(GenSeq<sizeof...(Values)>());
 		}
 
-		template<typename... Values, size_t... Inds>
+		template<typename... Values, unsigned... Inds>
 		std::tuple<Values...> GetAll(seq<Inds...>)
 		{
 			return std::make_tuple(Get1<Values>(Inds)...);

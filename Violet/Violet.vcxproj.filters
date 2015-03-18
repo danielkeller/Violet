@@ -26,6 +26,7 @@
     </Filter>
     <Filter Include="Libs">
       <UniqueIdentifier>{c3815a18-e4ed-4320-8957-77e2b7e080cb}</UniqueIdentifier>
+      <ParseFiles>false</ParseFiles>
     </Filter>
   </ItemGroup>
   <ItemGroup>

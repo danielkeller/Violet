@@ -28,7 +28,6 @@ private:
 
     Object focused;
     Object selected;
-    bool mouseDown;
 	float viewPitch, viewYaw;
 };
 

@@ -34,8 +34,6 @@ try
 	Object teapotObj = objName["teapot"];
 	Object teapot2Obj = objName["teapot2"];
 
-	r.Load();
-
 	//AABB teapotAabb(teapot.mesh);
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);

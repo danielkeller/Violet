@@ -15,28 +15,12 @@ Render::Render(Position& position, Mobile& m, Persist& persist)
 {
 	//Assumes no one binds over UBO::Common
 	commonUBO.Bind();
-}
 
-void Render::Load()
-{
 	for (const auto& row : persist.GetAll<Render>())
 	{
 		Create(std::get<0>(row), std::get<2>(row), std::get<3>(row), std::get<4>(row),
 			std::get<1>(row) ? Mobilty::Yes : Mobilty::No);
 	}
-}
-
-//this really should be its own data structure
-template<class data_t, class lower_data_t>
-std::pair<typename lower_data_t::iterator, typename lower_data_t::iterator>
-range_of(typename data_t::iterator it, data_t& data, lower_data_t& lower_data)
-{
-    if (it == data.end())
-        return {lower_data.end(), lower_data.end()};
-    else if (it + 1 == data.end())
-        return {lower_data.find(it[0].begin), lower_data.end()};
-    else
-		return{ lower_data.find(it[0].begin), lower_data.find(it[1].begin) };
 }
 
 template<class BufferObjTy>

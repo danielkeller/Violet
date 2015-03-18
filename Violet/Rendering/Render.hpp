@@ -32,11 +32,12 @@ class Render
 public:
 	void Create(Object obj, ShaderProgram shader, Material mat,
 		VertexData vertData, Mobilty mobile = Mobilty::No);
+	//For things like text that use custom instance data
+	//void Create(Object obj, ShaderProgram shader, Material mat, VAO vao);
 
 	void Remove(Object obj);
 
 	void Save(Object obj);
-	void Load();
 
 	void Draw();
 	Matrix4f camera;

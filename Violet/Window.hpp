@@ -42,8 +42,12 @@ public:
 
     magic_ptr<Vector2i> dim;
 
-    bool LeftMouse() const;
-    bool RightMouse() const;
+	bool LeftMouse() const;
+	bool LeftMouseClick() const;
+	bool LeftMouseRelease() const;
+	bool RightMouse() const;
+	bool RightMouseClick() const;
+	bool RightMouseRelease() const;
     
     bool ShouldClose() const;
 
@@ -51,6 +55,7 @@ private:
     GLFWwindow* window;
     Vector2i dimVec;
     
+	bool leftMouseOld, leftMouseCur, rightMouseOld, rightMouseCur;
 	Vector2f mouseOld, mouseCur, scrollAmt;
 
 	friend void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);

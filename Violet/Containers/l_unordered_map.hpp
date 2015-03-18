@@ -44,7 +44,6 @@ public:
 	}
 
 public:
-	//Using a special iterator that gets rid of the key crashes MSVC
 	using iterator = typename storety::iterator;
 	using const_iterator = typename storety::const_iterator;
 
