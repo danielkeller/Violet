@@ -28,6 +28,9 @@
       <UniqueIdentifier>{c3815a18-e4ed-4320-8957-77e2b7e080cb}</UniqueIdentifier>
       <ParseFiles>false</ParseFiles>
     </Filter>
+    <Filter Include="Source Files\UI">
+      <UniqueIdentifier>{3b4775a7-6560-4d61-9504-18642c596ee1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Rendering\Render.hpp">
@@ -147,6 +150,15 @@
     <ClInclude Include="Utils\Template.hpp">
       <Filter>Source Files\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="UI\Layout.hpp">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Box.hpp">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UI.hpp">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -224,6 +236,12 @@
     <ClCompile Include="Rendering\Material.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="UI\Box.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UI.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\simple.frag">
@@ -254,6 +272,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\assets\screen.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\uibox.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\uibox.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -129,6 +129,8 @@ private:
 		Proxy(UBO& ubo, Uniform unif)
 			: ubo(ubo), unif(unif) {}
 
+		explicit operator Vector2i() const;
+		Proxy& operator=(const Vector2i&);
         explicit operator Vector3f() const;
         Proxy& operator=(const Vector3f&);
 		explicit operator Matrix3f() const;

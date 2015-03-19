@@ -332,7 +332,7 @@ std::make_shared<magic_detail::acc_heap_obj<T>>();
 
 //deduce type from arguments
 template<class T, class Key>
-magic_ptr<T> make_magic(accessor<T, Key> acc, Key k)
+magic_ptr<T> make_magic(accessor<T, Key> acc, Key k = magic_detail::key_ty())
 {
 	return{ acc, k };
 }

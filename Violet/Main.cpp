@@ -10,6 +10,9 @@
 #include "Rendering/RenderPasses.hpp"
 #include "Persist.hpp"
 
+#include "UI/UI.hpp"
+#include "UI/Box.hpp"
+
 #include <iostream>
 
 int main(void)
@@ -28,6 +31,8 @@ try
 	Render r(position, m, persist);
 	RenderPasses passes(w, r);
 	Edit edit(r, passes, w, position);
+
+	BoxInit(w);
 
 	Object camera = objName["camera"];
 
@@ -81,6 +86,8 @@ try
 			w.PreDraw();
 			r.camera = w.PerspMat() * *m[camera]; //FIXME
 			passes.Draw();
+
+			DrawUI(w);
 		}
         w.PostDraw();
     };

@@ -173,6 +173,9 @@
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Time.hpp" />
+    <ClInclude Include="UI\Box.hpp" />
+    <ClInclude Include="UI\Layout.hpp" />
+    <ClInclude Include="UI\UI.hpp" />
     <ClInclude Include="Utils\Template.hpp" />
     <ClInclude Include="Wavefront.hpp" />
     <ClInclude Include="Window.hpp" />
@@ -228,6 +231,8 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zm120 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Time.cpp" />
+    <ClCompile Include="UI\Box.cpp" />
+    <ClCompile Include="UI\UI.cpp" />
     <ClCompile Include="Wavefront.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -242,6 +247,8 @@
     <None Include="..\assets\simple.vert" />
     <None Include="..\assets\tool_arrow.frag" />
     <None Include="..\assets\tool_arrow.vert" />
+    <None Include="..\assets\uibox.frag" />
+    <None Include="..\assets\uibox.vert" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\GLFW\glfw3_32.lib" />
