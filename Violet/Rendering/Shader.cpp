@@ -166,12 +166,14 @@ GLuint CreateShader(GLenum eShaderType, std::istream &t, const std::string& name
     if (!t)
         throw std::runtime_error("Shader file '" + name + "'not found");
 
-    static const std::string versionString =
+	static const std::string versionString =
 #ifdef __APPLE__
-        "#version 330\n";
+		"#version 330\n"
+		"#line 0 ";
 #else
-        "#version 130\n"
-        "#extension GL_ARB_uniform_buffer_object : require\n";
+		"#version 130\n"
+		"#extension GL_ARB_uniform_buffer_object : require\n"
+		"#line 0 ";
 #endif
 
     //read the stream into a string
@@ -180,7 +182,7 @@ GLuint CreateShader(GLenum eShaderType, std::istream &t, const std::string& name
     std::string buffer(size, ' ');
     t.seekg(0);
     t.read(&buffer[0], size); 
-    buffer = versionString + buffer;
+    buffer = versionString + '"' + name + "\"\n" + buffer;
 
     //create the shader Render
     GLuint shader = glCreateShader(eShaderType);
@@ -200,7 +202,7 @@ GLuint CreateShader(GLenum eShaderType, std::istream &t, const std::string& name
 
         //print error message
         glGetShaderInfoLog(shader, infoLogLength, NULL, infoLog.data());
-        throw std::runtime_error(name + ':' + infoLog.data());
+        throw std::runtime_error(infoLog.data());
     }
 
     return shader;
@@ -399,14 +401,16 @@ Columns PersistSchema<UBO>::cols = {"name", "shader", "block", "data"};
 template<typename T, GLenum ty>
 T UBO::Proxy::ConvertOpHelper() const
 {
-	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform " + unif.name);
+	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform '" + unif.name
+		+ "' in shader " + ubo.resource->shader.Name());
 	return FromBytes<T>()(ubo.resource->data.data() + unif.offset);
 }
 
 template<GLenum ty, typename T>
 UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 {
-	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform " + unif.name);
+	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform '" + unif.name
+		+ "' in shader " + ubo.resource->shader.Name());
 	Eigen::Map<T>(reinterpret_cast<typename T::Scalar*>(
         ubo.resource->data.data() + unif.offset))
         = val;
@@ -416,9 +420,20 @@ UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 template<GLenum ty, typename T>
 UBO::Proxy& UBO::Proxy::ScalarAssignOpHelper(const T& val)
 {
-	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform " + unif.name);
+	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform '" + unif.name
+		+ "' in shader " + ubo.resource->shader.Name());
 	*reinterpret_cast<T*>(ubo.resource->data.data() + unif.offset) = val;
 	return *this;
+}
+
+UBO::Proxy::operator Vector2i() const
+{
+	return ConvertOpHelper<Vector2i, GL_INT_VEC2>();
+}
+
+UBO::Proxy& UBO::Proxy::operator=(const Vector2i& v)
+{
+	return AssignOpHelper<GL_INT_VEC2>(v);
 }
 
 UBO::Proxy::operator Vector3f() const
