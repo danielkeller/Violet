@@ -26,16 +26,25 @@ void RenderPasses::WindowResize(Eigen::Vector2i size)
 	fbo.AttachDepth(RenderBuffer{ GL_DEPTH_COMPONENT, size });
 	fbo.CheckStatus();
 
-	screenMat.textures = {mainTex, pickerTex};
+	screenMat.textures = { mainTex, pickerTex };
 }
 
 void RenderPasses::Draw()
 {
+	//Draw the correct sides of things
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
 	{
 		auto bound = fbo.Bind(GL_FRAMEBUFFER);
 		fbo.PreDraw({ Eigen::Matrix<GLuint, 4, 1>::Zero(), { Object::none.Id(), 0, 0, 0 } });
 		r.Draw();
 	}
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 	
 	screenShader.use();
 	screenMat.use();

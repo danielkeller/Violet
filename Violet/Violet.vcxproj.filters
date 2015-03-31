@@ -159,6 +159,9 @@
     <ClInclude Include="UI\UI.hpp">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Text.hpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -242,6 +245,9 @@
     <ClCompile Include="UI\UI.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Text.cpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\simple.frag">
@@ -278,6 +284,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\assets\uibox.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\text.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\text.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

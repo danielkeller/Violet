@@ -39,6 +39,16 @@ public:
 
 	template<class T, GLenum usage>
 	void BindInstanceData(const ShaderProgram& program,
+		const BufferObject<T, GL_ARRAY_BUFFER, usage>& buf)
+	{
+		auto bound = Bind();
+		buf.Bind();
+		BindArrayBufToShader(program, AttribTraits<T>::schema, sizeof(T), 0, true);
+		numInstances = static_cast<GLsizei>(buf.Size());
+	}
+
+	template<class T, GLenum usage>
+	void BindInstanceData(const ShaderProgram& program,
 		const BufferObject<T, GL_ARRAY_BUFFER, usage>& buf,
 		GLsizei offset, GLsizei len)
 	{

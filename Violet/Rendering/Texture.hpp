@@ -51,6 +51,10 @@ public:
     TypedTex(TexDim dim);
 	TypedTex(std::string path)
         : Tex(path) {}
+
+	//must be right amout of data
+	void Image(const Pixel* data);
+
     HAS_HASH
 };
 

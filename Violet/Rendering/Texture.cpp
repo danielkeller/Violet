@@ -83,6 +83,15 @@ GLuint Tex::Handle() const
     return textureObject;
 }
 
+//TODO: make this better
+
+template<>
+GLenum PixelTraits<std::uint8_t>::internalFormat = GL_R8;
+template<>
+GLenum PixelTraits<std::uint8_t>::format = GL_RED;
+template<>
+GLenum PixelTraits<std::uint8_t>::type = GL_UNSIGNED_BYTE;
+
 template<>
 GLenum PixelTraits<std::uint32_t>::internalFormat = GL_R32UI;
 template<>

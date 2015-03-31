@@ -40,3 +40,12 @@ TypedTex<Pixel>::TypedTex(TexDim dim)
 	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(PixelTraits<Pixel>::internalFormat),
                  dim.x(), dim.y(), 0, PixelTraits<Pixel>::format, PixelTraits<Pixel>::type, nullptr);
 }
+
+template<class Pixel>
+void TypedTex<Pixel>::Image(const Pixel* data)
+{
+	auto dim = resource->dim;
+	glBindTexture(GL_TEXTURE_2D, textureObject);
+	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(PixelTraits<Pixel>::internalFormat),
+		dim.x(), dim.y(), 0, PixelTraits<Pixel>::format, PixelTraits<Pixel>::type, data);
+}

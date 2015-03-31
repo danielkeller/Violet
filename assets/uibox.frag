@@ -18,13 +18,7 @@ void main()
 		min(bot.x - fragCoord.x, bot.y - fragCoord.y));
 
 	if (edgeDist == 0)
-		outputColor = vec4(.3, .3, .3, 1);
-	else if (edgeDist == 1)
-		outputColor = vec4(.1, .1, .1, 1);
-	else if (fragCoord.y - top.y == 2)
 		outputColor = vec4(.5, .5, .5, 1);
-	else if (bot.y - fragCoord.y == 2)
-		outputColor = vec4(0,0,0, 1);
 	else
-		outputColor = vec4(.4, .4, .4, 1);
+		outputColor = vec4(1, 1, 1, 1);
 }

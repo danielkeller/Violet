@@ -166,6 +166,7 @@
     <ClInclude Include="Rendering\RenderPasses.hpp" />
     <ClInclude Include="Rendering\Render_detail.hpp" />
     <ClInclude Include="Rendering\Shader.hpp" />
+    <ClInclude Include="Rendering\Text.hpp" />
     <ClInclude Include="Rendering\Texture.hpp" />
     <ClInclude Include="Rendering\Texture_detail.hpp" />
     <ClInclude Include="Rendering\VAO.hpp" />
@@ -219,6 +220,7 @@
     <ClCompile Include="Rendering\Render.cpp" />
     <ClCompile Include="Rendering\RenderPasses.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
+    <ClCompile Include="Rendering\Text.cpp" />
     <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\VAO.cpp" />
     <ClCompile Include="Rendering\VertexData.cpp" />
@@ -245,6 +247,8 @@
     <None Include="..\assets\screen.vert" />
     <None Include="..\assets\simple.frag" />
     <None Include="..\assets\simple.vert" />
+    <None Include="..\assets\text.frag" />
+    <None Include="..\assets\text.vert" />
     <None Include="..\assets\tool_arrow.frag" />
     <None Include="..\assets\tool_arrow.vert" />
     <None Include="..\assets\uibox.frag" />

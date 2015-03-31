@@ -130,13 +130,6 @@ Window::Window()
     glDebugMessageCallbackARB(glDebugProc, nullptr);
 #endif
 
-	//Draw the correct sides of things
-	glCullFace(GL_FRONT_AND_BACK);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	//clear to black
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
 	ClearInput();
 }
 
@@ -227,6 +220,17 @@ Matrix4f Window::PerspMat() const
 		0, 0, 0, 1;
 	return perspective((float)M_PI / 2.f, (float)dimVec.x() / dimVec.y(),
 		.01f, 100.f) * z_upToY_up;
+}
+
+Matrix4f PixelMat(Vector2i dim)
+{
+	Matrix4f ret;
+	ret <<
+		2.f / float(dim.x()), 0, 0, -1,
+		0, -2.f / float(dim.y()), 0, 1,
+		0, 0, 1, 0,
+		0, 0, 0, 1;
+	return ret;
 }
 
 bool Window::LeftMouse() const

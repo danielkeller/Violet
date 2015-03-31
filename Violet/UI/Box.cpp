@@ -26,7 +26,7 @@ void DrawBox(Vector2i corner, Vector2i size)
 	boxVAO.Draw();
 }
 
-void WinResize(Vector2i sz)
+static void WinResize(Vector2i sz)
 {
 	static ShaderProgram boxShdr("assets/uibox");
 	static UBO boxMat = boxShdr.MakeUBO("Material", "BoxMat");

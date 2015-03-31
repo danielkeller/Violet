@@ -13,6 +13,8 @@
 #include "UI/UI.hpp"
 #include "UI/Box.hpp"
 
+#include "Rendering/Text.hpp"
+
 #include <iostream>
 
 int main(void)
@@ -33,6 +35,7 @@ try
 	Edit edit(r, passes, w, position);
 
 	BoxInit(w);
+	TextInit(w);
 
 	Object camera = objName["camera"];
 
@@ -61,6 +64,8 @@ try
 	position[camera]->pos = {0, -3, 0};
     
     Time t;
+
+	Font fnt{ "assets/DroidSansMono.ttf" };
     
     auto physTick = [&]()
 	{
@@ -88,9 +93,10 @@ try
 			passes.Draw();
 
 			DrawUI(w);
+			DrawText(fnt, "hi i am text", { 2, 14 });
 		}
         w.PostDraw();
-    };
+	};
     
     t.MainLoop(physTick, renderTick);
     
