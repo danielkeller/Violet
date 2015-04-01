@@ -11,9 +11,9 @@
 #include "Persist.hpp"
 
 #include "UI/UI.hpp"
-#include "UI/Box.hpp"
+#include "UI/PixelDraw.hpp"
 
-#include "Rendering/Text.hpp"
+#include "UI/Text.hpp"
 
 #include <iostream>
 
@@ -34,8 +34,7 @@ try
 	RenderPasses passes(w, r);
 	Edit edit(r, passes, w, position);
 
-	BoxInit(w);
-	TextInit(w);
+	PixelInit(w);
 
 	Object camera = objName["camera"];
 

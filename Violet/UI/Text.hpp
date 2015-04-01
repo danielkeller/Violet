@@ -18,8 +18,4 @@ private:
 	std::shared_ptr<FontResource> resource;
 };
 
-class Window;
-
-void TextInit(Window& w);
-
 #endif

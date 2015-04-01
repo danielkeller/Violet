@@ -153,14 +153,14 @@
     <ClInclude Include="UI\Layout.hpp">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
-    <ClInclude Include="UI\Box.hpp">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
     <ClInclude Include="UI\UI.hpp">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Text.hpp">
-      <Filter>Source Files\Rendering</Filter>
+    <ClInclude Include="UI\Text.hpp">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\PixelDraw.hpp">
+      <Filter>Source Files\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -239,14 +239,14 @@
     <ClCompile Include="Rendering\Material.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="UI\Box.cpp">
-      <Filter>Source Files\UI</Filter>
-    </ClCompile>
     <ClCompile Include="UI\UI.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Text.cpp">
-      <Filter>Source Files\Rendering</Filter>
+    <ClCompile Include="UI\Text.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\PixelDraw.cpp">
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

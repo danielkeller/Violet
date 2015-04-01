@@ -7,6 +7,7 @@ struct Layout;
 void DrawBox(Vector2i corner, Vector2i size);
 void DrawBox(const Layout& l);
 
-void BoxInit(Window& w);
+void PixelInit(Window& w);
+void BindPixelUBO();
 
 #endif

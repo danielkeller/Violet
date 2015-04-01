@@ -2,11 +2,9 @@ in vec2 texCoord;
 
 out vec2 texCoordFrag;
 
-uniform Material
+uniform Common
 {
 	mat4 pixelMat;
-	vec3 color;
-	vec3 bgColor;
 };
 
 in vec2 topLeft;

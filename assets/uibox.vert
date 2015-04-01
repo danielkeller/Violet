@@ -1,16 +1,20 @@
-in vec3 position;
+in vec2 texCoord;
+
+uniform Common
+{
+	mat4 pixelMat;
+};
 
 uniform Material
 {
-	ivec2 viewport;
 	ivec2 top;
 	ivec2 size;
 };
 
+out vec2 fragCoord;
+
 void main()
 {
-	vec3 pos = position / 2 + 0.5;
-	float x = (top.x + pos.x * size.x + 0.5) / float(viewport.x);
-	float y = (viewport.y - top.y - pos.y * size.y + 0.5) / float(viewport.y) ;
-    gl_Position = vec4(vec2(x, y)*2-1, 0, 1);
+	fragCoord = vec2(top + texCoord*size);
+    gl_Position = pixelMat * vec4(fragCoord, 0, 1);
 }

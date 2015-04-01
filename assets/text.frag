@@ -4,7 +4,6 @@ in vec2 texCoordFrag;
 
 uniform Material
 {
-	mat4 pixelMat;
 	vec3 color;
 	vec3 bgColor;
 };

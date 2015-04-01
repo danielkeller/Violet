@@ -166,7 +166,6 @@
     <ClInclude Include="Rendering\RenderPasses.hpp" />
     <ClInclude Include="Rendering\Render_detail.hpp" />
     <ClInclude Include="Rendering\Shader.hpp" />
-    <ClInclude Include="Rendering\Text.hpp" />
     <ClInclude Include="Rendering\Texture.hpp" />
     <ClInclude Include="Rendering\Texture_detail.hpp" />
     <ClInclude Include="Rendering\VAO.hpp" />
@@ -174,8 +173,9 @@
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Time.hpp" />
-    <ClInclude Include="UI\Box.hpp" />
+    <ClInclude Include="UI\PixelDraw.hpp" />
     <ClInclude Include="UI\Layout.hpp" />
+    <ClInclude Include="UI\Text.hpp" />
     <ClInclude Include="UI\UI.hpp" />
     <ClInclude Include="Utils\Template.hpp" />
     <ClInclude Include="Wavefront.hpp" />
@@ -220,7 +220,6 @@
     <ClCompile Include="Rendering\Render.cpp" />
     <ClCompile Include="Rendering\RenderPasses.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
-    <ClCompile Include="Rendering\Text.cpp" />
     <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\VAO.cpp" />
     <ClCompile Include="Rendering\VertexData.cpp" />
@@ -233,7 +232,8 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zm120 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Time.cpp" />
-    <ClCompile Include="UI\Box.cpp" />
+    <ClCompile Include="UI\PixelDraw.cpp" />
+    <ClCompile Include="UI\Text.cpp" />
     <ClCompile Include="UI\UI.cpp" />
     <ClCompile Include="Wavefront.cpp" />
     <ClCompile Include="Window.cpp" />

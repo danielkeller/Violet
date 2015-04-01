@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Text.hpp"
 #include "Resource.hpp"
-#include "Texture.hpp"
+#include "Rendering/Texture.hpp"
 #include "MappedFile.hpp"
 
 #include <cstdint>
@@ -43,9 +43,10 @@ std::string Font::Name()
 	return resource->Key();
 }
 
-#include "VAO.hpp"
-#include "Shader.hpp"
+#include "Rendering/VAO.hpp"
+#include "Rendering/Shader.hpp"
 #include "Window.hpp"
+#include "PixelDraw.hpp"
 
 template<>
 const Schema AttribTraits<stbtt_aligned_quad>::schema = {
@@ -54,20 +55,6 @@ const Schema AttribTraits<stbtt_aligned_quad>::schema = {
 	{ "botRight",    GL_FLOAT, false, 4 * sizeof(float), { 2, 1 } },
 	{ "botRightTex", GL_FLOAT, false, 6 * sizeof(float), { 2, 1 } },
 };
-
-static void WinResize(Vector2i sz)
-{
-	static ShaderProgram txtShdr{ "assets/text" };
-	static UBO txtUBO = txtShdr.MakeUBO("Material", "TxtMat");
-	txtUBO["pixelMat"] = PixelMat(sz);
-	txtUBO.Sync();
-}
-
-void TextInit(Window& w)
-{
-	w.dim += make_magic(accessor<Vector2i>(&WinResize));
-	WinResize(*w.dim);
-}
 
 void DrawText(const Font &font, const std::string& text, Vector2i pos, Vector3f color, Vector3f bgColor)
 {
@@ -94,6 +81,7 @@ void DrawText(const Font &font, const std::string& text, Vector2i pos, Vector3f 
 
 	txtShdr.use();
 	txtUBO.Bind();
+	BindPixelUBO();
 
 	txtVAO.Draw();
 }

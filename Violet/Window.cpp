@@ -100,6 +100,7 @@ Window::Window()
 #ifdef GL_DEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
+	//glfwWindowHint(GLFW_DECORATED, false);
 
     //create the window
 	window = glfwCreateWindow(dimVec.x(), dimVec.y(), "Simple example", NULL, NULL);
