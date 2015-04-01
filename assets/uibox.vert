@@ -5,16 +5,17 @@ uniform Common
 	mat4 pixelMat;
 };
 
-uniform Material
-{
-	ivec2 top;
-	ivec2 size;
-};
+in ivec2 minBox;
+in ivec2 maxBox;
+
+flat out ivec2 minBoxFrag;
+flat out ivec2 maxBoxFrag;
 
 out vec2 fragCoord;
 
 void main()
 {
-	fragCoord = vec2(top + texCoord*size);
+	minBoxFrag = minBox; maxBoxFrag = maxBox - 1;
+	fragCoord = vec2(minBox + texCoord*(maxBox-minBox));
     gl_Position = pixelMat * vec4(fragCoord, 0, 1);
 }

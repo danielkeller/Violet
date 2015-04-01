@@ -11,18 +11,23 @@ void DrawBox(const Layout& l)
 	DrawBox(l.pos, l.size);
 }
 
+template<>
+const Schema AttribTraits<Eigen::AlignedBox2i>::schema = {
+	{ "minBox", GL_INT, true, 0,               { 2, 1 } },
+	{ "maxBox", GL_INT, true, 2 * sizeof(int), { 2, 1 } },
+};
+
 void DrawBox(Vector2i corner, Vector2i size)
 {
 	static ShaderProgram boxShdr("assets/uibox");
-	static UBO boxMat = boxShdr.MakeUBO("Material", "BoxMat");
 	static VAO boxVAO(boxShdr, UnitBox);
+	static BufferObject<Eigen::AlignedBox2i, GL_ARRAY_BUFFER, GL_STREAM_DRAW> boxInstances(1);
 
-	boxMat["top"] = corner;
-	boxMat["size"] = size;
-	boxMat.Sync();
+	boxInstances.Assign(0, { corner, corner + size });
+
+	boxVAO.BindInstanceData(boxShdr, boxInstances);
 
 	boxShdr.use();
-	boxMat.Bind();
 	BindPixelUBO();
 	boxVAO.Draw();
 }

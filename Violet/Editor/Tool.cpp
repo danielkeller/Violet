@@ -57,7 +57,7 @@ void Tool::Update(Events& e, Object camera, Object focused)
         return;
 	if (!target)
 		return;
-    
+
     int dir;
     
     if      (focused == x) dir = 0;
@@ -68,4 +68,6 @@ void Tool::Update(Events& e, Object camera, Object focused)
 	float delta = e.ApparentMousePos(position[camera]->ToMatrix() * move->ToMatrix())[dir];
 	move->pos[dir] += delta;
 	target->pos[dir] += delta;
+
+	e.PopMouse();
 }

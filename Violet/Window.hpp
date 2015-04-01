@@ -55,6 +55,8 @@ public:
 
 	Vector2f ScrollDelta() const;
 
+	//In the context of this structure, "popping" means indicating the event
+	//has been handled, and clearing it
 	void PopMouse();
 	void PopScroll();
 

@@ -24,7 +24,6 @@ Font::FontResource::FontResource(std::string path)
 {
 	MappedFile ttf(path);
 	std::uint8_t temp_bitmap[512 * 512];
-	//stbtt_BakeFontBitmap(ttf.Data<unsigned char>(), 0, 12.0, temp_bitmap, 512, 512, 32, 96, cdata);
 
 	stbtt_pack_context ctx;
 	stbtt_PackBegin(&ctx, temp_bitmap, 512, 512, 0, 1, nullptr);
