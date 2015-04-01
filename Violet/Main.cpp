@@ -32,7 +32,7 @@ try
 	Mobile m(position);
 	Render r(position, m, persist);
 	RenderPasses passes(w, r);
-	Edit edit(r, passes, w, position);
+	Edit edit(r, passes, position);
 
 	PixelInit(w);
 
@@ -69,15 +69,14 @@ try
     auto physTick = [&]()
 	{
 		auto p = Profile::Profile("physics");
-		m.Tick();
+		Events e = w.GetInput();
 
-        w.GetInput();
-        edit.PhysTick(camera);
+		m.Tick();
+        edit.PhysTick(e, camera);
 
         //physics step
         position[teapotObj]->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
 
-		w.ClearInput();
         return !w.ShouldClose();
     };
     

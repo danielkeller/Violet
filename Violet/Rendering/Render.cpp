@@ -13,9 +13,6 @@ Render::Render(Position& position, Mobile& m, Persist& persist)
 	, commonUBO(simpleShader.MakeUBO("Common", "Common"))
 	, instanceBuffer()
 {
-	//Assumes no one binds over UBO::Common
-	commonUBO.Bind();
-
 	for (const auto& row : persist.GetAll<Render>())
 	{
 		Create(std::get<0>(row), std::get<2>(row), std::get<3>(row), std::get<4>(row),
@@ -117,6 +114,7 @@ void Render::Draw()
 {
 	commonUBO["camera"] = camera;
 	commonUBO.Sync();
+	commonUBO.Bind();
 	
 	instanceBuffer.Data(renderData.get_level<InstanceLevel>().vector());
 

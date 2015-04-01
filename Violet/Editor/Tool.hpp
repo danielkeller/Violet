@@ -6,13 +6,13 @@
 #include "Position.hpp"
 
 class Render;
-class Window;
+class Events;
 
 class Tool
 {
 public:
     Tool(Render& r, Position& position);
-	void Update(Window& w, Object camera, Object focused);
+	void Update(Events& e, Object camera, Object focused);
 	void SetTarget(magic_ptr<Transform> target);
     
 private:

@@ -4,8 +4,8 @@
 #include "Rendering/Render.hpp"
 #include "Persist.hpp"
 
-Edit::Edit(Render& r, RenderPasses& rp, Window& w, Position& position)
-	: w(w), rp(rp), position(position)
+Edit::Edit(Render& r, RenderPasses& rp, Position& position)
+	: rp(rp), position(position)
 	, tool(r, position), focused(Object::none)
 	, viewPitch(0), viewYaw(0)
 {
@@ -16,11 +16,13 @@ void Edit::Editable(Object o)
     editable.insert(o);
 }
 
-void Edit::PhysTick(Object camera)
+void Edit::PhysTick(Events& e, Object camera)
 {
-	Object picked = rp.Pick(w.MousePosView());
+	//todo: mouse in or out?
 
-	if (w.LeftMouseClick())
+	Object picked = rp.Pick(e.MousePosView());
+
+	if (e.MouseClick(MOUSE_BUTTON_LEFT))
     {
 		if (picked == Object::none) //click outside to deselect
 		{
@@ -37,7 +39,7 @@ void Edit::PhysTick(Object camera)
 		}
 		focused = picked;
     }
-	else if (w.LeftMouseRelease()) //just released
+	else if (e.MouseRelease(MOUSE_BUTTON_LEFT)) //just released
     {
 		//save the object once we stop moving
 		if (selected != Object::none)
@@ -47,20 +49,25 @@ void Edit::PhysTick(Object camera)
 		focused = selected;
 	}
 
-	tool.Update(w, camera, focused);
+	tool.Update(e, camera, focused);
 
 	rp.Highlight(picked, RenderPasses::Hovered);
 	rp.Highlight(focused, RenderPasses::Focused);
 	rp.Highlight(selected, RenderPasses::Selected);
     
 	//right mouse to rotate
-    if (w.RightMouse())
+    if (e.MouseButton(MOUSE_BUTTON_RIGHT))
     {
-		viewPitch -= w.MouseDeltaScr().x();
-		viewYaw += w.MouseDeltaScr().y();
+		auto mdelta = e.MouseDeltaScr();
+		viewPitch -= mdelta.x();
+		viewYaw += mdelta.y();
 		position[camera]->rot = Eigen::AngleAxisf(viewYaw, Vector3f::UnitX())
 						      * Eigen::AngleAxisf(viewPitch, Vector3f::UnitZ());
     }
 
-	position[camera]->pos *= (1 - w.ScrollDelta().y()*.05f);
+	position[camera]->pos *= (1 - e.ScrollDelta().y()*.05f);
+
+	//fixme
+	e.PopMouse();
+	e.PopScroll();
 }

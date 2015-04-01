@@ -4,22 +4,21 @@
 #include "Editor/Tool.hpp"
 #include <unordered_set>
 
-class Window;
 class Render;
 class RenderPasses;
 class Persist;
+class Events;
 
 class Edit
 {
 public:
-	Edit(Render& r, RenderPasses& rp, Window& w, Position& position);
+	Edit(Render& r, RenderPasses& rp, Position& position);
 
     void Editable(Object o);
 
-    void PhysTick(Object camera);
+	void PhysTick(Events& e, Object camera);
 
 private:
-    Window& w;
 	RenderPasses& rp;
 	Position& position;
     Tool tool;

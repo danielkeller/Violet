@@ -232,7 +232,7 @@ public:
 	}
 
 	template<class Class>
-	magic_ptr(void (Class::* memPtr)(T), Class* classPtr)
+	magic_ptr(void (Class::* memPtr)(const T&), Class* classPtr)
 		: magic_ptr(accessor<T, Class*>(memPtr), classPtr)
 	{}
 

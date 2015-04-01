@@ -51,9 +51,9 @@ void Tool::SetTarget(magic_ptr<Transform> t)
 		move->pos = Vector3f::Zero(); //better, hide the tool
 }
 
-void Tool::Update(Window& w, Object camera, Object focused)
+void Tool::Update(Events& e, Object camera, Object focused)
 {
-    if (!w.LeftMouse())
+    if (!e.MouseButton(MOUSE_BUTTON_LEFT))
         return;
 	if (!target)
 		return;
@@ -65,7 +65,7 @@ void Tool::Update(Window& w, Object camera, Object focused)
     else if (focused == z) dir = 2;
     else return;
 
-	float delta = w.ApparentMousePos(position[camera]->ToMatrix() * move->ToMatrix())[dir];
+	float delta = e.ApparentMousePos(position[camera]->ToMatrix() * move->ToMatrix())[dir];
 	move->pos[dir] += delta;
 	target->pos[dir] += delta;
 }
