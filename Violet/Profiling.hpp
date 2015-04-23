@@ -63,7 +63,7 @@ inline void Profile::Print()
 {
 	std::cout << std::setw(20) << "name"
 		<< std::setw(8) << "total"
-		<< std::setw(8) << "avg\n";
+		<< std::setw(8) << "avg" << '\n';
 
 	for (const auto& datapt : data)
 	{

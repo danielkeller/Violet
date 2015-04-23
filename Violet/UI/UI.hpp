@@ -2,7 +2,18 @@
 #define UI_HPP
 
 class Window;
+class Events;
 
-void DrawUI(Window& w);
+namespace UI
+{
+	class LayoutStack;
+
+	void Draw(Window& w);
+
+	//fixme: thread safety
+	void BeginFrame(Window& w, Events e);
+	Events& FrameEvents();
+	LayoutStack& CurLayout();
+}
 
 #endif

@@ -4,24 +4,50 @@
 #include "Layout.hpp"
 #include "PixelDraw.hpp"
 #include "Window.hpp"
+#include "Layout.hpp"
+#include "Elements.hpp"
 
-void DrawUI(Window& w)
+#include <iostream>
+
+using namespace UI;
+
+void UI::Draw(Window& w)
 {
-	Layout mainLayout = Layout::Top(*w.dim, Layout::Dir::Left);
+	LayoutStack& l = CurLayout() = LayoutStack(*w.dim, Layout::Dir::Left);
 
-	Layout leftBar = mainLayout.getNext(Layout::Dir::Down);
-	Layout lbTop = leftBar.getNext();
-	lbTop.size = { 100, 200 };
-	leftBar.putNext(lbTop);
+	//left bar
+	l.PushNext(Layout::Dir::Down);
+	Layout lbTop = l.PutSpace({ 100, 200 });
 
 	DrawBox(lbTop);
 
-	Layout lbRest = leftBar.getLast();
+	static Button b;
+	b.text = "Button!";
+	if (b.Draw())
+		std::cerr << "Button!\n";
+
+	Layout lbRest = l.Pop();
 	DrawBox(lbRest);
-	mainLayout.putNext(leftBar);
 	
-	Layout mainBox = mainLayout.getLast(Layout::Dir::Up);
-	Layout botBar = mainBox.getNext();
-	botBar.size.y() = 100;
+	l.PushRest(Layout::Dir::Up);
+	Layout botBar = l.PutSpace({ 0, 100 });
 	DrawBox(botBar);
+}
+
+void UI::BeginFrame(Window& w, Events e)
+{
+	CurLayout() = LayoutStack(*w.dim);
+	FrameEvents() = e;
+}
+
+Events& UI::FrameEvents()
+{
+	static Events events;
+	return events;
+}
+
+LayoutStack& UI::CurLayout()
+{
+	static LayoutStack layout({ 0, 0 });
+	return layout;
 }

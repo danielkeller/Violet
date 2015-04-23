@@ -49,7 +49,7 @@ public:
 	//values are in Opengl viewport coordinates
 	Vector2f MouseDeltaView() const;
 	Vector2f MousePosView() const;
-	//values are in Opengl viewport coordinates in pixel units
+	//values are in 0,0=left,top coordinates in pixel units
 	Vector2f MouseDeltaPxl() const;
 	Vector2f MousePosPxl() const;
 

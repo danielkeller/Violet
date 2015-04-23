@@ -173,6 +173,7 @@
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Time.hpp" />
+    <ClInclude Include="UI\Elements.hpp" />
     <ClInclude Include="UI\PixelDraw.hpp" />
     <ClInclude Include="UI\Layout.hpp" />
     <ClInclude Include="UI\Text.hpp" />
@@ -232,6 +233,8 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zm120 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Time.cpp" />
+    <ClCompile Include="UI\Elements.cpp" />
+    <ClCompile Include="UI\Layout.cpp" />
     <ClCompile Include="UI\PixelDraw.cpp" />
     <ClCompile Include="UI\Text.cpp" />
     <ClCompile Include="UI\UI.cpp" />

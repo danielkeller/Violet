@@ -34,7 +34,7 @@ try
 	RenderPasses passes(w, r);
 	Edit edit(r, passes, position);
 
-	PixelInit(w);
+	UI::Init(w);
 
 	Object camera = objName["camera"];
 
@@ -63,13 +63,12 @@ try
 	position[camera]->pos = {0, -3, 0};
     
     Time t;
-
-	Font fnt{ "assets/DroidSansMono.ttf" };
     
     auto physTick = [&]()
 	{
 		auto p = Profile::Profile("physics");
 		Events e = w.GetInput();
+		UI::BeginFrame(w, e);
 
 		m.Tick();
         edit.PhysTick(e, camera);
@@ -90,8 +89,9 @@ try
 			r.camera = w.PerspMat() * *m[camera]; //FIXME
 			passes.Draw();
 
-			DrawUI(w);
-			DrawText(fnt, "hi i am text", { 2, 14 });
+			UI::Draw(w);
+			UI::DrawText("hi i am text", { 2, 14 });
+			UI::EndFrame();
 		}
         w.PostDraw();
 	};

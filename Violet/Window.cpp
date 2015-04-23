@@ -48,7 +48,7 @@ Vector2f Events::MousePosScr() const
 
 Vector2f Events::MouseDeltaView() const
 {
-	return MouseDeltaPxl().array() / dimVec.cast<float>().array();
+	return (mouseCur - mouseOld).array() / dimVec.cast<float>().array();
 }
 
 Vector2f Events::MousePosView() const
@@ -63,7 +63,7 @@ Vector2f Events::MouseDeltaPxl() const
 
 Vector2f Events::MousePosPxl() const
 {
-	return mouseCur;
+	return Vector2f(mouseCur.x(), float(dimVec.y()) - mouseCur.y());
 }
 
 Vector2f Events::ScrollDelta() const
@@ -88,7 +88,7 @@ bool Events::MouseRelease(int num) const
 
 void Events::PopMouse()
 {
-	mouseCur << -1, -1;
+	//mouseCur << -1, -1;
 	mouseOld << mouseCur;
 	for (auto& b : mouseButtonsCur) b = false;
 	for (auto& b : mouseButtonsOld) b = false;

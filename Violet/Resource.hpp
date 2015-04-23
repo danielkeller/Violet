@@ -9,7 +9,11 @@ template<class T, class K = std::string>
 class Resource
 {
 private:
-	static std::map<K, std::weak_ptr<T>> cache;
+	static std::map<K, std::weak_ptr<T>>& Cache()
+	{
+		static std::map<K, std::weak_ptr<T>> cache;
+		return cache;
+	}
 
 protected:
 	const K key;
@@ -27,7 +31,7 @@ protected:
 
 	~Resource()
 	{
-		cache.erase(key);
+		Cache().erase(key);
 	}
 
 	typedef Resource<T> ResourceTy;
@@ -37,14 +41,14 @@ public:
 	static std::shared_ptr<T> MakeShared(Args&&... a)
 	{
 		auto ptr = std::make_shared<T>(std::forward<Args>(a)...);
-		cache[ptr->key] = ptr;
+		Cache()[ptr->key] = ptr;
 		return ptr;
 	}
 
 	static std::shared_ptr<T> FindResource(const K &key)
 	{
-		auto it = cache.find(key);
-		return it == cache.end() ? nullptr : it->second.lock();
+		auto it = Cache().find(key);
+		return it == Cache().end() ? nullptr : it->second.lock();
 	}
 
 	//will fail if T's constructor doesn't take one argument of type const K&
@@ -61,8 +65,5 @@ public:
 		return key;
 	}
 };
-
-template<class T, class K>
-std::map<K, std::weak_ptr<T>> Resource<T, K>::cache;
 
 #endif

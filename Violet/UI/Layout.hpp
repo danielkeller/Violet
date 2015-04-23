@@ -1,64 +1,49 @@
 #ifndef LAYOUT_HPP
 #define LAYOUT_HPP
 
-struct Layout
+namespace UI
 {
-	enum class Dir
+	struct Layout
 	{
-		Up, Down, Left, Right
+		enum class Dir
+		{
+			Up, Down, Left, Right
+		};
+		Dir direction;
+
+		//size that contents needs
+		Vector2i filledSize;
+		//size that the layout can fill
+		Vector2i size;
+		//starting position
+		Vector2i pos;
+
+		Layout getNext(Dir dir = Dir::Right);
+		void putNext(const Layout& l);
+		//static Layout Box(Vector2i box);
+		Layout getLast(Dir dir = Dir::Right);
+
+		static Layout Top(Vector2i box, Dir dir = Dir::Right);
 	};
-	Dir direction;
 
-	//size that contents needs
-	Vector2i filledSize;
-	//size that the layout can fill
-	Vector2i size;
-	//starting position
-	Vector2i pos;
-
-	Layout getNext(Dir dir = Dir::Right)
+	class LayoutStack
 	{
-		if (direction == Dir::Up || direction == Dir::Down)
-			return{ dir, { 0, 0 }, { size.x(), 0 }, { pos.x(), pos.y() + filledSize.y() } };
-		else
-			return{ dir, { 0, 0 }, { 0, size.y() }, { pos.x() + filledSize.x(), pos.y() } };
-	}
+	public:
+		using Dir = Layout::Dir;
+		LayoutStack(Vector2i box, Dir dir = Dir::Right);
+		void PushLayer(Dir dir = Dir::Right /*, int z*/);
+		//pushes a new layout, filling in direction dir
+		void PushNext(Dir dir = Dir::Right);
+		//pops the current layout, and pushes the remaining space
+		void PushRest(Dir dir = Dir::Right);
+		//pops the current layout, and returns the remaining space
+		Layout Pop(Dir dir = Dir::Right);
+		//adds a box and returns the space it's in
+		Layout PutSpace(Vector2i size);
 
-	void putNext(const Layout& l)
-	{
-		if (direction == Dir::Up || direction == Dir::Down)
-		{
-			filledSize.y() += l.size.y();
-			size.x() = filledSize.x() = std::max(filledSize.x(), l.size.x());
-		}
-		else
-		{
-			filledSize.x() += l.size.x();
-			size.y() = filledSize.y() = std::max(filledSize.y(), l.size.y());
-		}
-	}
-	/*
-	static Layout Box(Vector2i box)
-	{
-		return{ Dir::Right, box, box };
-	}*/
-
-	static Layout Top(Vector2i box, Dir dir = Dir::Right)
-	{
-		return{ dir, { 0, 0 }, box, { 0, 0 } };
-	}
-
-	Layout getLast(Dir dir = Dir::Right)
-	{
-		Layout ret = getNext(dir);
-
-		if (direction == Dir::Up || direction == Dir::Down)
-			ret.size << size.x(), size.y() - filledSize.y();
-		else
-			ret.size << size.x() - filledSize.x(), size.y();
-
-		return ret;
-	}
-};
+	private:
+		std::vector<Layout> stack;
+	};
+}
 
 #endif
