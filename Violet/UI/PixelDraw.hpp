@@ -12,6 +12,8 @@ namespace UI
 	struct Settings;
 	struct Visuals;
 
+	using AlignedBox2i = Eigen::AlignedBox2i;
+
 	struct TextQuad
 	{
 		Eigen::AlignedBox2f pos;
@@ -19,7 +21,7 @@ namespace UI
 	};
 
 	void DrawChar(TextQuad q);
-	void DrawBox(Eigen::AlignedBox2i box);
+	void DrawBox(AlignedBox2i box);
 	void DrawBox(const Layout& l);
 
 	void Init(Window& w);

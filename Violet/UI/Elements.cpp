@@ -14,7 +14,7 @@ bool Button::Draw()
 {
 	Vector2i size = { 60, 20 };
 	Layout l = CurLayout().PutSpace(size);
-	Eigen::AlignedBox2i box{ l.pos, l.pos + size };
+	AlignedBox2i box = l.Box();
 
 	auto mouse = FrameEvents().MousePosPxl().cast<int>();
 
@@ -25,10 +25,10 @@ bool Button::Draw()
 	{
 		std::string t = text;
 		std::transform(t.begin(), t.end(), t.begin(), ::toupper);
-		DrawText(t, l.pos + Vector2i{ 3, 16 });
+		DrawText(t, box.min() + Vector2i{ 3, 16 });
 	}
 	else
-		DrawText(text, l.pos + Vector2i{ 3, 16 });
+		DrawText(text, box.min() + Vector2i{ 3, 16 });
 
 	//the button is clicked if it was active last frame and the mouse was released
 	if (active && FrameEvents().MouseRelease(GLFW_MOUSE_BUTTON_LEFT))

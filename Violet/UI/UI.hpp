@@ -3,9 +3,11 @@
 
 class Window;
 
+#include "PixelDraw.hpp"
+
 namespace UI
 {
-	Eigen::AlignedBox2i Draw(Window& w);
+	AlignedBox2i Draw(Window& w);
 }
 
 #endif

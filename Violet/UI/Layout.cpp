@@ -3,48 +3,70 @@
 
 using namespace UI;
 
-Layout Layout::getNext(Dir dir)
+Vector2i Scooch(Vector2i init, Layout::Dir dir, int distance)
 {
-	if (direction == Dir::Up || direction == Dir::Down)
-		return{ dir, { 0, 0 }, { size.x(), 0 }, { pos.x(), pos.y() + filledSize.y() } };
+	switch (dir)
+	{
+	case Layout::Dir::Up:
+		return{ init.x(), init.y() - distance };
+	case Layout::Dir::Down:
+		return{ init.x(), init.y() + distance };
+	case Layout::Dir::Left:
+		return{ init.x() - distance, init.y() };
+	case Layout::Dir::Right:
+		return{ init.x() + distance, init.y() };
+	default: assert(false && "Layout broken");
+		return{};
+	}
+}
+
+Layout Layout::getNext(Dir dir) const
+{
+	if (dir == grow)
+		return{ dir, fill, 0, across, 0, Scooch(pos, fill, filledSize) };
 	else
-		return{ dir, { 0, 0 }, { 0, size.y() }, { pos.x() + filledSize.x(), pos.y() } };
+		return{ dir, fill, 0, across, 0, Scooch(Scooch(pos, fill, filledSize), grow, across) };
 }
 
 void Layout::putNext(const Layout& l)
 {
-	if (direction == Dir::Up || direction == Dir::Down)
-	{
-		filledSize.y() += l.size.y();
-		size.x() = filledSize.x() = std::max(filledSize.x(), l.size.x());
-	}
-	else
-	{
-		filledSize.x() += l.size.x();
-		size.y() = filledSize.y() = std::max(filledSize.y(), l.size.y());
-	}
+	filledSize += l.across;
+	across = std::max(across, l.maxFill);
 }
-/*
-static Layout Box(Vector2i box)
+
+AlignedBox2i FixBox(AlignedBox2i box)
 {
-return{ Dir::Right, box, box };
-}*/
+	return{ box.min().cwiseMin(box.max()), box.max().cwiseMax(box.min()) };
+}
+
+AlignedBox2i Layout::Box() const
+{
+	return FixBox({ pos, Scooch(Scooch(pos, fill, maxFill), grow, across) });
+}
+
+Layout Layout::getLast(Dir dir) const
+{
+	Layout ret = getNext(dir);
+	ret.across = maxFill - filledSize;
+	return ret;
+}
 
 Layout Layout::Top(Vector2i box, Dir dir)
 {
-	return{ dir, { 0, 0 }, box, { 0, 0 } };
-}
+	switch (dir)
+	{
+	case Dir::Right:
+		return{ dir, Dir::Down, 0, box.x(), box.y(), { 0, 0 } };
+	case Dir::Left:
+		return{ dir, Dir::Down, 0, box.x(), box.y(), { box.x(), 0 } };
+	case Dir::Down:
+		return{ dir, Dir::Right, 0, box.y(), box.x(), { 0, 0 } };
+	case Dir::Up:
+		return{ dir, Dir::Right, 0, box.y(), box.x(), { 0, box.y() } };
+	default: assert(false && "Layout broken");
+		return{};
+	}
 
-Layout Layout::getLast(Dir dir)
-{
-	Layout ret = getNext(dir);
-
-	if (direction == Dir::Up || direction == Dir::Down)
-		ret.size << size.x(), size.y() - filledSize.y();
-	else
-		ret.size << size.x() - filledSize.x(), size.y();
-
-	return ret;
 }
 
 LayoutStack::LayoutStack(Vector2i box, Dir dir)
@@ -54,7 +76,7 @@ LayoutStack::LayoutStack(Vector2i box, Dir dir)
 
 void LayoutStack::PushLayer(Dir dir /*, int z*/)
 {
-	stack.push_back(Layout::Top(stack[0].size, dir));
+	stack.push_back(Layout::Top(stack[0].Box().sizes(), dir));
 }
 
 void LayoutStack::PushNext(Dir dir)
@@ -81,8 +103,33 @@ Layout LayoutStack::Pop(Dir dir)
 
 Layout LayoutStack::PutSpace(Vector2i size)
 {
-	Layout l = stack.back().getNext();
-	l.size = l.size.cwiseMax(size);
-	stack.back().putNext(l);
+	auto& b = stack.back();
+	Layout l = b.getNext(b.grow);
+
+	if (b.fill == Dir::Down || b.fill == Dir::Up)
+	{
+		l.across = size.y();
+		l.maxFill = size.x();
+	}
+	else
+	{
+		l.across = size.x();
+		l.maxFill = size.y();
+	}
+	b.putNext(l);
 	return l;
+}
+
+Layout LayoutStack::PutSpace(int advance)
+{
+	auto& b = stack.back();
+	Layout l = b.getNext(b.grow);
+	l.across = advance;
+	b.putNext(l);
+	return l;
+}
+
+void LayoutStack::EnsureWidth(int across)
+{
+	stack.back().across = std::max(stack.back().across, across);
 }

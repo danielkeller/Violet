@@ -3,25 +3,32 @@
 
 namespace UI
 {
+	using AlignedBox2i = Eigen::AlignedBox2i;
+
 	struct Layout
 	{
 		enum class Dir
 		{
 			Up, Down, Left, Right
 		};
-		Dir direction;
 
-		//size that contents needs
-		Vector2i filledSize;
+		Dir fill;
+		Dir grow;
+
+		//size that contents needs in fill direction
+		int filledSize;
 		//size that the layout can fill
-		Vector2i size;
+		int maxFill;
+		//size perpendicular to fill
+		int across;
 		//starting position
 		Vector2i pos;
 
-		Layout getNext(Dir dir = Dir::Right);
+		Layout getNext(Dir dir = Dir::Right) const;
 		void putNext(const Layout& l);
-		//static Layout Box(Vector2i box);
-		Layout getLast(Dir dir = Dir::Right);
+		Layout getLast(Dir dir = Dir::Right) const;
+
+		AlignedBox2i Box() const;
 
 		static Layout Top(Vector2i box, Dir dir = Dir::Right);
 	};
@@ -40,6 +47,10 @@ namespace UI
 		Layout Pop(Dir dir = Dir::Right);
 		//adds a box and returns the space it's in
 		Layout PutSpace(Vector2i size);
+		//adds spacing in the current layout direction and returns the space it's in
+		Layout PutSpace(int advance);
+		//makes sure the current layout can fit at least width across
+		void EnsureWidth(int across);
 
 	private:
 		std::vector<Layout> stack;

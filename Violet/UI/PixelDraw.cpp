@@ -39,7 +39,7 @@ void UI::TextStyle(Font font, Vector3f color, Vector3f bgColor)
 struct UI::Visuals
 {
 	std::vector<TextQuad> textInsts;
-	std::vector<Eigen::AlignedBox2i> boxes;
+	std::vector<AlignedBox2i> boxes;
 };
 
 Visuals& FrameVisuals()
@@ -72,7 +72,7 @@ void UI::EndFrame()
 	//Draw boxes
 	static ShaderProgram boxShdr("assets/uibox");
 	static VAO boxVAO(boxShdr, UnitBox);
-	static BufferObject<Eigen::AlignedBox2i, GL_ARRAY_BUFFER, GL_STREAM_DRAW> boxInstances(1);
+	static BufferObject<AlignedBox2i, GL_ARRAY_BUFFER, GL_STREAM_DRAW> boxInstances(1);
 
 	boxInstances.Data(FrameVisuals().boxes);
 
@@ -106,19 +106,16 @@ void UI::DrawChar(TextQuad q)
 
 void UI::DrawBox(const Layout& l)
 {
-	DrawBox({ l.pos, l.pos + l.size });
+	DrawBox(l.Box());
 }
 
-void UI::DrawBox(Eigen::AlignedBox2i box)
+void UI::DrawBox(AlignedBox2i box)
 {
-	//fix it if it's backwards
-	//Eigen::AlignedBox2i box1 =
-	//	{ box.min().cwiseMin(box.max()), box.max().cwiseMax(box.min()) };
 	FrameVisuals().boxes.push_back(box);
 }
 
 template<>
-const Schema AttribTraits<Eigen::AlignedBox2i>::schema = {
+const Schema AttribTraits<AlignedBox2i>::schema = {
 	{ "minBox", GL_INT, true, 0,               { 2, 1 } },
 	{ "maxBox", GL_INT, true, 2 * sizeof(int), { 2, 1 } },
 };

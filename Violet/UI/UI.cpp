@@ -11,7 +11,7 @@
 
 using namespace UI;
 
-Eigen::AlignedBox2i UI::Draw(Window& w)
+AlignedBox2i UI::Draw(Window& w)
 {
 	static bool uiOn = true;
 
@@ -38,10 +38,8 @@ Eigen::AlignedBox2i UI::Draw(Window& w)
 	DrawBox(lbRest);
 	
 	l.PushRest(Layout::Dir::Up);
-	Layout botBar = l.PutSpace({ 0, 100 });
+	Layout botBar = l.PutSpace(100);
 	DrawBox(botBar);
 
-	Layout view = l.Pop();
-
-	return{ view.pos, view.pos + view.size };
+	return l.Pop().Box();
 }
