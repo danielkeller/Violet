@@ -150,7 +150,6 @@
     <ClInclude Include="Geometry\Collide.hpp" />
     <ClInclude Include="Geometry\Mesh.hpp" />
     <ClInclude Include="Geometry\Shapes.hpp" />
-    <ClInclude Include="GLMath.h" />
     <ClInclude Include="magic_ptr.hpp" />
     <ClInclude Include="MappedFile.hpp" />
     <ClInclude Include="Mobile.hpp" />
@@ -179,6 +178,7 @@
     <ClInclude Include="UI\Text.hpp" />
     <ClInclude Include="UI\UI.hpp" />
     <ClInclude Include="Utils\Template.hpp" />
+    <ClInclude Include="Viewport.hpp" />
     <ClInclude Include="Wavefront.hpp" />
     <ClInclude Include="Window.hpp" />
   </ItemGroup>
@@ -238,6 +238,7 @@
     <ClCompile Include="UI\PixelDraw.cpp" />
     <ClCompile Include="UI\Text.cpp" />
     <ClCompile Include="UI\UI.cpp" />
+    <ClCompile Include="Viewport.cpp" />
     <ClCompile Include="Wavefront.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>

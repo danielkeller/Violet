@@ -31,19 +31,23 @@ bool Button::Draw()
 		DrawText(text, l.pos + Vector2i{ 3, 16 });
 
 	//the button is clicked if it was active last frame and the mouse was released
-	if (active && FrameEvents().MouseRelease(MOUSE_BUTTON_LEFT))
+	if (active && FrameEvents().MouseRelease(GLFW_MOUSE_BUTTON_LEFT))
 	{
-		//we handled the mouse event
+		//we handled the mouse up event
 		FrameEvents().PopMouse();
 		return true;
 	}
 
-	//hovered state does not change when the mouse is down
-	if (!FrameEvents().MouseButton(MOUSE_BUTTON_LEFT))
+	//hovered state changes only when the mouse is up
+	if (!FrameEvents().MouseButton(GLFW_MOUSE_BUTTON_LEFT))
 		hovered = box.contains(mouse);
 
 	//the button is active if it's clicked and hovered
-	active = hovered && box.contains(mouse) && FrameEvents().MouseButton(MOUSE_BUTTON_LEFT);
+	active = hovered && box.contains(mouse) && FrameEvents().MouseButton(GLFW_MOUSE_BUTTON_LEFT);
+
+	//while active we handle mouse events
+	//if (active)
+	//	FrameEvents().PopMouse();
 
 	return false;
 }

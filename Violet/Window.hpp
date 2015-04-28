@@ -1,39 +1,29 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-struct GLFWwindow;
+#include "Viewport.hpp"
 
 #include "magic_ptr.hpp"
 #include <deque>
 #include <array>
 
-//Copied from GLFW
-#define MOUSE_BUTTON_1         0
-#define MOUSE_BUTTON_2         1
-#define MOUSE_BUTTON_3         2
-#define MOUSE_BUTTON_4         3
-#define MOUSE_BUTTON_5         4
-#define MOUSE_BUTTON_6         5
-#define MOUSE_BUTTON_7         6
-#define MOUSE_BUTTON_8         7
-#define MOUSE_BUTTON_LAST      MOUSE_BUTTON_8
-#define MOUSE_BUTTON_LEFT      MOUSE_BUTTON_1
-#define MOUSE_BUTTON_RIGHT     MOUSE_BUTTON_2
-#define MOUSE_BUTTON_MIDDLE    MOUSE_BUTTON_3
+//for event stuff
+#include "GLFW/glfw3.h"
 
 class Window;
 
 struct Key
 {
 	int key;
-	int scancode;
 	int mods;
+	POD_EQUALITY(Key);
 };
 
 struct KeyEvent
 {
 	Key key;
 	int action;
+	POD_EQUALITY(KeyEvent);
 };
 
 class Events
@@ -60,22 +50,12 @@ public:
 	void PopMouse();
 	void PopScroll();
 
-	template<class Derived>
-	Vector3f ApparentMousePos(const Eigen::MatrixBase<Derived>& modelview) const
-	{
-		auto screenAxes = PerspMat() * modelview;
-		Vector4f screenVec;
-		screenVec << MousePosScr()*screenAxes(3, 3), screenAxes(2, 3), screenAxes(3, 3);
-		Vector4f worldVec(screenAxes.householderQr().solve(screenVec));
-		return worldVec.block<3, 1>(0, 0) / worldVec[3];
-	}
-
-	bool PopKeyEvent(KeyEvent);
+	bool PopKeyEvent(KeyEvent key);
 	unsigned int PopCharEvent();
 
-	Matrix4f PerspMat() const;
+	Viewport View() { return view; }
 
-public:
+	Viewport view;
 	Vector2i dimVec;
 
 	using MouseBottons = std::array<bool, 5>;
@@ -100,11 +80,10 @@ public:
     Window();
     ~Window();
 
+	void SetView(Viewport view);
 	Events GetInput();
 	void PreDraw();
 	void PostDraw();
-
-	Matrix4f PerspMat() const;
 
     magic_ptr<Vector2i> dim;
     

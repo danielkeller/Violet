@@ -11,8 +11,16 @@
 
 using namespace UI;
 
-void UI::Draw(Window& w)
+Eigen::AlignedBox2i UI::Draw(Window& w)
 {
+	static bool uiOn = true;
+
+	if (FrameEvents().PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_RELEASE }))
+		uiOn = !uiOn;
+
+	if (!uiOn)
+		return{ Vector2i{ 0, 0 }, *w.dim };
+
 	LayoutStack& l = CurLayout() = LayoutStack(*w.dim, Layout::Dir::Left);
 
 	//left bar
@@ -32,22 +40,8 @@ void UI::Draw(Window& w)
 	l.PushRest(Layout::Dir::Up);
 	Layout botBar = l.PutSpace({ 0, 100 });
 	DrawBox(botBar);
-}
 
-void UI::BeginFrame(Window& w, Events e)
-{
-	CurLayout() = LayoutStack(*w.dim);
-	FrameEvents() = e;
-}
+	Layout view = l.Pop();
 
-Events& UI::FrameEvents()
-{
-	static Events events;
-	return events;
-}
-
-LayoutStack& UI::CurLayout()
-{
-	static LayoutStack layout({ 0, 0 });
-	return layout;
+	return{ view.pos, view.pos + view.size };
 }

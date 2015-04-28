@@ -2,11 +2,13 @@
 #define BOX_HPP
 
 class Window;
+class Events;
 
 namespace UI
 {
 	class Font;
 	struct Layout;
+	class LayoutStack;
 	struct Settings;
 	struct Visuals;
 
@@ -27,6 +29,10 @@ namespace UI
 
 	Font GetFont();
 
+	//fixme: thread safety
+	void BeginFrame(Window& w, Events e);
+	Events& FrameEvents();
+	LayoutStack& CurLayout();
 	void EndFrame();
 }
 

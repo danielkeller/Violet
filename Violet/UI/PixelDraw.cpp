@@ -48,6 +48,25 @@ Visuals& FrameVisuals()
 	return vis;
 }
 
+void UI::BeginFrame(Window& w, Events e)
+{
+	FrameVisuals() = {};
+	CurLayout() = LayoutStack(*w.dim);
+	FrameEvents() = e;
+}
+
+Events& UI::FrameEvents()
+{
+	static Events events;
+	return events;
+}
+
+LayoutStack& UI::CurLayout()
+{
+	static LayoutStack layout({ 0, 0 });
+	return layout;
+}
+
 void UI::EndFrame()
 {
 	//Draw boxes
@@ -78,8 +97,6 @@ void UI::EndFrame()
 	BindPixelUBO();
 
 	txtVAO.Draw();
-
-	FrameVisuals() = {};
 }
 
 void UI::DrawChar(TextQuad q)

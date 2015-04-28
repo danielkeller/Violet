@@ -7,6 +7,7 @@
 
 class Render;
 class Events;
+class RenderPasses;
 
 class Tool
 {

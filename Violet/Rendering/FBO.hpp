@@ -49,7 +49,6 @@ public:
 	void PreDraw(const ClearColorsT& clearColors);
 
 	FBOBindObject Bind(GLenum target) const;
-    Matrix4f PerspMat() const;
     void CheckStatus() const; //throws on error
 
 	template<typename Pixel>

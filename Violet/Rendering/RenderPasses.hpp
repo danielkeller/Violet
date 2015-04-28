@@ -6,17 +6,18 @@
 #include "Material.hpp"
 #include "VAO.hpp"
 #include "Object.hpp"
+#include "Viewport.hpp"
 
 class Render;
 class Window;
+class Events;
 
 class RenderPasses
 {
 public:
 	RenderPasses(Window& w, Render& r);
 
-	void WindowResize(Eigen::Vector2i size);
-	void Draw();
+	void Draw(const Matrix4f& camera, Events e);
 
 	enum Passes
 	{
@@ -35,16 +36,20 @@ public:
 
 	//set the highlighted object
 	void Highlight(Object o, Highlights type);
-	Object Pick(Vector2f posView) const;
+	Object Pick(Vector2f posPixel) const;
 
 private:
+	void WindowResize(Eigen::Vector2i size);
+
 	Render& r;
+	Window& w;
 
 	FBO fbo;
 
 	ShaderProgram screenShader;
 	Material screenMat;
 	VAO screenQuad;
+	Viewport view;
 };
 
 static const char* shaderOutputs[] = { "color", "picker" };

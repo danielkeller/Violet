@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include "FBO.hpp"
-#include "GLMath.h"
 
 #include <numeric>
 
@@ -63,14 +62,14 @@ void FBO::CheckStatus() const
 	switch (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER))
 	{
 		FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT)
-			FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT)
-			FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER)
-			FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER)
-			FBO_ERROR_CASE(GL_FRAMEBUFFER_UNSUPPORTED)
-			FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE)
-			FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS)
-	case 0: throw std::runtime_error("Other framebuffer error");
-	default: return;
+		FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT)
+		FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER)
+		FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER)
+		FBO_ERROR_CASE(GL_FRAMEBUFFER_UNSUPPORTED)
+		FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE)
+		FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS)
+		case 0: throw std::runtime_error("Other framebuffer error");
+		default: return;
 	}
 }
 
@@ -92,17 +91,6 @@ void FBO::PreDraw(const ClearColorsT& clearColors)
 		glClearBufferuiv(GL_COLOR, drawbuffer++, color.data());
 
 	glClear(GL_DEPTH_BUFFER_BIT);
-}
-
-Matrix4f FBO::PerspMat() const
-{
-	Matrix4f z_upToY_up;
-	z_upToY_up <<
-		1, 0, 0, 0,
-		0, 0, -1, 0,
-		0, 1, 0, 0,
-		0, 0, 0, 1;
-	return perspective((float)M_PI / 2.f, (float)dim.x() / dim.y(), .01f, 100.f) * z_upToY_up;
 }
 
 RenderBuffer::RenderBuffer(GLenum internalFormat, TexDim dim)

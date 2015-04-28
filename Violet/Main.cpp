@@ -63,12 +63,15 @@ try
 	position[camera]->pos = {0, -3, 0};
     
     Time t;
+	Events e;
     
     auto physTick = [&]()
 	{
 		auto p = Profile::Profile("physics");
-		Events e = w.GetInput();
+		e = w.GetInput();
+
 		UI::BeginFrame(w, e);
+		w.SetView(UI::Draw(w));
 
 		m.Tick();
         edit.PhysTick(e, camera);
@@ -86,12 +89,8 @@ try
 			m.Update(alpha);
 
 			w.PreDraw();
-			r.camera = w.PerspMat() * *m[camera]; //FIXME
-			passes.Draw();
-
-			UI::Draw(w);
-			UI::DrawText("hi i am text", { 2, 14 });
 			UI::EndFrame();
+			passes.Draw(*m[camera], e);
 		}
         w.PostDraw();
 	};

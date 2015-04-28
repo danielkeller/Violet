@@ -53,7 +53,7 @@ void Tool::SetTarget(magic_ptr<Transform> t)
 
 void Tool::Update(Events& e, Object camera, Object focused)
 {
-    if (!e.MouseButton(MOUSE_BUTTON_LEFT))
+	if (!e.MouseButton(GLFW_MOUSE_BUTTON_LEFT))
         return;
 	if (!target)
 		return;
@@ -65,7 +65,8 @@ void Tool::Update(Events& e, Object camera, Object focused)
     else if (focused == z) dir = 2;
     else return;
 
-	float delta = e.ApparentMousePos(position[camera]->ToMatrix() * move->ToMatrix())[dir];
+	float delta = e.view.ApparentPos(e.MousePosPxl(),
+		position[camera]->ToMatrix() * move->ToMatrix())[dir];
 	move->pos[dir] += delta;
 	target->pos[dir] += delta;
 

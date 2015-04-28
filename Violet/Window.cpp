@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Window.hpp"
-#include "GLMath.h"
 
 #include "Profiling.hpp"
 
@@ -38,22 +37,22 @@ void APIENTRY glDebugProc(GLenum source, GLenum type, GLuint id, GLenum severity
 
 Vector2f Events::MouseDeltaScr() const
 {
-	return MouseDeltaView() * 2.f;
+	return view.Pixel2Scr(mouseCur) - view.Pixel2Scr(mouseOld);
 }
 
 Vector2f Events::MousePosScr() const
 {
-	return mouseCur.array() / dimVec.cast<float>().array() * 2.f - 1.f;
+	return view.Pixel2Scr(mouseCur);
 }
 
 Vector2f Events::MouseDeltaView() const
 {
-	return (mouseCur - mouseOld).array() / dimVec.cast<float>().array();
+	return view.Pixel2View(mouseCur) - view.Pixel2View(mouseOld);
 }
 
 Vector2f Events::MousePosView() const
 {
-	return mouseCur.array() / dimVec.cast<float>().array();
+	return view.Pixel2View(mouseCur);
 }
 
 Vector2f Events::MouseDeltaPxl() const
@@ -63,7 +62,7 @@ Vector2f Events::MouseDeltaPxl() const
 
 Vector2f Events::MousePosPxl() const
 {
-	return Vector2f(mouseCur.x(), float(dimVec.y()) - mouseCur.y());
+	return mouseCur;
 }
 
 Vector2f Events::ScrollDelta() const
@@ -99,6 +98,15 @@ void Events::PopScroll()
 	scrollAmt << 0, 0;
 }
 
+bool Events::PopKeyEvent(KeyEvent key)
+{
+	auto ev = std::find(keyEvents.begin(), keyEvents.end(), key);
+	if (ev == keyEvents.end())
+		return false;
+	keyEvents.erase(ev);
+	return true;
+}
+
 void Events::Step()
 {
 	keyEvents.clear();
@@ -107,18 +115,6 @@ void Events::Step()
 
 	mouseButtonsOld = mouseButtonsCur;
 	mouseOld = mouseCur;
-}
-
-Matrix4f Events::PerspMat() const
-{
-	Matrix4f z_upToY_up;
-	z_upToY_up <<
-		1, 0, 0, 0,
-		0, 0, 1, 0,
-		0, 1, 0, 0,
-		0, 0, 0, 1;
-	return perspective((float)M_PI / 2.f, (float)dimVec.x() / dimVec.y(),
-		.01f, 100.f) * z_upToY_up;
 }
 
 Window* getWindow(GLFWwindow* window)
@@ -135,18 +131,13 @@ static void error_callback(int error, const char* description)
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	getWindow(window)->newEvents.keyEvents.emplace_back(
-		KeyEvent{ { key, scancode, mods }, action });
+		KeyEvent{ { key, mods }, action });
 
 	if (action != GLFW_PRESS)
 		return;
-	switch (key)
-	{
-	case GLFW_KEY_ESCAPE:
+
+	if (mods & GLFW_MOD_ALT && key == GLFW_KEY_F4)
 		glfwSetWindowShouldClose(window, true);
-		break;
-	default:
-		break;
-	}
 }
 
 void character_callback(GLFWwindow* window, unsigned int codepoint)
@@ -162,15 +153,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	if (width != 0 && height != 0)
-	{
-		glViewport(0, 0, width, height);
 		getWindow(window)->dim.set(Eigen::Vector2i(width, height));
-	}
 }
 
 Window::Window()
 {
 	newEvents.dimVec << 1024, 768;
+	newEvents.view.screenBox = { Vector2i::Zero(), newEvents.dimVec };
 
 	accessor<Eigen::Vector2i> dimAcc = {
 		[this]() { return newEvents.dimVec; },
@@ -235,6 +224,11 @@ Window::~Window()
     glfwTerminate();
 }
 
+void Window::SetView(Viewport view)
+{
+	newEvents.view = view;
+}
+
 Events Window::GetInput()
 {
 	//gather any events that happened that we didn't catch yet.
@@ -243,8 +237,7 @@ Events Window::GetInput()
 	//get the mouse position too
 	double x, y;
 	glfwGetCursorPos(window, &x, &y);
-	//opengl and glfw use opposite viewport coordinates
-	newEvents.mouseCur << float(x), float(newEvents.dimVec.y() - y);
+	newEvents.mouseCur << float(x), float(y);
 
 	for (int b = 0; b < newEvents.mouseButtonsCur.size(); ++b)
 		newEvents.mouseButtonsCur[b] = glfwGetMouseButton(window, b) == GLFW_PRESS;
@@ -259,6 +252,7 @@ Events Window::GetInput()
 
 void Window::PreDraw()
 {
+	glViewport(0, 0, dim.get().x(), dim.get().y());
 	//clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -272,11 +266,6 @@ void Window::PostDraw()
     //Check errors normally
     CheckGLError();
 #endif
-}
-
-Matrix4f Window::PerspMat() const
-{
-	return newEvents.PerspMat();
 }
 
 Matrix4f PixelMat(Vector2i dim)

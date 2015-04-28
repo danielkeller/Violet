@@ -45,9 +45,6 @@
     <ClInclude Include="Rendering\VAO.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="GLMath.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Object.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -165,6 +162,9 @@
     <ClInclude Include="UI\Elements.hpp">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
+    <ClInclude Include="Viewport.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -256,6 +256,9 @@
     </ClCompile>
     <ClCompile Include="UI\Layout.cpp">
       <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewport.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

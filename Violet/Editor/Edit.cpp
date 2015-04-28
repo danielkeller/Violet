@@ -18,11 +18,9 @@ void Edit::Editable(Object o)
 
 void Edit::PhysTick(Events& e, Object camera)
 {
-	//todo: mouse in or out?
+	Object picked = rp.Pick(e.MousePosPxl());
 
-	Object picked = rp.Pick(e.MousePosView());
-
-	if (e.MouseClick(MOUSE_BUTTON_LEFT))
+	if (e.MouseClick(GLFW_MOUSE_BUTTON_LEFT))
     {
 		if (picked == Object::none) //click outside to deselect
 		{
@@ -37,9 +35,12 @@ void Edit::PhysTick(Events& e, Object camera)
 			if (selected != Object::none)
 				tool.SetTarget(position[selected]);
 		}
-		focused = picked;
+
+		//don't register picks outside of the viewport
+		if (picked != Object::invalid)
+			focused = picked;
     }
-	else if (e.MouseRelease(MOUSE_BUTTON_LEFT)) //just released
+	else if (e.MouseRelease(GLFW_MOUSE_BUTTON_LEFT)) //just released
     {
 		//save the object once we stop moving
 		if (selected != Object::none)
@@ -56,7 +57,7 @@ void Edit::PhysTick(Events& e, Object camera)
 	rp.Highlight(selected, RenderPasses::Selected);
     
 	//right mouse to rotate
-    if (e.MouseButton(MOUSE_BUTTON_RIGHT))
+    if (e.MouseButton(GLFW_MOUSE_BUTTON_RIGHT))
     {
 		auto mdelta = e.MouseDeltaScr();
 		viewPitch -= mdelta.x();

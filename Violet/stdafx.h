@@ -40,6 +40,12 @@ using Eigen::Quaternionf;
 	bool operator!=(const MemberTy& other) const \
 	{ return !(*this == other); }
 
+#define POD_EQUALITY(Class) \
+	bool operator==(const Class& other) const \
+	{ return std::memcmp(this, &other, sizeof(Class)) == 0; }\
+	bool operator!=(const Class& other) const \
+	{ return !(*this == other); }
+
 #define HAS_HASH template<class T> friend struct std::hash;
 #define MEMBER_HASH(type, member) template<> struct std::hash<type> \
     { size_t operator()(const type& v) const\
