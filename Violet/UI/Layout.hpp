@@ -5,6 +5,8 @@ namespace UI
 {
 	using AlignedBox2i = Eigen::AlignedBox2i;
 
+	static const int LINEH = 16;
+
 	struct Layout
 	{
 		enum class Dir

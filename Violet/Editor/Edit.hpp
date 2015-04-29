@@ -4,6 +4,8 @@
 #include "Editor/Tool.hpp"
 #include <unordered_set>
 
+#include "UI/Elements.hpp"
+
 class Render;
 class RenderPasses;
 class Persist;
@@ -30,6 +32,8 @@ private:
     Object focused;
     Object selected;
 	float viewPitch, viewYaw;
+
+	UI::SelectList<Object> objectSelect;
 };
 
 #endif

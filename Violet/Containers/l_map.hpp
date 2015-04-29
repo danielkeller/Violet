@@ -13,11 +13,13 @@ class l_map
 public:
     using key_type = Key;
     using mapped_type = T;
-	using value_type = std::pair<const Key, T>;
+	//const causes iterator issues with MSVC
+	using value_type = std::pair</*const*/ Key, T>;
 	using size_type = typename std::vector<value_type, Alloc>::size_type;
+	using difference_type = typename std::vector<value_type, Alloc>::difference_type;
 private:
 	using storety = std::vector<value_type, Alloc>;
-    using indty = const std::pair<Key, size_type>;
+	using indty = const std::pair<Key, difference_type>;
     using indsty = std::vector<indty>;
 public:
 
@@ -44,10 +46,10 @@ public:
     }
 
 private:
-    class Comparer
+    struct Comparer
     {
-        bool operator()(const key_type& l, const indty& r)
-            { return Compare()(l, r.first); };
+		bool operator()(const indty& l, const key_type& r)
+            { return Compare()(l.first, r); };
     };
 public:
 
@@ -97,7 +99,8 @@ public:
             return false;
         for (auto& ind : inds)
             if (ind.second > pos - store.begin()) ++ind.second;
-        pos = store.emplace(pos, std::piecewise_construct, key, 
+        pos = store.emplace(pos, std::piecewise_construct,
+			std::forward_as_tuple(key),
             std::forward_as_tuple(std::forward<Args>(args)...));
         inds.emplace(indit, key, pos - store.begin());
         return true;

@@ -42,8 +42,21 @@ Layout Layout::getNext(Dir dir) const
 
 void Layout::putNext(const Layout& l)
 {
-	filledSize += l.across;
-	across = std::max(across, l.maxFill);
+	if (l.fill == fill) //incorporate into this
+	{
+		filledSize += l.filledSize; 
+		across = std::max(across, l.across);
+	}
+	else if (Parallel(l.fill, fill)) //goes to the other end of this
+	{
+		filledSize += l.maxFill;
+		across = std::max(across, l.across);
+	}
+	else
+	{
+		filledSize += l.across;
+		across = std::max(across, l.maxFill);
+	}
 }
 
 AlignedBox2i FixBox(AlignedBox2i box)

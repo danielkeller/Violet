@@ -9,28 +9,19 @@
 
 using namespace UI;
 
-Button::Button(std::string text)
-	: text(text), hovered(false), active(false)
+std::string to_upper(std::string str)
+{
+	std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+	return str;
+}
+
+Button::Button()
+	: hovered(false), active(false)
 {}
 
-bool Button::Draw()
+bool Button::Draw(AlignedBox2i box)
 {
-	Layout l = CurLayout().PutSpace({ 80, 20 });
-	AlignedBox2i box = l.Box();
-
 	auto mouse = FrameEvents().MousePosPxl().cast<int>();
-
-	DrawBox(box);
-	if (active)
-		;
-	else if (hovered)
-	{
-		std::string t = text;
-		std::transform(t.begin(), t.end(), t.begin(), ::toupper);
-		DrawText(t, box);
-	}
-	else
-		DrawText(text, box);
 
 	//the button is clicked if it was active last frame and the mouse was released
 	if (active && FrameEvents().MouseRelease(GLFW_MOUSE_BUTTON_LEFT))
@@ -52,4 +43,32 @@ bool Button::Draw()
 	//	FrameEvents().PopMouse();
 
 	return false;
+}
+
+bool Button::Draw(AlignedBox2i box, const std::string& text)
+{
+	auto mouse = FrameEvents().MousePosPxl().cast<int>();
+
+	DrawBox(box);
+	if (active)
+		;
+	else if (hovered)
+	{
+		DrawText(to_upper(text), box);
+	}
+	else
+		DrawText(text, box);
+
+	return Draw(box);
+}
+
+TextButton::TextButton(std::string text)
+	: text(text)
+{}
+
+bool TextButton::Draw()
+{
+	Layout l = CurLayout().PutSpace({ 80, 20 });
+	AlignedBox2i box = l.Box();
+	return button.Draw(box, text);
 }

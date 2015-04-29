@@ -44,32 +44,28 @@ void Edit::PhysTick(Events& e, Object camera)
 	if (e.MouseClick(GLFW_MOUSE_BUTTON_LEFT))
     {
 		if (picked == Object::none) //click outside to deselect
-		{
-			if (selected != Object::none)
-				tool.SetTarget({});
-
 			selected = Object::none;
-		}
 		else if (editable.count(picked)) //click to select
-		{
 			selected = picked;
-			if (selected != Object::none)
-				tool.SetTarget(position[selected]);
-		}
 
 		//don't register picks outside of the viewport
 		if (picked != Object::invalid)
 			focused = picked;
-    }
-	else if (e.MouseRelease(GLFW_MOUSE_BUTTON_LEFT)) //just released
-    {
-		//save the object once we stop moving
-		if (selected != Object::none)
-			position.Save(selected);
-
-		//focus reverts to the selectable object that was selected
-		focused = selected;
 	}
+	//save the object once we stop moving
+	else if (e.MouseRelease(GLFW_MOUSE_BUTTON_LEFT)
+		&& selected != Object::none
+		&& selected != focused) //a hack to see if we were dragging the tool
+		position.Save(selected);
+
+	//focus reverts to the selectable object that was selected
+	if (!e.MouseButton(GLFW_MOUSE_BUTTON_LEFT))
+		focused = selected;
+
+	if (selected != Object::none)
+		tool.SetTarget(position[selected]);
+	else
+		tool.SetTarget({});
 
 	tool.Update(e, camera, focused);
 
@@ -93,29 +89,28 @@ void Edit::PhysTick(Events& e, Object camera)
 
 	//left bar
 	static const int LB_WIDTH = 250;
-	static const int LB_LINEH = 16;
 	l.PushNext(UI::Layout::Dir::Down);
 	l.EnsureWidth(LB_WIDTH);
 
 	if (selected != Object::none)
 	{
-		UI::DrawText(objName[selected], l.PutSpace({ LB_WIDTH, LB_LINEH }));
-		l.PutSpace(LB_LINEH);
+		UI::DrawText(objName[selected], l.PutSpace({ LB_WIDTH, UI::LINEH }));
+		l.PutSpace(UI::LINEH);
 
 		Transform xfrm = *position[selected];
 
 		auto numbercol = [&](int cols, float num) {
-			UI::DrawText(short_string(num), l.PutSpace({ LB_WIDTH / cols, LB_LINEH }));
+			UI::DrawText(short_string(num), l.PutSpace({ LB_WIDTH / cols, UI::LINEH }));
 		};
 
-		UI::DrawText("position", l.PutSpace({ LB_WIDTH, LB_LINEH }));
+		UI::DrawText("position", l.PutSpace({ LB_WIDTH, UI::LINEH }));
 		l.PushNext(UI::Layout::Dir::Right);
 		numbercol(3, xfrm.pos.x());
 		numbercol(3, xfrm.pos.y());
 		numbercol(3, xfrm.pos.z());
 		l.Pop();
 
-		UI::DrawText("rotation", l.PutSpace({ LB_WIDTH, LB_LINEH }));
+		UI::DrawText("rotation", l.PutSpace({ LB_WIDTH, UI::LINEH }));
 		l.PushNext(UI::Layout::Dir::Right);
 		numbercol(4, xfrm.rot.w());
 		numbercol(4, xfrm.rot.x());
@@ -123,9 +118,28 @@ void Edit::PhysTick(Events& e, Object camera)
 		numbercol(4, xfrm.rot.z());
 		l.Pop();
 
-		UI::DrawText("scale", l.PutSpace({ LB_WIDTH, LB_LINEH }));
+		UI::DrawText("scale", l.PutSpace({ LB_WIDTH, UI::LINEH }));
 		numbercol(1, xfrm.scale);
 	}
+
+	l.PutSpace(UI::LINEH);
+
+	objectSelect.width = LB_WIDTH;
+
+	//TODO: not this
+	for (Object o : editable)
+		if (objectSelect.items.find(o) == objectSelect.items.end())
+		{
+			auto& name = objName[o];
+			auto it = std::lower_bound(objectSelect.items.begin(),
+				objectSelect.items.end(), name,
+				[](std::pair<Object, std::string>& l, const std::string& r)
+				{return l.second < r; });
+
+			objectSelect.items.try_emplace(it, o, name);
+		}
+
+	objectSelect.Draw(selected);
 
 	UI::DrawBox(l.Current());
 
