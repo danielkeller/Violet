@@ -10,18 +10,21 @@
 
 #include <iomanip>
 
-Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName)
+Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName, Persist& persist)
 	: enabled(true)
-	, rp(rp), position(position), objName(objName)
+	, rp(rp), position(position), objName(objName), persist(persist)
 	, tool(r, position)
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
 {
+	for (auto o : persist.GetAll<Edit>())
+		editable.insert(std::get<0>(o));
 }
 
 void Edit::Editable(Object o)
 {
     editable.insert(o);
+	persist.Set<Edit>(o);
 }
 
 std::string short_string(float val)
@@ -40,13 +43,14 @@ void Edit::PhysTick(Events& e, Object camera)
 		return;
 
 	Object picked = rp.Pick(e.MousePosPxl());
+	Object newSelect = selected;
 
 	if (e.MouseClick(GLFW_MOUSE_BUTTON_LEFT))
     {
 		if (picked == Object::none) //click outside to deselect
-			Select(Object::none);
+			newSelect = Object::none;
 		else if (editable.count(picked)) //click to select
-			Select(picked);
+			newSelect = picked;
 
 		//don't register picks outside of the viewport
 		if (picked != Object::invalid)
@@ -92,7 +96,11 @@ void Edit::PhysTick(Events& e, Object camera)
 		objectNameEdit.width = LB_WIDTH;
 
 		if (objectNameEdit.Draw(curObjectName))
+		{
 			objName.Rename(selected, curObjectName);
+			//so it comes back alphabetically
+			objectSelect.items.erase(selected);
+		}
 		
 		l.PutSpace(UI::LINEH);
 
@@ -138,31 +146,32 @@ void Edit::PhysTick(Events& e, Object camera)
 			objectSelect.items.try_emplace(it, o, name);
 		}
 
-	Object slPicked = selected;
-	objectSelect.Draw(slPicked);
-	Select(slPicked);
+	objectSelect.Draw(newSelect);
 
 	UI::DrawBox(l.Current());
 
 	l.Pop();
+
+	//actually change selection at the end so objects have a chance to save when it changes
+	if (selected != newSelect)
+	{
+		selected = newSelect;
+
+		if (selected != Object::none)
+		{
+			curObjectName = objName[selected];
+			tool.SetTarget(position[selected]);
+		}
+		else
+			tool.SetTarget({});
+	}
 
 	//fixme
 	e.PopMouse();
 	e.PopScroll();
 }
 
-void Edit::Select(Object obj)
-{
-	if (selected == obj)
-		return;
-
-	selected = obj;
-
-	if (selected != Object::none)
-	{
-		curObjectName = objName[obj];
-		tool.SetTarget(position[selected]);
-	}
-	else
-		tool.SetTarget({});
-}
+template<>
+const char* PersistSchema<Edit>::name = "edit";
+template<>
+Columns PersistSchema<Edit>::cols = { "object" };

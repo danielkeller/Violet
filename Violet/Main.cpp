@@ -30,7 +30,7 @@ try
 	Mobile m(position);
 	Render r(position, m, persist);
 	RenderPasses passes(w, r);
-	Edit edit(r, passes, position, objName);
+	Edit edit(r, passes, position, objName, persist);
 
 	UI::Init(w);
 

@@ -175,13 +175,23 @@ bool LineEdit::Draw(std::string& text)
 	DrawText(text, origin);
 
 	StbFindState find;
-	stb_textedit_find_charpos(&find, &text, state.cursor, true);
 
 	long timeHalfSec = std::chrono::duration_cast<
 		std::chrono::duration<long, std::ratio<1,2>>>(FrameEvents().simTime).count();
 
 	if (focused && timeHalfSec & 1) //blink
+	{
+		stb_textedit_find_charpos(&find, &text, state.cursor, true);
 		DrawText("|", origin + Vector2i{ find.x - 3, find.y });
+	}
+
+	if (state.select_start != state.select_end)
+	{
+		int start = std::min(state.select_start, state.select_end);
+		stb_textedit_find_charpos(&find, &text, start, true);
+		std::string uline(std::abs(state.select_end - state.select_start), '_');
+		DrawText(uline, origin + Vector2i{ find.x, find.y });
+	}
 
 	return ret;
 }

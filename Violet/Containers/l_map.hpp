@@ -98,7 +98,7 @@ public:
         if (indit != inds.end() && indit->first == key)
             return false;
         for (auto& ind : inds)
-            if (ind.second > pos - store.begin()) ++ind.second;
+            if (ind.second >= pos - store.begin()) ++ind.second;
         pos = store.emplace(pos, std::piecewise_construct,
 			std::forward_as_tuple(key),
             std::forward_as_tuple(std::forward<Args>(args)...));
@@ -111,10 +111,30 @@ public:
         auto indit = find_ind(pos->first);
         auto my_ind = pos - store.begin();
         for(auto& ind : inds)
-            if (ind > my_ind) --ind->second; //shift over ones to the right
+            if (ind.second > my_ind) --ind.second; //shift over ones to the right
         inds.erase(indit);
         return store.erase(pos);
-    }
+	}
+
+	size_type erase(const key_type& key)
+	{
+		auto it = find(key);
+		if (it == end())
+			return 0;
+		erase(it);
+		return 1;
+	}
+
+	mapped_type& operator[](const key_type& key)
+	{
+		auto it = find(key);
+		if (it == end())
+		{
+			try_emplace_back(key);
+			return (end() - 1)->second;
+		}
+		return it->second;
+	}
 
 private:
     typename indsty::iterator find_ind(const key_type& k)

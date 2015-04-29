@@ -14,7 +14,7 @@ class Events;
 class Edit
 {
 public:
-	Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName);
+	Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName, Persist& persist);
 
     void Editable(Object o);
 
@@ -25,6 +25,7 @@ private:
 	RenderPasses& rp;
 	Position& position;
 	ObjectName& objName;
+	Persist& persist;
     Tool tool;
 
     std::unordered_set<Object> editable;
@@ -36,8 +37,8 @@ private:
 	std::string curObjectName;
 	UI::LineEdit objectNameEdit;
 	UI::SelectList<Object> objectSelect;
-
-	void Select(Object obj);
 };
+
+MAKE_PERSIST_TRAITS(Edit, Object)
 
 #endif
