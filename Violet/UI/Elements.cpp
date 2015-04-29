@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Elements.hpp"
-#include "UI.hpp"
 #include "Window.hpp"
 #include "Layout.hpp"
 #include "PixelDraw.hpp"
@@ -10,10 +9,13 @@
 
 using namespace UI;
 
+Button::Button(std::string text)
+	: text(text), hovered(false), active(false)
+{}
+
 bool Button::Draw()
 {
-	Vector2i size = { 60, 20 };
-	Layout l = CurLayout().PutSpace(size);
+	Layout l = CurLayout().PutSpace({ 80, 20 });
 	AlignedBox2i box = l.Box();
 
 	auto mouse = FrameEvents().MousePosPxl().cast<int>();
@@ -25,10 +27,10 @@ bool Button::Draw()
 	{
 		std::string t = text;
 		std::transform(t.begin(), t.end(), t.begin(), ::toupper);
-		DrawText(t, box.min() + Vector2i{ 3, 16 });
+		DrawText(t, box);
 	}
 	else
-		DrawText(text, box.min() + Vector2i{ 3, 16 });
+		DrawText(text, box);
 
 	//the button is clicked if it was active last frame and the mouse was released
 	if (active && FrameEvents().MouseRelease(GLFW_MOUSE_BUTTON_LEFT))

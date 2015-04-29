@@ -75,7 +75,6 @@ void UI::EndFrame()
 	static BufferObject<AlignedBox2i, GL_ARRAY_BUFFER, GL_STREAM_DRAW> boxInstances(1);
 
 	boxInstances.Data(FrameVisuals().boxes);
-
 	boxVAO.BindInstanceData(boxShdr, boxInstances);
 
 	boxShdr.use();
@@ -102,11 +101,6 @@ void UI::EndFrame()
 void UI::DrawChar(TextQuad q)
 {
 	FrameVisuals().textInsts.push_back(q);
-}
-
-void UI::DrawBox(const Layout& l)
-{
-	DrawBox(l.Box());
 }
 
 void UI::DrawBox(AlignedBox2i box)

@@ -4,9 +4,17 @@
 #include "Rendering/Render.hpp"
 #include "Persist.hpp"
 
-Edit::Edit(Render& r, RenderPasses& rp, Position& position)
-	: rp(rp), position(position)
-	, tool(r, position), focused(Object::none)
+#include "UI/PixelDraw.hpp"
+#include "UI/Text.hpp"
+#include "UI/Layout.hpp"
+
+#include <iomanip>
+
+Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName)
+	: enabled(true)
+	, rp(rp), position(position), objName(objName)
+	, tool(r, position)
+	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
 {
 }
@@ -16,8 +24,21 @@ void Edit::Editable(Object o)
     editable.insert(o);
 }
 
+std::string short_string(float val)
+{
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(3) << val;
+	return ss.str();
+}
+
 void Edit::PhysTick(Events& e, Object camera)
 {
+	if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_RELEASE }))
+		enabled = !enabled;
+
+	if (!enabled)
+		return;
+
 	Object picked = rp.Pick(e.MousePosPxl());
 
 	if (e.MouseClick(GLFW_MOUSE_BUTTON_LEFT))
@@ -67,6 +88,48 @@ void Edit::PhysTick(Events& e, Object camera)
     }
 
 	position[camera]->pos *= (1 - e.ScrollDelta().y()*.05f);
+	
+	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Left);
+
+	//left bar
+	static const int LB_WIDTH = 250;
+	static const int LB_LINEH = 16;
+	l.PushNext(UI::Layout::Dir::Down);
+	l.EnsureWidth(LB_WIDTH);
+
+	if (selected != Object::none)
+	{
+		UI::DrawText(objName[selected], l.PutSpace({ LB_WIDTH, LB_LINEH }));
+		l.PutSpace(LB_LINEH);
+
+		Transform xfrm = *position[selected];
+
+		auto numbercol = [&](int cols, float num) {
+			UI::DrawText(short_string(num), l.PutSpace({ LB_WIDTH / cols, LB_LINEH }));
+		};
+
+		UI::DrawText("position", l.PutSpace({ LB_WIDTH, LB_LINEH }));
+		l.PushNext(UI::Layout::Dir::Right);
+		numbercol(3, xfrm.pos.x());
+		numbercol(3, xfrm.pos.y());
+		numbercol(3, xfrm.pos.z());
+		l.Pop();
+
+		UI::DrawText("rotation", l.PutSpace({ LB_WIDTH, LB_LINEH }));
+		l.PushNext(UI::Layout::Dir::Right);
+		numbercol(4, xfrm.rot.w());
+		numbercol(4, xfrm.rot.x());
+		numbercol(4, xfrm.rot.y());
+		numbercol(4, xfrm.rot.z());
+		l.Pop();
+
+		UI::DrawText("scale", l.PutSpace({ LB_WIDTH, LB_LINEH }));
+		numbercol(1, xfrm.scale);
+	}
+
+	UI::DrawBox(l.Current());
+
+	l.Pop();
 
 	//fixme
 	e.PopMouse();

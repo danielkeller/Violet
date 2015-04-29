@@ -22,7 +22,6 @@ namespace UI
 
 	void DrawChar(TextQuad q);
 	void DrawBox(AlignedBox2i box);
-	void DrawBox(const Layout& l);
 
 	void Init(Window& w);
 	void BindPixelUBO();

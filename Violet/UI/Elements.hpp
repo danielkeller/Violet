@@ -5,10 +5,11 @@ namespace UI
 {
 	struct Button
 	{
+		Button(std::string text);
+		bool Draw();
+
 		std::string text;
 		bool hovered, active;
-
-		bool Draw();
 	};
 }
 

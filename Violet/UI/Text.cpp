@@ -54,6 +54,26 @@ void Font::Bind()
 	resource->texture.Bind(0);
 }
 
+Vector2i UI::TextDim(const std::string& text)
+{
+	Vector2f posf(0, 0);
+	for (int character : text)
+	{
+		auto& cdata = GetFont().resource->cdata[character - 32];
+		posf.x() += cdata.xadvance;
+		posf.y() = std::max(posf.y(), cdata.yoff2 - cdata.yoff);
+	}
+	return posf.cast<int>();
+}
+
+void UI::DrawText(const std::string& text, AlignedBox2i container)
+{
+	Vector2i dim = TextDim(text);
+	Vector2i space = (container.sizes() - dim) / 2;
+	space.y() = -space.y();
+	DrawText(text, container.corner(AlignedBox2i::TopLeft) + space);
+}
+
 void UI::DrawText(const std::string& text, Vector2i pos)
 {
 	Vector2f posf = pos.cast<float>();

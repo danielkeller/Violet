@@ -30,6 +30,8 @@ namespace UI
 
 		AlignedBox2i Box() const;
 
+		operator AlignedBox2i() const { return Box(); }
+
 		static Layout Top(Vector2i box, Dir dir = Dir::Right);
 	};
 
@@ -51,6 +53,8 @@ namespace UI
 		Layout PutSpace(int advance);
 		//makes sure the current layout can fit at least width across
 		void EnsureWidth(int across);
+		//look at the current layout
+		Layout Current() const;
 
 	private:
 		std::vector<Layout> stack;

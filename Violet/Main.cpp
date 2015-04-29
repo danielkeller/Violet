@@ -10,10 +10,8 @@
 #include "Rendering/RenderPasses.hpp"
 #include "Persist.hpp"
 
-#include "UI/UI.hpp"
 #include "UI/PixelDraw.hpp"
-
-#include "UI/Text.hpp"
+#include "UI/Layout.hpp"
 
 #include <iostream>
 
@@ -32,7 +30,7 @@ try
 	Mobile m(position);
 	Render r(position, m, persist);
 	RenderPasses passes(w, r);
-	Edit edit(r, passes, position);
+	Edit edit(r, passes, position, objName);
 
 	UI::Init(w);
 
@@ -68,13 +66,13 @@ try
     auto physTick = [&]()
 	{
 		auto p = Profile::Profile("physics");
+		m.Tick();
+
 		e = w.GetInput();
 
 		UI::BeginFrame(w, e);
-		w.SetView(UI::Draw(w));
-
-		m.Tick();
-        edit.PhysTick(e, camera);
+		edit.PhysTick(e, camera);
+		w.SetView(UI::CurLayout().Pop().Box());
 
         //physics step
         position[teapotObj]->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};

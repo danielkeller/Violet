@@ -150,9 +150,6 @@
     <ClInclude Include="UI\Layout.hpp">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
-    <ClInclude Include="UI\UI.hpp">
-      <Filter>Source Files\UI</Filter>
-    </ClInclude>
     <ClInclude Include="UI\Text.hpp">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
@@ -241,9 +238,6 @@
     </ClCompile>
     <ClCompile Include="Rendering\Material.cpp">
       <Filter>Source Files\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="UI\UI.cpp">
-      <Filter>Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="UI\Text.cpp">
       <Filter>Source Files\UI</Filter>

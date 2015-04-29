@@ -12,15 +12,17 @@ class Events;
 class Edit
 {
 public:
-	Edit(Render& r, RenderPasses& rp, Position& position);
+	Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName);
 
     void Editable(Object o);
 
 	void PhysTick(Events& e, Object camera);
 
 private:
+	bool enabled;
 	RenderPasses& rp;
 	Position& position;
+	ObjectName& objName;
     Tool tool;
 
     std::unordered_set<Object> editable;

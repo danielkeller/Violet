@@ -5,6 +5,8 @@
 
 namespace UI
 {
+	using AlignedBox2i = Eigen::AlignedBox2i;
+
 	class Font
 	{
 		struct FontResource;
@@ -18,7 +20,10 @@ namespace UI
 
 		BASIC_EQUALITY(Font, resource);
 
+		friend Vector2i TextDim(const std::string& text);
 		friend void DrawText(const std::string& text, Vector2i pos);
+		//centers the text in the box
+		friend void DrawText(const std::string& text, AlignedBox2i container);
 	private:
 		std::shared_ptr<FontResource> resource;
 	};

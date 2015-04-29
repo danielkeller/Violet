@@ -28,6 +28,10 @@ FBOBindObject FBO::Bind(GLenum target) const
 void FBO::AttachTexes(std::vector<Tex> ts)
 {
 	dim = ts[0].Dim();
+
+	if ((dim.array() == Eigen::Array2i::Zero()).any())
+		throw std::domain_error("Cannot attach zero-sized textures to framebuffer");
+
 	texes = std::move(ts);
 
 	auto bound = Bind(GL_FRAMEBUFFER);

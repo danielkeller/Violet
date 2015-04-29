@@ -176,7 +176,6 @@
     <ClInclude Include="UI\PixelDraw.hpp" />
     <ClInclude Include="UI\Layout.hpp" />
     <ClInclude Include="UI\Text.hpp" />
-    <ClInclude Include="UI\UI.hpp" />
     <ClInclude Include="Utils\Template.hpp" />
     <ClInclude Include="Viewport.hpp" />
     <ClInclude Include="Wavefront.hpp" />
@@ -237,7 +236,6 @@
     <ClCompile Include="UI\Layout.cpp" />
     <ClCompile Include="UI\PixelDraw.cpp" />
     <ClCompile Include="UI\Text.cpp" />
-    <ClCompile Include="UI\UI.cpp" />
     <ClCompile Include="Viewport.cpp" />
     <ClCompile Include="Wavefront.cpp" />
     <ClCompile Include="Window.cpp" />
