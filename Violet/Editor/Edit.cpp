@@ -44,9 +44,9 @@ void Edit::PhysTick(Events& e, Object camera)
 	if (e.MouseClick(GLFW_MOUSE_BUTTON_LEFT))
     {
 		if (picked == Object::none) //click outside to deselect
-			selected = Object::none;
+			Select(Object::none);
 		else if (editable.count(picked)) //click to select
-			selected = picked;
+			Select(picked);
 
 		//don't register picks outside of the viewport
 		if (picked != Object::invalid)
@@ -61,11 +61,6 @@ void Edit::PhysTick(Events& e, Object camera)
 	//focus reverts to the selectable object that was selected
 	if (!e.MouseButton(GLFW_MOUSE_BUTTON_LEFT))
 		focused = selected;
-
-	if (selected != Object::none)
-		tool.SetTarget(position[selected]);
-	else
-		tool.SetTarget({});
 
 	tool.Update(e, camera, focused);
 
@@ -94,7 +89,11 @@ void Edit::PhysTick(Events& e, Object camera)
 
 	if (selected != Object::none)
 	{
-		UI::DrawText(objName[selected], l.PutSpace({ LB_WIDTH, UI::LINEH }));
+		objectNameEdit.width = LB_WIDTH;
+
+		if (objectNameEdit.Draw(curObjectName))
+			objName.Rename(selected, curObjectName);
+		
 		l.PutSpace(UI::LINEH);
 
 		Transform xfrm = *position[selected];
@@ -126,7 +125,7 @@ void Edit::PhysTick(Events& e, Object camera)
 
 	objectSelect.width = LB_WIDTH;
 
-	//TODO: not this
+	//TODO: not this (n log(n))
 	for (Object o : editable)
 		if (objectSelect.items.find(o) == objectSelect.items.end())
 		{
@@ -139,7 +138,9 @@ void Edit::PhysTick(Events& e, Object camera)
 			objectSelect.items.try_emplace(it, o, name);
 		}
 
-	objectSelect.Draw(selected);
+	Object slPicked = selected;
+	objectSelect.Draw(slPicked);
+	Select(slPicked);
 
 	UI::DrawBox(l.Current());
 
@@ -148,4 +149,20 @@ void Edit::PhysTick(Events& e, Object camera)
 	//fixme
 	e.PopMouse();
 	e.PopScroll();
+}
+
+void Edit::Select(Object obj)
+{
+	if (selected == obj)
+		return;
+
+	selected = obj;
+
+	if (selected != Object::none)
+	{
+		curObjectName = objName[obj];
+		tool.SetTarget(position[selected]);
+	}
+	else
+		tool.SetTarget({});
 }

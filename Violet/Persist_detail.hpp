@@ -266,7 +266,11 @@ namespace Persist_detail
 
 		BASIC_EQUALITY(DataIterator, stmt);
 
-		value_type operator*() { return stmt->Get<Types...>(); }
+		value_type operator*()
+		{
+			if (!stmt) throw std::logic_error("No more data in result set");
+			return stmt->Get<Types...>();
+		}
 
 		arrow_helper operator->() { return{ operator*() }; }
 
@@ -279,6 +283,8 @@ namespace Persist_detail
 		}
 
 		void operator++(int) { operator++(); }
+
+		explicit operator bool() { return stmt != nullptr; }
 
 	private:
 		PreparedStmt* stmt;

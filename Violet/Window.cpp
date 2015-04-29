@@ -229,6 +229,11 @@ void Window::SetView(Viewport view)
 	newEvents.view = view;
 }
 
+void Window::SetTime(Time::clock::duration simTime)
+{
+	newEvents.simTime = simTime;
+}
+
 Events Window::GetInput()
 {
 	//gather any events that happened that we didn't catch yet.

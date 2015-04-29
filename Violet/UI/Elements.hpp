@@ -6,6 +6,9 @@
 #include "PixelDraw.hpp"
 #include "Layout.hpp"
 
+#define STB_TEXTEDIT_CHARTYPE unsigned int
+#include "stb/stb_textedit.h"
+
 std::string to_upper(std::string str);
 
 namespace UI
@@ -27,6 +30,18 @@ namespace UI
 		std::string text;
 		Button button;
 		bool Draw();
+	};
+
+	struct LineEdit
+	{
+		LineEdit();
+		int width;
+		STB_TexteditState state;
+		bool focused;
+		std::string lastText;
+
+		//returns true if the textedit just lost focus
+		bool Draw(std::string& text);
 	};
 
 	template<class Key>

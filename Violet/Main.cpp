@@ -43,7 +43,7 @@ try
 	//Object aabbObj;
 	//ShowAABB aabb(teapotAabb);
 
-	if (!persist.Exists<Render>(teapotObj))
+	if (!persist.Exists<Render>(teapotObj) || !persist.Exists<Render>(teapot2Obj))
 	{
 		//load the object
 		Tex capsuleTex{ "assets/capsule.png" };
@@ -67,7 +67,7 @@ try
 	{
 		auto p = Profile::Profile("physics");
 		m.Tick();
-
+		w.SetTime(t.SimTime());
 		e = w.GetInput();
 
 		UI::BeginFrame(w, e);

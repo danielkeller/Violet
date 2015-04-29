@@ -33,7 +33,11 @@ private:
     Object selected;
 	float viewPitch, viewYaw;
 
+	std::string curObjectName;
+	UI::LineEdit objectNameEdit;
 	UI::SelectList<Object> objectSelect;
+
+	void Select(Object obj);
 };
 
 #endif

@@ -56,6 +56,6 @@ private:
 	Persist& persist;
 };
 
-MAKE_PERSIST_TRAITS(ObjectName, std::string, Object)
+MAKE_PERSIST_TRAITS(ObjectName, Object, std::string)
 
 #endif

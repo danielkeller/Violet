@@ -10,6 +10,8 @@
 //for event stuff
 #include "GLFW/glfw3.h"
 
+#include "Time.hpp"
+
 class Window;
 
 struct Key
@@ -51,7 +53,6 @@ public:
 	void PopScroll();
 
 	bool PopKeyEvent(KeyEvent key);
-	unsigned int PopCharEvent();
 
 	Viewport View() { return view; }
 
@@ -68,6 +69,8 @@ public:
 	std::deque<KeyEvent> keyEvents;
 	std::deque<unsigned int> charEvents;
 
+	Time::clock::duration simTime;
+
 	void Step();
 
 	friend class Window;
@@ -81,6 +84,7 @@ public:
     ~Window();
 
 	void SetView(Viewport view);
+	void SetTime(Time::clock::duration simTime);
 	Events GetInput();
 	void PreDraw();
 	void PostDraw();

@@ -6,6 +6,8 @@ namespace UI
 	using AlignedBox2i = Eigen::AlignedBox2i;
 
 	static const int LINEH = 16;
+	//distance from top of line to text baseline
+	static const int BASELINE_DEPTH = 12;
 
 	struct Layout
 	{

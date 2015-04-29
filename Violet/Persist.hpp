@@ -84,6 +84,7 @@ public:
 	void Set(key_t<Subsystem> k, const Args&... d)
 	{
 		Track<Subsystem>();
+		//todo: implicitly convert
 		static_assert(std::is_same<data_t<Subsystem>, std::tuple<decltype(k), Args...>>::value,
 			"Wrong arugment types passed");
 

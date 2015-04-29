@@ -56,10 +56,15 @@ void Font::Bind()
 
 Vector2i UI::TextDim(const std::string& text)
 {
+	return TextDim(text.begin(), text.end());
+}
+
+Vector2i UI::TextDim(std::string::const_iterator begin, std::string::const_iterator end)
+{
 	Vector2f posf(0, 0);
-	for (int character : text)
+	for (; begin != end; ++begin)
 	{
-		auto& cdata = GetFont().resource->cdata[character - 32];
+		auto& cdata = GetFont().resource->cdata[*begin - 32];
 		posf.x() += cdata.xadvance;
 		posf.y() = std::max(posf.y(), cdata.yoff2 - cdata.yoff);
 	}
@@ -78,15 +83,45 @@ void UI::DrawText(const std::string& text, Vector2i pos)
 {
 	Vector2f posf = pos.cast<float>();
 
+	auto& cdata = GetFont().resource->cdata;
 	for (int character : text)
 	{
 		stbtt_aligned_quad q;
-		stbtt_GetPackedQuad(GetFont().resource->cdata, 512, 512, character - 32,
+		stbtt_GetPackedQuad(cdata, 512, 512, character - 32,
 			&posf.x(), &posf.y(), &q, 1);
 
 		TextQuad tq{
 			{ Vector2f{ q.x0, q.y0 }, Vector2f{ q.x1, q.y1 } },
 			{ Vector2f{ q.s0, q.t0 }, Vector2f{ q.s1, q.t1 } } };
 		DrawChar(tq);
+	}
+}
+
+#include "stb/stb_textedit.h"
+#include "Layout.hpp"
+
+float STB_TEXTEDIT_GETWIDTH(std::string* str, int n, int i)
+{
+	return GetFont().resource->cdata[str->at(i) - 32].xadvance;
+}
+
+void STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::string* str, int n)
+{
+	auto& cdata = GetFont().resource->cdata;
+
+	r->baseline_y_delta = LINEH;
+	r->x1 = r->x0 = 0;
+
+	r->num_chars = 0;
+	r->ymin = r->ymax = 0.f;
+
+	for (auto it = str->begin() + n;
+		it != str->end() && *it != '\n';
+		++it)
+	{
+		++r->num_chars;
+		r->ymin = std::min(r->ymin, cdata[*it - 32].yoff);
+		r->ymax = std::min(r->ymax, cdata[*it - 32].yoff2);
+		r->x1 += cdata[*it - 32].xadvance;
 	}
 }

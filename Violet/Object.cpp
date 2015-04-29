@@ -35,27 +35,36 @@ ObjectName::ObjectName(Persist& persist)
 
 std::string ObjectName::operator[](Object obj)
 {
-	return std::get<0>(*persist.GetSome<ObjectName>("object", obj).begin());
+	if (persist.Exists<ObjectName>(obj))
+		return std::get<1>(persist.Get<ObjectName>(obj));
+	else
+	{
+		static const std::string initName = "object";
+		persist.Set<ObjectName>(obj, initName);
+		return initName;
+	}
 }
 
 Object ObjectName::operator[](const std::string& str)
 {
-	if (persist.Exists<ObjectName>(str))
-		return std::get<1>(persist.Get<ObjectName>(str));
+	auto resultSet = persist.GetSome<ObjectName>("name", str);
+	auto result = resultSet.begin();
+	if (result)
+		return std::get<0>(*result);
 	else
 	{
 		Object newObj;
-		persist.Set<ObjectName>(str, newObj);
+		persist.Set<ObjectName>(newObj, str);
 		return newObj;
 	}
 }
 
 void ObjectName::Rename(Object obj, const std::string& str)
 {
-	persist.Set<ObjectName>(str, obj);
+	persist.Set<ObjectName>(obj, str);
 }
 
 template<>
 const char* PersistSchema<ObjectName>::name = "objectname";
 template<>
-Columns PersistSchema<ObjectName>::cols = {"name", "object"};
+Columns PersistSchema<ObjectName>::cols = {"object", "name"};
