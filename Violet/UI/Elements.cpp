@@ -6,6 +6,7 @@
 #include "Text.hpp"
 
 #include <iostream>
+#include <iomanip>
 #include <cstring>
 
 using namespace UI;
@@ -191,6 +192,40 @@ bool LineEdit::Draw(std::string& text)
 		stb_textedit_find_charpos(&find, &text, start, true);
 		std::string uline(std::abs(state.select_end - state.select_start), '_');
 		DrawText(uline, origin + Vector2i{ find.x, find.y });
+	}
+
+	return ret;
+}
+
+FloatEdit::FloatEdit()
+	: prec(3), editing(false)
+{}
+
+bool FloatEdit::Draw(float& val)
+{
+	if (!editing)
+	{
+		std::ostringstream ss;
+		ss << std::fixed << std::setprecision(prec) << val;
+		editStr = ss.str();
+	}
+
+	std::string dispStr = editStr;
+
+	bool ret;
+	if ((ret = edit.Draw(dispStr)))
+		editing = false;
+
+	if (dispStr != editStr) //user changed it
+	{
+		editing = true;
+		editStr = dispStr;
+
+		std::istringstream ss(editStr);
+		float typedVal;
+		ss >> std::noskipws >> typedVal;
+		if (!ss.fail())
+			val = typedVal;
 	}
 
 	return ret;

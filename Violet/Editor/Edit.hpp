@@ -34,8 +34,13 @@ private:
     Object selected;
 	float viewPitch, viewYaw;
 
+	static const int LB_WIDTH = 250;
+
 	std::string curObjectName;
 	UI::LineEdit objectNameEdit;
+	UI::FloatEdit xEdit, yEdit, zEdit;
+	UI::FloatEdit rwEdit, rxEdit, ryEdit, rzEdit;
+	UI::FloatEdit scaleEdit;
 	UI::SelectList<Object> objectSelect;
 };
 

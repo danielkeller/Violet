@@ -44,6 +44,17 @@ namespace UI
 		bool Draw(std::string& text);
 	};
 
+	struct FloatEdit
+	{
+		FloatEdit();
+		LineEdit edit;
+		int prec;
+		bool editing;
+		std::string editStr;
+		//returns true if the textedit just lost focus
+		bool Draw(float& val);
+	};
+
 	template<class Key>
 	struct SelectList
 	{

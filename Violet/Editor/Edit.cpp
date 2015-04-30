@@ -19,6 +19,11 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName,
 {
 	for (auto o : persist.GetAll<Edit>())
 		editable.insert(std::get<0>(o));
+
+	objectSelect.width = LB_WIDTH;
+	xEdit.edit.width = yEdit.edit.width = zEdit.edit.width = LB_WIDTH / 3;
+	rwEdit.edit.width = rxEdit.edit.width = ryEdit.edit.width = rzEdit.edit.width = LB_WIDTH / 4;
+	scaleEdit.edit.width = LB_WIDTH;
 }
 
 void Edit::Editable(Object o)
@@ -87,7 +92,6 @@ void Edit::PhysTick(Events& e, Object camera)
 	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Left);
 
 	//left bar
-	static const int LB_WIDTH = 250;
 	l.PushNext(UI::Layout::Dir::Down);
 	l.EnsureWidth(LB_WIDTH);
 
@@ -106,32 +110,37 @@ void Edit::PhysTick(Events& e, Object camera)
 
 		Transform xfrm = *position[selected];
 
-		auto numbercol = [&](int cols, float num) {
-			UI::DrawText(short_string(num), l.PutSpace({ LB_WIDTH / cols, UI::LINEH }));
-		};
+		//save the object once we stop editing
+		bool moved = false;
 
 		UI::DrawText("position", l.PutSpace({ LB_WIDTH, UI::LINEH }));
 		l.PushNext(UI::Layout::Dir::Right);
-		numbercol(3, xfrm.pos.x());
-		numbercol(3, xfrm.pos.y());
-		numbercol(3, xfrm.pos.z());
+		moved |= xEdit.Draw(xfrm.pos.x())
+			| yEdit.Draw(xfrm.pos.y())
+			| zEdit.Draw(xfrm.pos.z());
 		l.Pop();
 
 		UI::DrawText("rotation", l.PutSpace({ LB_WIDTH, UI::LINEH }));
 		l.PushNext(UI::Layout::Dir::Right);
-		numbercol(4, xfrm.rot.w());
-		numbercol(4, xfrm.rot.x());
-		numbercol(4, xfrm.rot.y());
-		numbercol(4, xfrm.rot.z());
+		moved |= rwEdit.Draw(xfrm.rot.w())
+			| rxEdit.Draw(xfrm.rot.x())
+			| ryEdit.Draw(xfrm.rot.y())
+			| rzEdit.Draw(xfrm.rot.z());
 		l.Pop();
 
+		xfrm.rot.normalize();
+
 		UI::DrawText("scale", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-		numbercol(1, xfrm.scale);
+		moved |= scaleEdit.Draw(xfrm.scale);
+
+		position[selected].set(xfrm);
+		tool.SetTarget(position[selected]);
+
+		if (moved)
+			position.Save(selected);
 	}
 
 	l.PutSpace(UI::LINEH);
-
-	objectSelect.width = LB_WIDTH;
 
 	//TODO: not this (n log(n))
 	for (Object o : editable)
