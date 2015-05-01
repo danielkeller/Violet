@@ -27,9 +27,22 @@ Position::Position(Persist& persist)
 		(*this)[std::get<0>(row)].set(std::get<1>(row));
 }
 
+bool Position::Has(Object obj) const
+{
+	return data.count(obj) > 0;
+}
+
 void Position::Save(Object obj)
 {
-	persist.Set<Position>(obj, data[obj].loc);
+	if (Has(obj))
+		persist.Set<Position>(obj, data[obj].loc);
+	else
+		persist.Delete<Position>(obj);
+}
+
+void Position::Remove(Object obj)
+{
+	data.erase(obj);
 }
 
 template<>

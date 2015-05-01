@@ -92,6 +92,13 @@ public:
 		//std::thread(&PreparedStmt::Step, std::move(stmt)).detach();
 	}
 
+	template<class Subsystem>
+	void Delete(key_t<Subsystem> k)
+	{
+		Track<Subsystem>();
+		database.MakeDeleteStmt(PersistSchema<Subsystem>::name).Bind(k).Step();
+	}
+
 private:
 	Persist_detail::Database database;
 

@@ -64,6 +64,8 @@ namespace UI
 		std::string editStr;
 		//returns true if the textedit just lost focus
 		bool Draw(float& val);
+	private:
+		void SetDispVal(float val);
 	};
 
 	template<class Key>

@@ -2,6 +2,7 @@
 #define WINDOW_H
 
 #include "Viewport.hpp"
+#include "Time.hpp"
 
 #include "magic_ptr.hpp"
 #include <deque>
@@ -9,8 +10,6 @@
 
 //for event stuff
 #include "GLFW/glfw3.h"
-
-#include "Time.hpp"
 
 class Window;
 
@@ -20,6 +19,9 @@ struct Key
 	int mods;
 	POD_EQUALITY(Key);
 };
+
+//key action for Events::PopKeyEvent
+#define RELEASE_OR_REPEAT 3
 
 struct KeyEvent
 {
@@ -53,6 +55,7 @@ public:
 	void PopScroll();
 
 	bool PopKeyEvent(KeyEvent key);
+	bool PopKey(Key key); //RELEASE_OR_REPEAT event
 
 	Viewport View() { return view; }
 

@@ -17,9 +17,11 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName,
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
 	, objectNameEdit(LB_WIDTH)
+	, addPos("+", MOD_WIDTH), deletePos("-", MOD_WIDTH)
 	, xEdit(LB_WIDTH / 3), yEdit(LB_WIDTH / 3), zEdit(LB_WIDTH / 3)
 	, angleEdit({ LB_WIDTH / 3, LB_WIDTH / 3, LB_WIDTH / 3 })
 	, scaleEdit(LB_WIDTH), objectSelect(LB_WIDTH)
+	, newObject("new", MOD_WIDTH)
 {
 	for (auto o : persist.GetAll<Edit>())
 		editable.insert(std::get<0>(o));
@@ -108,56 +110,89 @@ void Edit::PhysTick(Events& e, Object camera)
 		
 		l.PutSpace(UI::LINEH);
 
-		Transform xfrm = *position[selected];
+		l.PushNext(UI::Layout::Dir::Right); l.PutSpace(MOD_WIDTH);
+		UI::DrawText("position", l.PutSpace({ LB_WIDTH - 2 * MOD_WIDTH, UI::LINEH }));
 
-		//save the object once we stop editing
-		bool moved = false;
-
-		UI::DrawText("position", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-		l.PushNext(UI::Layout::Dir::Right);
-		moved |= xEdit.Draw(xfrm.pos.x())
-			| yEdit.Draw(xfrm.pos.y())
-			| zEdit.Draw(xfrm.pos.z());
-		l.Pop();
-
-		UI::DrawText("rotation", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-		l.PushNext(UI::Layout::Dir::Right);
-		//axes.Draw(axis);
-
-		for (int axis = 0; axis < 3; ++axis)
+		if (position.Has(selected))
 		{
-			moved |= angleEdit[axis].Draw(curAngle[axis]);
+			bool doDeletePos = deletePos.Draw(); l.Pop();
 
-			Quaternionf swing;
-			Quaternionf twist;
-			std::tie(twist, swing) = TwistSwing(xfrm.rot, Vector3f::Unit(axis));
-			if (angleEdit[axis].editing)
+			Transform xfrm = *position[selected];
+
+			//save the object once we stop editing
+			bool moved = false;
+
+			l.PushNext(UI::Layout::Dir::Right);
+			moved |= xEdit.Draw(xfrm.pos.x())
+				| yEdit.Draw(xfrm.pos.y())
+				| zEdit.Draw(xfrm.pos.z());
+			l.Pop();
+
+			UI::DrawText("rotation", l.PutSpace({ LB_WIDTH, UI::LINEH }));
+			l.PushNext(UI::Layout::Dir::Right);
+
+			//the angles displayed here are how much the object appears to be rotated when
+			//looking down the given axis at it. The twist-swing decomposition allows us
+			//to separate out the rest of the rotation and edit just the apparent rotation
+			for (int axis = 0; axis < 3; ++axis)
 			{
-				xfrm.rot = Eigen::AngleAxisf(curAngle[axis], Vector3f::Unit(axis)) * swing;
+				moved |= angleEdit[axis].Draw(curAngle[axis]);
+
+				Quaternionf swing;
+				Quaternionf twist;
+				std::tie(twist, swing) = TwistSwing(xfrm.rot, Vector3f::Unit(axis));
+				if (angleEdit[axis].editing) //editor in control
+				{
+					xfrm.rot = Eigen::AngleAxisf(curAngle[axis], Vector3f::Unit(axis)) * swing;
+				}
+				else //object in control
+				{
+					auto other = Vector3f::Unit((axis + 1) % 3);
+					auto rotated = twist * other;
+					curAngle[axis] = std::atan2(rotated[(axis + 2) % 3], rotated[(axis + 1) % 3]);
+				}
 			}
-			else
+
+			l.Pop();
+
+			xfrm.rot.normalize();
+
+			UI::DrawText("scale", l.PutSpace({ LB_WIDTH, UI::LINEH }));
+			moved |= scaleEdit.Draw(xfrm.scale);
+
+			position[selected].set(xfrm);
+			tool.SetTarget(position[selected]);
+
+			if (doDeletePos)
 			{
-				auto other = Vector3f::Unit((axis + 1) % 3);
-				auto rotated = twist * other;
-				curAngle[axis] = std::atan2(rotated[(axis + 2) % 3], rotated[(axis + 1) % 3]);
+				position.Remove(selected);
+				tool.SetTarget({});
 			}
+
+			if (moved || doDeletePos)
+				position.Save(selected);
 		}
-
-		l.Pop();
-
-		xfrm.rot.normalize();
-
-		UI::DrawText("scale", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-		moved |= scaleEdit.Draw(xfrm.scale);
-
-		position[selected].set(xfrm);
-		tool.SetTarget(position[selected]);
-
-		if (moved)
-			position.Save(selected);
+		else
+		{
+			if (addPos.Draw())
+			{
+				tool.SetTarget(position[selected]);
+				position.Save(selected);
+			}
+			l.Pop();
+		}
 	}
 
 	l.PutSpace(UI::LINEH);
+
+	l.PushNext(UI::Layout::Dir::Left);
+	if (newObject.Draw())
+	{
+		Object n;
+		Editable(n);
+	}
+	UI::DrawText("objects", l.PutSpace(LB_WIDTH - 2 * MOD_WIDTH));
+	l.Pop();
 
 	//TODO: not this (n log(n))
 	for (Object o : editable)
@@ -186,7 +221,8 @@ void Edit::PhysTick(Events& e, Object camera)
 		if (selected != Object::none)
 		{
 			curObjectName = objName[selected];
-			tool.SetTarget(position[selected]);
+			if (position.Has(selected))
+				tool.SetTarget(position[selected]);
 		}
 		else
 			tool.SetTarget({});

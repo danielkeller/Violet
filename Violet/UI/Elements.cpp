@@ -134,12 +134,10 @@ LineEdit::LineEdit(int width)
 
 bool LineEdit::Draw(std::string& text)
 {
-	static const int LEFT_PAD = 4;
-
 	auto l = CurLayout().PutSpace({ width, LINEH });
 	auto box = l.Box();
 	//as far as stb_textedit is concerned
-	Vector2i origin = box.min() + Vector2i{ LEFT_PAD, BASELINE_DEPTH };
+	Vector2i origin = box.min() + Vector2i{ TEXT_LEFT_PAD, BASELINE_DEPTH };
 
 	auto mouse = FrameEvents().MousePosPxl().cast<int>();
 	Vector2f mouseOffs = (mouse - origin).cast<float>();
@@ -168,7 +166,7 @@ bool LineEdit::Draw(std::string& text)
 	if (focused)
 	{
 		//loses focus on enter key
-		if (FrameEvents().PopKeyEvent({ { GLFW_KEY_ENTER, 0 }, GLFW_RELEASE }))
+		if (FrameEvents().PopKeyEvent({ { GLFW_KEY_ENTER, 0 }, GLFW_PRESS }))
 		{
 			ret = focused;
 			focused = false;
@@ -225,13 +223,35 @@ FloatEdit::FloatEdit(int width)
 	: edit(width), prec(3), editing(false)
 {}
 
+void FloatEdit::SetDispVal(float val)
+{
+	std::ostringstream ss;
+	ss << std::fixed << std::setprecision(prec) << val;
+	editStr = ss.str();
+}
+
 bool FloatEdit::Draw(float& val)
 {
 	if (!editing)
+		SetDispVal(val);
+
+	if (edit.focused)
 	{
-		std::ostringstream ss;
-		ss << std::fixed << std::setprecision(prec) << val;
-		editStr = ss.str();
+		float nudge = 0;
+		//intercept these keys before the edit uses them
+		while (FrameEvents().PopKey({ GLFW_KEY_UP, 0 }))
+			nudge += 0.1f;
+		while (FrameEvents().PopKey({ GLFW_KEY_DOWN, 0 }))
+			nudge -= 0.1f;
+		while (FrameEvents().PopKey({ GLFW_KEY_UP, GLFW_MOD_SHIFT }))
+			nudge += 0.01f;
+		while (FrameEvents().PopKey({ GLFW_KEY_DOWN, GLFW_MOD_SHIFT }))
+			nudge -= 0.01f;
+		if (nudge != 0)
+		{
+			SetDispVal(val += nudge);
+			editing = true;
+		}
 	}
 
 	std::string dispStr = editStr;

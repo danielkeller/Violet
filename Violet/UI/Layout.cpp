@@ -72,7 +72,10 @@ AlignedBox2i Layout::Box() const
 Layout Layout::getLast(Dir dir) const
 {
 	Layout ret = getNext(dir);
-	ret.across = maxFill - filledSize;
+	if (Parallel(dir, fill))
+		ret.across = across;
+	else
+		ret.across = maxFill - filledSize;
 	return ret;
 }
 

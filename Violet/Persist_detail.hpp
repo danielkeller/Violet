@@ -303,6 +303,7 @@ namespace Persist_detail
 		PreparedStmt MakeSelectAllStmt(const char* subsystem);
 		PreparedStmt MakeSelectSomeStmt(const char* subsystem, const char* col);
 		PreparedStmt MakeExistsStmt(const char* subsystem);
+		PreparedStmt MakeDeleteStmt(const char* subsystem);
 
 	private:
 		std::unique_ptr<sqlite3, decltype(&::sqlite3_close)> db;

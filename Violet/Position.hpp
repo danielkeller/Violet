@@ -55,7 +55,11 @@ public:
 	Position(Persist& persist);
 
 	magic_ptr<Transform>& operator[](Object obj);
+
+	bool Has(Object obj) const;
+	//void Add(Object obj);
 	void Save(Object obj);
+	void Remove(Object obj);
 
 private:
 	struct ObjData

@@ -100,11 +100,19 @@ void Events::PopScroll()
 
 bool Events::PopKeyEvent(KeyEvent key)
 {
+	if (key.action == RELEASE_OR_REPEAT) //only pop one of them
+		return PopKeyEvent({ key.key, GLFW_REPEAT }) || PopKeyEvent({ key.key, GLFW_RELEASE });
+
 	auto ev = std::find(keyEvents.begin(), keyEvents.end(), key);
 	if (ev == keyEvents.end())
 		return false;
 	keyEvents.erase(ev);
 	return true;
+}
+
+bool Events::PopKey(Key key)
+{
+	return PopKeyEvent({ key, RELEASE_OR_REPEAT });
 }
 
 void Events::Step()

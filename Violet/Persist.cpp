@@ -320,6 +320,16 @@ PreparedStmt Database::MakeExistsStmt(const char* subsystem)
 	return MakeStmt(command.str());
 }
 
+PreparedStmt Database::MakeDeleteStmt(const char* subsystem)
+{
+	const char* const key = *schema[subsystem].begin();
+
+	std::stringstream command;
+	command << "delete from " << subsystem << " where " << key << " = ?";
+
+	return MakeStmt(command.str());
+}
+
 Object Persist::NextObject()
 {
 	return database.MakeStmt("select max(object) + 1 from object").Eval1<Object>();
