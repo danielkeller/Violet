@@ -8,7 +8,7 @@
 #include "UI/Text.hpp"
 #include "UI/Layout.hpp"
 
-#include <iomanip>
+#include <iostream>
 
 Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName, Persist& persist)
 	: enabled(true)
@@ -16,14 +16,13 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName,
 	, tool(r, position)
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
+	, objectNameEdit(LB_WIDTH)
+	, xEdit(LB_WIDTH / 3), yEdit(LB_WIDTH / 3), zEdit(LB_WIDTH / 3)
+	, angleEdit({ LB_WIDTH / 3, LB_WIDTH / 3, LB_WIDTH / 3 })
+	, scaleEdit(LB_WIDTH), objectSelect(LB_WIDTH)
 {
 	for (auto o : persist.GetAll<Edit>())
 		editable.insert(std::get<0>(o));
-
-	objectSelect.width = LB_WIDTH;
-	xEdit.edit.width = yEdit.edit.width = zEdit.edit.width = LB_WIDTH / 3;
-	rwEdit.edit.width = rxEdit.edit.width = ryEdit.edit.width = rzEdit.edit.width = LB_WIDTH / 4;
-	scaleEdit.edit.width = LB_WIDTH;
 }
 
 void Edit::Editable(Object o)
@@ -32,11 +31,14 @@ void Edit::Editable(Object o)
 	persist.Set<Edit>(o);
 }
 
-std::string short_string(float val)
+//decompose rot into rotation around axis (twist) and rotation perpendicular (swing)
+//rot = twist * swing
+std::tuple<Quaternionf, Quaternionf> TwistSwing(const Quaternionf& rot, const Vector3f& axis)
 {
-	std::stringstream ss;
-	ss << std::fixed << std::setprecision(3) << val;
-	return ss.str();
+	auto proj = rot.vec().dot(axis) * axis;
+	Quaternionf twist{ rot.w(), proj.x(), proj.y(), proj.z() };
+	twist.normalize();
+	return std::make_tuple(twist, twist.conjugate() * rot);
 }
 
 void Edit::PhysTick(Events& e, Object camera)
@@ -97,8 +99,6 @@ void Edit::PhysTick(Events& e, Object camera)
 
 	if (selected != Object::none)
 	{
-		objectNameEdit.width = LB_WIDTH;
-
 		if (objectNameEdit.Draw(curObjectName))
 		{
 			objName.Rename(selected, curObjectName);
@@ -122,10 +122,27 @@ void Edit::PhysTick(Events& e, Object camera)
 
 		UI::DrawText("rotation", l.PutSpace({ LB_WIDTH, UI::LINEH }));
 		l.PushNext(UI::Layout::Dir::Right);
-		moved |= rwEdit.Draw(xfrm.rot.w())
-			| rxEdit.Draw(xfrm.rot.x())
-			| ryEdit.Draw(xfrm.rot.y())
-			| rzEdit.Draw(xfrm.rot.z());
+		//axes.Draw(axis);
+
+		for (int axis = 0; axis < 3; ++axis)
+		{
+			moved |= angleEdit[axis].Draw(curAngle[axis]);
+
+			Quaternionf swing;
+			Quaternionf twist;
+			std::tie(twist, swing) = TwistSwing(xfrm.rot, Vector3f::Unit(axis));
+			if (angleEdit[axis].editing)
+			{
+				xfrm.rot = Eigen::AngleAxisf(curAngle[axis], Vector3f::Unit(axis)) * swing;
+			}
+			else
+			{
+				auto other = Vector3f::Unit((axis + 1) % 3);
+				auto rotated = twist * other;
+				curAngle[axis] = std::atan2(rotated[(axis + 2) % 3], rotated[(axis + 1) % 3]);
+			}
+		}
+
 		l.Pop();
 
 		xfrm.rot.normalize();

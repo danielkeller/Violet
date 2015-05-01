@@ -1,10 +1,11 @@
 #ifndef EDIT_HPP
 #define EDIT_HPP
 
-#include "Editor/Tool.hpp"
-#include <unordered_set>
-
 #include "UI/Elements.hpp"
+#include "Editor/Tool.hpp"
+
+#include <unordered_set>
+#include <array>
 
 class Render;
 class RenderPasses;
@@ -39,7 +40,8 @@ private:
 	std::string curObjectName;
 	UI::LineEdit objectNameEdit;
 	UI::FloatEdit xEdit, yEdit, zEdit;
-	UI::FloatEdit rwEdit, rxEdit, ryEdit, rzEdit;
+	std::array<float,3> curAngle;
+	std::array<UI::FloatEdit,3> angleEdit;
 	UI::FloatEdit scaleEdit;
 	UI::SelectList<Object> objectSelect;
 };

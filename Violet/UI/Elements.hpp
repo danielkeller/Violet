@@ -15,6 +15,8 @@ namespace UI
 {
 	using AlignedBox2i = Eigen::AlignedBox2i;
 
+	static const int DEFAULT_WIDTH = 80;
+
 	struct Button
 	{
 		Button();
@@ -26,15 +28,24 @@ namespace UI
 
 	struct TextButton
 	{
-		TextButton(std::string text);
+		TextButton(std::string text, int width = 80);
+		int width;
 		std::string text;
 		Button button;
 		bool Draw();
 	};
 
+	struct RadioGroup
+	{
+		RadioGroup(std::vector<TextButton> buttons);
+		std::vector<TextButton> buttons;
+		//returns true if the selection changed
+		bool Draw(int& selected);
+	};
+
 	struct LineEdit
 	{
-		LineEdit();
+		LineEdit(int width = DEFAULT_WIDTH);
 		int width;
 		STB_TexteditState state;
 		bool focused;
@@ -46,7 +57,7 @@ namespace UI
 
 	struct FloatEdit
 	{
-		FloatEdit();
+		FloatEdit(int width = DEFAULT_WIDTH);
 		LineEdit edit;
 		int prec;
 		bool editing;
@@ -58,6 +69,7 @@ namespace UI
 	template<class Key>
 	struct SelectList
 	{
+		SelectList(int width = DEFAULT_WIDTH) : width(width) {}
 		//in
 		l_map<Key, std::string> items;
 		int width;

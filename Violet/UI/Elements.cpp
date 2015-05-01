@@ -64,14 +64,38 @@ bool Button::Draw(AlignedBox2i box, const std::string& text)
 	return Draw(box);
 }
 
-TextButton::TextButton(std::string text)
-	: text(text)
+TextButton::TextButton(std::string text, int width)
+	: width(width), text(text)
 {}
 
 bool TextButton::Draw()
 {
-	Layout l = CurLayout().PutSpace({ 80, 20 });
+	Layout l = CurLayout().PutSpace({ width, LINEH });
 	return button.Draw(l, text);
+}
+
+RadioGroup::RadioGroup(std::vector<TextButton> buttons)
+	: buttons(buttons)
+{}
+
+bool RadioGroup::Draw(int& selected)
+{
+	bool ret = false;
+	int curButton = 0;
+	for (auto& b : buttons)
+	{
+		if (b.button.Draw(CurLayout().PutSpace({ b.width, LINEH }),
+			selected == curButton ? to_upper(b.text) : b.text))
+		{
+			if (selected != curButton)
+			{
+				selected = curButton;
+				ret = true;
+			}
+		}
+		++curButton;
+	}
+	return ret;
 }
 
 #define STB_TEXTEDIT_STRING std::string
@@ -102,11 +126,10 @@ bool TextButton::Draw()
 #define STB_TEXTEDIT_IMPLEMENTATION
 #include "stb/stb_textedit.h"
 
-LineEdit::LineEdit()
-	: width(10), focused(false)
+LineEdit::LineEdit(int width)
+	: width(width), focused(false)
 {
 	stb_textedit_initialize_state(&state, true);
-	width = 10;
 }
 
 bool LineEdit::Draw(std::string& text)
@@ -151,9 +174,6 @@ bool LineEdit::Draw(std::string& text)
 			focused = false;
 		}
 
-		for (auto ch : FrameEvents().charEvents)
-			stb_textedit_char(&text, &state, ch);
-		FrameEvents().charEvents.clear();
 		for (auto key : FrameEvents().keyEvents)
 		{
 			if (key.action == GLFW_PRESS)
@@ -168,6 +188,10 @@ bool LineEdit::Draw(std::string& text)
 
 			stb_textedit_key(&text, &state, stb_key);
 		}
+		FrameEvents().keyEvents.clear();
+
+		for (auto ch : FrameEvents().charEvents)
+			stb_textedit_char(&text, &state, ch);
 		FrameEvents().charEvents.clear();
 	}
 
@@ -197,8 +221,8 @@ bool LineEdit::Draw(std::string& text)
 	return ret;
 }
 
-FloatEdit::FloatEdit()
-	: prec(3), editing(false)
+FloatEdit::FloatEdit(int width)
+	: edit(width), prec(3), editing(false)
 {}
 
 bool FloatEdit::Draw(float& val)
