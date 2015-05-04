@@ -38,12 +38,23 @@ private:
 	static const int LB_WIDTH = 250;
 	static const int MOD_WIDTH = 30;
 
+	struct ComponentEditor
+	{
+		ComponentEditor(std::string name)
+			: name(name), addButton("+", MOD_WIDTH), removeButton("-", MOD_WIDTH) {}
+		UI::TextButton addButton, removeButton;
+		std::string name;
+
+		template<class Component, typename EditTy, typename AddTy, typename RemoveTy>
+		void Draw(Component& c, Object selected, EditTy edit, AddTy add, RemoveTy remove);
+	};
+
 	//Name
 	std::string curObjectName;
 	UI::LineEdit objectNameEdit;
 
 	//Position
-	UI::TextButton addPos, deletePos;
+	ComponentEditor posEdit;
 	UI::FloatEdit xEdit, yEdit, zEdit;
 	std::array<float,3> curAngle;
 	std::array<UI::FloatEdit,3> angleEdit;

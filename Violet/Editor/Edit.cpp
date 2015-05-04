@@ -17,7 +17,7 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName,
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
 	, objectNameEdit(LB_WIDTH)
-	, addPos("+", MOD_WIDTH), deletePos("-", MOD_WIDTH)
+	, posEdit("position")
 	, xEdit(LB_WIDTH / 3), yEdit(LB_WIDTH / 3), zEdit(LB_WIDTH / 3)
 	, angleEdit({ LB_WIDTH / 3, LB_WIDTH / 3, LB_WIDTH / 3 })
 	, scaleEdit(LB_WIDTH), objectSelect(LB_WIDTH)
@@ -41,6 +41,37 @@ std::tuple<Quaternionf, Quaternionf> TwistSwing(const Quaternionf& rot, const Ve
 	Quaternionf twist{ rot.w(), proj.x(), proj.y(), proj.z() };
 	twist.normalize();
 	return std::make_tuple(twist, twist.conjugate() * rot);
+}
+
+template<class Component, typename EditTy, typename AddTy, typename RemoveTy>
+void Edit::ComponentEditor::Draw(Component& c, Object selected, EditTy edit, AddTy add, RemoveTy remove)
+{
+	UI::LayoutStack& l = UI::CurLayout();
+	l.PushNext(UI::Layout::Dir::Right); l.PutSpace(MOD_WIDTH);
+	UI::DrawText(name, l.PutSpace({ LB_WIDTH - 2 * MOD_WIDTH, UI::LINEH }));
+
+	if (c.Has(selected))
+	{
+		bool doRemove = removeButton.Draw(); l.Pop();
+
+		if (edit())
+			c.Save(selected);
+
+		if (doRemove)
+		{
+			remove();
+			c.Save(selected);
+		}
+	}
+	else
+	{
+		if (addButton.Draw())
+		{
+			add();
+			c.Save(selected);
+		}
+		l.Pop();
+	}
 }
 
 void Edit::PhysTick(Events& e, Object camera)
@@ -107,16 +138,12 @@ void Edit::PhysTick(Events& e, Object camera)
 			//so it comes back alphabetically
 			objectSelect.items.erase(selected);
 		}
-		
+
 		l.PutSpace(UI::LINEH);
 
-		l.PushNext(UI::Layout::Dir::Right); l.PutSpace(MOD_WIDTH);
-		UI::DrawText("position", l.PutSpace({ LB_WIDTH - 2 * MOD_WIDTH, UI::LINEH }));
-
-		if (position.Has(selected))
+		posEdit.Draw(position, selected,
+			[&]()
 		{
-			bool doDeletePos = deletePos.Draw(); l.Pop();
-
 			Transform xfrm = *position[selected];
 
 			//save the object once we stop editing
@@ -155,35 +182,29 @@ void Edit::PhysTick(Events& e, Object camera)
 
 			l.Pop();
 
-			xfrm.rot.normalize();
+			//xfrm.rot.normalize(); //?
 
 			UI::DrawText("scale", l.PutSpace({ LB_WIDTH, UI::LINEH }));
 			moved |= scaleEdit.Draw(xfrm.scale);
 
-			position[selected].set(xfrm);
-			tool.SetTarget(position[selected]);
-
-			if (doDeletePos)
+			if (moved)
 			{
-				position.Remove(selected);
-				tool.SetTarget({});
-			}
-
-			if (moved || doDeletePos)
-				position.Save(selected);
-		}
-		else
-		{
-			if (addPos.Draw())
-			{
+				position[selected].set(xfrm);
 				tool.SetTarget(position[selected]);
-				position.Save(selected);
 			}
-			l.Pop();
-		}
-	}
 
-	l.PutSpace(UI::LINEH);
+			return moved;
+		},
+			[&]() {
+			tool.SetTarget(position[selected]);
+		},
+			[&]() {
+			position.Remove(selected);
+			tool.SetTarget({});
+		});
+
+		l.PutSpace(UI::LINEH);
+	}
 
 	l.PushNext(UI::Layout::Dir::Left);
 	if (newObject.Draw())
