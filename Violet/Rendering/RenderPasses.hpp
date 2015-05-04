@@ -7,6 +7,7 @@
 #include "VAO.hpp"
 #include "Object.hpp"
 #include "Viewport.hpp"
+#include "Mobile.hpp"
 
 class Render;
 class Window;
@@ -15,9 +16,9 @@ class Events;
 class RenderPasses
 {
 public:
-	RenderPasses(Window& w, Render& r);
+	RenderPasses(Position& p, Window& w, Render& r);
 
-	void Draw(const Matrix4f& camera, Events e);
+	void Draw(Events e, float alpha);
 
 	enum Passes
 	{
@@ -37,14 +38,21 @@ public:
 	//set the highlighted object
 	void Highlight(Object o, Highlights type);
 	Object Pick(Vector2f posPixel) const;
+	void Camera(Object camera);
 
 private:
 	void WindowResize(Eigen::Vector2i size);
 
 	Render& r;
 	Window& w;
+	Mobile mobile;
+	Object camera;
 
 	FBO fbo;
+
+	//UBO shared with all shaders
+	ShaderProgram simpleShader;
+	UBO commonUBO;
 
 	ShaderProgram screenShader;
 	Material screenMat;

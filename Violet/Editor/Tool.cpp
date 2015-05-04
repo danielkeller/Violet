@@ -18,7 +18,7 @@ std::vector<TriInd> arrowInds = {
 };
 
 Tool::Tool(Render& r, Position& position)
-	: position(position)
+	: position(position), move(position[x] + position[y] + position[z])
 {
 	VertexData arrow("ToolArrow", arrowVerts, arrowInds);
 
@@ -35,11 +35,6 @@ Tool::Tool(Render& r, Position& position)
 	r.Create(x, arrowShader, xMat, arrow, Mobilty::Yes);
 	r.Create(y, arrowShader, yMat, arrow, Mobilty::Yes);
 	r.Create(z, arrowShader, zMat, arrow, Mobilty::Yes);
-
-	//i'm still not totally okay with having to save this after the calls to
-	//r.Create, but the alternative of making magic_ptrs shallow-copy
-	//requires creating a separate heap object for each one, defeating the purpose
-	move = position[x] + position[y] + position[z];
 }
 
 void Tool::SetTarget(magic_ptr<Transform> t)

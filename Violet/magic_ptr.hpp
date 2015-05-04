@@ -16,20 +16,6 @@ namespace magic_detail
 	template<class T>
 	using setter_t = std::function<void(key_ty key, const T& val)>;
 
-	template<class T>
-	struct acc_heap_obj
-	{
-		setter_t<T> setter;
-		getter_t<T> getter;
-
-		acc_heap_obj() = default;
-		acc_heap_obj(setter_t<T> s, getter_t<T> g)
-			: setter(s), getter(g)
-		{}
-
-		static std::shared_ptr<magic_detail::acc_heap_obj<T>> null_acc_heap_obj;
-	};
-
 	//Trivial getter
 	template<class T, class Key>
 	getter_t<T> make_getter()
@@ -105,6 +91,22 @@ namespace magic_detail
 		return [s](key_ty key, const T& val) mutable
 		{ *reinterpret_cast<Class*>(&key)->*s = val; };
 	}
+
+	template<class T>
+	struct acc_heap_obj
+	{
+		setter_t<T> setter;
+		getter_t<T> getter;
+
+		acc_heap_obj()
+			: setter([](key_ty, const T&){}), getter(make_getter<T, key_ty>())
+		{}
+		acc_heap_obj(setter_t<T> s, getter_t<T> g)
+			: setter(s), getter(g)
+		{}
+
+		static std::shared_ptr<magic_detail::acc_heap_obj<T>> null_acc_heap_obj;
+	};
 };
 
 template<class T, class Key = magic_detail::key_ty>

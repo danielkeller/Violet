@@ -27,14 +27,14 @@ try
 
 	Window w;
 	Position position(persist);
-	Mobile m(position);
-	Render r(position, m, persist);
-	RenderPasses passes(w, r);
+	Render r(position, persist);
+	RenderPasses passes(position, w, r);
 	Edit edit(r, passes, position, objName, persist);
 
 	UI::Init(w);
 
 	Object camera = objName["camera"];
+	passes.Camera(camera);
 
 	Object teapotObj = objName["teapot"];
 	Object teapot2Obj = objName["teapot2"];
@@ -66,7 +66,6 @@ try
     auto physTick = [&]()
 	{
 		auto p = Profile::Profile("physics");
-		m.Tick();
 		w.SetTime(t.SimTime());
 		e = w.GetInput();
 
@@ -84,11 +83,10 @@ try
 	{
 		{
 			auto p = Profile::Profile("rendering");
-			m.Update(alpha);
 
 			w.PreDraw();
 			UI::EndFrame();
-			passes.Draw(*m[camera], e);
+			passes.Draw(e, alpha);
 		}
         w.PostDraw();
 	};

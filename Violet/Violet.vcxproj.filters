@@ -93,9 +93,6 @@
     <ClInclude Include="Rendering\FBO.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Render_detail.hpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Texture_detail.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>

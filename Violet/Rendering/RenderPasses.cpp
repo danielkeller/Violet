@@ -4,8 +4,10 @@
 #include "Render.hpp"
 #include "Window.hpp"
 
-RenderPasses::RenderPasses(Window& w, Render& r)
-	: r(r), w(w)
+RenderPasses::RenderPasses(Position& p, Window& w, Render& r)
+	: r(r), w(w), mobile(p), camera(Object::invalid)
+	, simpleShader("assets/simple")
+	, commonUBO(simpleShader.MakeUBO("Common", "Common"))
 	, screenShader("assets/screen")
 	, screenMat(screenShader.MakeUBO("Material", "screenMat"))
 	, screenQuad(screenShader, UnitBox)
@@ -29,7 +31,12 @@ void RenderPasses::WindowResize(Eigen::Vector2i size)
 	screenMat.textures = { mainTex, pickerTex };
 }
 
-void RenderPasses::Draw(const Matrix4f& camera, Events e)
+void RenderPasses::Camera(Object c)
+{
+	camera = c;
+}
+
+void RenderPasses::Draw(Events e, float alpha)
 {
 	WindowResize(e.view.size());
 	view = e.view;
@@ -40,12 +47,17 @@ void RenderPasses::Draw(const Matrix4f& camera, Events e)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	r.camera = view.PerspMat() * camera;
+	//for now it's just this
+	InstData cameraMat(camera);
+	mobile.Update(alpha, &cameraMat, &cameraMat + 1);
+	commonUBO["camera"] = Matrix4f(view.PerspMat() * cameraMat.mat);
+	commonUBO.Sync();
+	commonUBO.Bind();
 
 	{
 		auto bound = fbo.Bind(GL_FRAMEBUFFER);
 		fbo.PreDraw({ Eigen::Matrix<GLuint, 4, 1>::Zero(), { Object::none.Id(), 0, 0, 0 } });
-		r.Draw();
+		r.Draw(alpha);
 	}
 
 	auto screenBox = view.screenBox;

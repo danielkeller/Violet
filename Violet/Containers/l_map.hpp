@@ -92,18 +92,18 @@ public:
 
     //this should be const_iterator but libstdc++ has a bug
 	template<class... Args>
-	bool try_emplace(iterator pos, const key_type& key, Args&&... args)
+	std::pair<iterator, bool> try_emplace(iterator pos, const key_type& key, Args&&... args)
 	{
         auto indit = find_ind(key);
         if (indit != inds.end() && indit->first == key)
-            return false;
+            return std::make_pair(pos, false);
         for (auto& ind : inds)
             if (ind.second >= pos - store.begin()) ++ind.second;
         pos = store.emplace(pos, std::piecewise_construct,
 			std::forward_as_tuple(key),
             std::forward_as_tuple(std::forward<Args>(args)...));
         inds.emplace(indit, key, pos - store.begin());
-        return true;
+		return std::make_pair(pos, true);
 	}
 
     iterator erase(const_iterator pos)

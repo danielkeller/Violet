@@ -5,12 +5,8 @@
 #include "Mobile.hpp"
 #include "Persist.hpp"
 
-using namespace Render_detail;
-
-Render::Render(Position& position, Mobile& m, Persist& persist)
-	: position(position), m(m), persist(persist)
-	, simpleShader("assets/simple")
-	, commonUBO(simpleShader.MakeUBO("Common", "Common"))
+Render::Render(Position& position, Persist& persist)
+	: position(position), mobile(position),  persist(persist)
 	, instanceBuffer()
 {
 	for (const auto& row : persist.GetAll<Render>())
@@ -38,22 +34,10 @@ void Render::FixInstances(render_data_t& dat, BufferObjTy& buf)
 
 void Render::InternalCreate(Object obj, ShaderProgram shader, Material mat, VertexData vertData)
 {
-	using InstPermaRef = render_data_t::perma_ref_t<InstanceLevel>;
-	static accessor<Matrix4f, InstPermaRef> locaccesor = {
-		[this](InstPermaRef ref) { return renderData.find<InstanceLevel>(ref)->mat; },
-		[this](InstPermaRef ref, const Matrix4f& v)
-		{
-			renderData.find<InstanceLevel>(ref)->mat = v;
-		}
-	};
-
 	auto refs = renderData.emplace(shader, mat, std::tie(shader, vertData),
-		InstData{ obj, *m[obj] });
+		InstData{ obj, position.Get(obj).ToMatrix() });
 
 	objs.insert(std::make_pair(obj, refs));
-
-	auto instref = std::get<InstanceLevel>(refs);
-	m[obj] = make_magic(locaccesor, instref);
 
 	FixInstances(renderData, instanceBuffer);
 	//send the actual data each draw call
@@ -73,13 +57,13 @@ void Render::InternalCreateStatic(Object obj, ShaderProgram shader,
 			staticInstanceBuffer.Assign(offset, *it);
 		};
 
-	auto inst = InstData{ obj, position[obj].get().ToMatrix() };
+	auto inst = InstData{ obj, position.Get(obj).ToMatrix() };
 	auto refs = staticRenderData.emplace(shader, mat, std::tie(shader, vertData), inst);
 
 	staticObjs.insert(std::make_pair(obj, refs));
 
 	auto instref = std::get<InstanceLevel>(refs);
-	position[obj] += make_magic(locaccesor, instref);
+	position.Watch(obj, make_magic(locaccesor, instref));
 
 	FixInstances(staticRenderData, staticInstanceBuffer);
 	staticInstanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
@@ -110,13 +94,11 @@ void Render::DrawBucket(render_data_t& dat)
 	}
 }
 
-void Render::Draw()
+void Render::Draw(float alpha)
 {
-	commonUBO["camera"] = camera;
-	commonUBO.Sync();
-	commonUBO.Bind();
-	
-	instanceBuffer.Data(renderData.get_level<InstanceLevel>().vector());
+	auto vec = renderData.get_level<InstanceLevel>().vector();
+	mobile.Update(alpha, vec.begin(), vec.end());
+	instanceBuffer.Data(vec);
 
 	DrawBucket(renderData);
 	DrawBucket(staticRenderData);
@@ -133,7 +115,7 @@ void Render::Save(Object obj)
 	if (objs.count(obj))
 	{
 		auto refs = objs.find(obj)->second;
-		persist.Set<Render>(obj, false,
+		persist.Set<Render>(obj, true,
 			renderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
 			renderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
 			renderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());

@@ -54,7 +54,10 @@ class Position
 public:
 	Position(Persist& persist);
 
-	magic_ptr<Transform>& operator[](Object obj);
+	magic_ptr<Transform> operator[](Object obj);
+	const Transform& Get(Object obj);
+	void Set(Object obj, const Transform& t);
+	void Watch(Object obj, magic_ptr<Transform> w);
 
 	bool Has(Object obj) const;
 	//void Add(Object obj);
@@ -71,6 +74,8 @@ private:
 
 	std::unordered_map<Object, ObjData, std::hash<Object>, std::equal_to<Object>,
 		Eigen::aligned_allocator<std::pair<Object, ObjData>>> data;
+
+	accessor<Transform, Object> acc;
 
 	Persist& persist;
 };

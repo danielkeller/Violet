@@ -3,28 +3,38 @@
 #include "Profiling.hpp"
 #include "Persist.hpp"
 
-magic_ptr<Transform>& Position::operator[](Object obj)
+magic_ptr<Transform> Position::operator[](Object obj)
 {
-	auto pair = data.emplace(std::piecewise_construct, std::tie(obj), std::tie());
-	auto it = pair.first;
-	if (pair.second) //emplace happened
-	{
-		//Other objects can now add to this magic_ptr to get setter notifications
-		static accessor<Transform, Object> acc
-		{
-			[this](Object o) {return data[o].loc; },
-			[this](Object o, const Transform& t) { data[o].loc = t; }
-		};
-		it->second.target = make_magic(acc, obj);
-	}
-	return it->second.target;
+	return make_magic(acc, obj);
 }
+
+using namespace std::placeholders;
 
 Position::Position(Persist& persist)
 	: persist(persist)
+	//std::bind doesn't work because reasons
+	, acc([this](Object o){return Get(o); }, [this](Object o, const Transform& t) { Set(o, t); })
 {
 	for (const auto& row : persist.GetAll<Position>())
-		(*this)[std::get<0>(row)].set(std::get<1>(row));
+		Set(std::get<0>(row), std::get<1>(row));
+}
+
+
+const Transform& Position::Get(Object obj)
+{
+	return data[obj].loc;
+}
+
+void Position::Set(Object obj, const Transform& t)
+{
+	auto& dat = data[obj];
+	dat.loc = t;
+	dat.target.set(t);
+}
+
+void Position::Watch(Object obj, magic_ptr<Transform> w)
+{
+	data[obj].target += w;
 }
 
 bool Position::Has(Object obj) const

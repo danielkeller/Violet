@@ -6,6 +6,7 @@
 #include "VAO.hpp"
 #include "RenderPasses.hpp"
 #include "Material.hpp"
+#include "Mobile.hpp"
 
 #include "Containers/l_bag.hpp"
 #include "Containers/tuple_tree.hpp"
@@ -16,7 +17,6 @@
 #include <array>
 
 class Position;
-class Mobile;
 class Persist;
 
 enum class Mobilty
@@ -25,7 +25,22 @@ enum class Mobilty
 	No
 };
 
-#include "Render_detail.hpp"
+struct InstData
+{
+	Matrix4f mat;
+	Object obj;
+
+	InstData(const InstData&) = default;
+	InstData(Object o) : mat(), obj(o) {}
+	InstData(Object o, const Matrix4f& m) : mat(m), obj(o) {}
+	InstData() : mat(), obj(Object::invalid) {}
+	InstData& operator=(const Matrix4f& m) { mat = m; return *this; }
+
+	MEMBER_EQUALITY(Object, obj);
+	BASIC_EQUALITY(InstData, obj);
+};
+
+using InstanceVec = l_bag<InstData, Eigen::aligned_allocator<InstData>>;
 
 class Render
 {
@@ -39,10 +54,9 @@ public:
 
 	void Save(Object obj);
 
-	void Draw();
-	Matrix4f camera;
+	void Draw(float alpha);
 
-	Render(Position&, Mobile&, Persist&);
+	Render(Position&, Persist&);
 	Render(const Render&) = delete;
 	void operator=(const Render&) = delete;
 
@@ -50,18 +64,14 @@ public:
 
 private:
 	Position& position;
-	Mobile& m;
+	Mobile mobile;
 	Persist& persist;
 
-	//UBO shared with all shaders
-	ShaderProgram simpleShader;
-    UBO commonUBO;
-
 	static const int ShaderLevel = 0, MatLevel = 1, VAOLevel = 2, InstanceLevel = 3;
-	using render_data_t = tuple_tree<ShaderProgram, Material, VAO, Render_detail::InstData>;
+	using render_data_t = tuple_tree<ShaderProgram, Material, VAO, InstData>;
 
 	render_data_t staticRenderData;
-	BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STATIC_DRAW> staticInstanceBuffer;
+	BufferObject<InstData, GL_ARRAY_BUFFER, GL_STATIC_DRAW> staticInstanceBuffer;
 
 	std::unordered_map<Object, render_data_t::perma_refs_t> staticObjs;
 
@@ -70,7 +80,7 @@ private:
 	//	l_unordered_map<VertexData, Render_detail::Shape>>> renderData;
 
 	render_data_t renderData;
-    BufferObject<Render_detail::InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
+    BufferObject<InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
 
 	std::unordered_map<Object, render_data_t::perma_refs_t> objs;
 
