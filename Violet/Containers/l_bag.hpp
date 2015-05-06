@@ -30,8 +30,8 @@ public:
 private:
 	using storety = std::vector<value_type, Alloc>;
     //trick for declaring integral constants in the header
-    enum : size_type { INVALID_IND = static_cast<size_type>(-1) };
-    using indty = size_type;
+	enum : difference_type { INVALID_IND = static_cast<difference_type>(-1) };
+	using indty = difference_type;
     using indsty = std::vector<indty>;
 public:
 

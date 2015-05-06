@@ -113,6 +113,11 @@ public:
 	{
 		return emplace<0>({begin(), end()}, std::forward<Args>(args)...);
 	}
+
+	void erase(perma_refs_t refs)
+	{
+		erase<0>(refs);
+	}
 	
 	template<size_t Level>
 	range_t<Level> children(const value_t<Level - 1>& node)
@@ -151,6 +156,31 @@ private:
 			return std::make_tuple(level.emplace(it, std::forward<Arg>(a)));
 		else
 			return std::make_tuple(level.get_perma(it));
+	}
+
+	//return value = erase happened
+	template<size_t Level>
+	bool erase(perma_refs_t refs)
+	{
+		auto& level = std::get<Level>(data);
+		auto it = level.find(std::get<Level>(refs));
+		//range_of depends on the lower element being there so do that first
+		bool last = range_of<Level>(it).size() == 1;
+		//note non-short-circuting and
+		if (last & erase<Level + 1>(refs))
+		{
+			level.erase(it);
+			return true;
+		}
+		return false;
+	}
+
+	template<>
+	bool erase<bottom>(perma_refs_t refs)
+	{
+		auto& level = std::get<bottom>(data);
+		level.erase(level.find(std::get<bottom>(refs)));
+		return true;
 	}
 
 	template<size_t Level>

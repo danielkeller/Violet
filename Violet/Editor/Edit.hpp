@@ -24,6 +24,7 @@ public:
 private:
 	bool enabled;
 	RenderPasses& rp;
+	Render& r;
 	Position& position;
 	ObjectName& objName;
 	Persist& persist;
@@ -55,6 +56,7 @@ private:
 
 	//Position
 	ComponentEditor posEdit;
+	ComponentEditor renderEdit;
 	UI::FloatEdit xEdit, yEdit, zEdit;
 	std::array<float,3> curAngle;
 	std::array<UI::FloatEdit,3> angleEdit;

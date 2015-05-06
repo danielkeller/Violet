@@ -50,11 +50,13 @@ public:
 	//For things like text that use custom instance data
 	//void Create(Object obj, ShaderProgram shader, Material mat, VAO vao);
 
+	bool Has(Object obj) const;
 	void Remove(Object obj);
-
 	void Save(Object obj);
 
 	void Draw(float alpha);
+
+	std::tuple<ShaderProgram, Material, VertexData, Mobilty> Info(Object obj);
 
 	Render(Position&, Persist&);
 	Render(const Render&) = delete;

@@ -50,8 +50,8 @@ try
 		ShaderProgram shdr{ "assets/simple" };
 		VertexData capsule{ "assets/capsule.obj" };
 
-		r.Create(teapotObj, shdr, { {}, { capsuleTex } }, capsule, Mobilty::Yes);
-		r.Create(teapot2Obj, shdr, { {}, { capsuleTex } }, capsule, Mobilty::No);
+		r.Create(teapotObj, shdr, { {}, capsuleTex }, capsule, Mobilty::Yes);
+		r.Create(teapot2Obj, shdr, { {}, capsuleTex }, capsule, Mobilty::No);
 		r.Save(teapotObj); r.Save(teapot2Obj);
 	}
 

@@ -4,6 +4,7 @@
 #include "Rendering/Texture.hpp"
 #include "MappedFile.hpp"
 #include "PixelDraw.hpp"
+#include "Layout.hpp"
 
 #include <cstdint>
 
@@ -73,10 +74,12 @@ Vector2i UI::TextDim(std::string::const_iterator begin, std::string::const_itera
 
 void UI::DrawText(const std::string& text, AlignedBox2i container)
 {
-	Vector2i dim = TextDim(text);
+	Vector2i dim{ TextDim(text).x(), LINEH }; //doesn't give useful y dimension
 	Vector2i space = (container.sizes() - dim) / 2;
-	space.y() = -space.y();
-	DrawText(text, container.corner(AlignedBox2i::TopLeft) + space);
+	space.y() += BASELINE_DEPTH; //start at the correct point
+	//UI::DrawBox(container);
+	//the "bottom left" is actually the top left because of our coordinates
+	DrawText(text, container.corner(AlignedBox2i::BottomLeft) + space);
 }
 
 void UI::DrawText(const std::string& text, Vector2i pos)

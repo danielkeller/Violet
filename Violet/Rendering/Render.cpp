@@ -110,6 +110,11 @@ const Schema AttribTraits<InstData>::schema = {
     { "object", GL_UNSIGNED_INT, true, 16 * sizeof(float), {1, 1}, 0 },
 };
 
+bool Render::Has(Object obj) const
+{
+	return objs.count(obj) || staticObjs.count(obj);
+}
+
 void Render::Save(Object obj)
 {
 	if (objs.count(obj))
@@ -127,6 +132,53 @@ void Render::Save(Object obj)
 			staticRenderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
 			staticRenderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
 			staticRenderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());
+	}
+	else
+		persist.Delete<Render>(obj);
+}
+
+std::tuple<ShaderProgram, Material, VertexData, Mobilty> Render::Info(Object obj)
+{
+	if (objs.count(obj))
+	{
+		auto refs = objs.find(obj)->second;
+		return std::make_tuple(
+			renderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
+			renderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
+			renderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData(),
+			Mobilty::Yes);
+	}
+	else if (staticObjs.count(obj))
+	{
+		auto refs = staticObjs.find(obj)->second;
+		return std::make_tuple(
+			staticRenderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
+			staticRenderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
+			staticRenderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData(),
+			Mobilty::No);
+	}
+	throw std::domain_error(to_string(obj) + " is not being rendered");
+}
+
+void Render::Remove(Object obj)
+{
+	if (objs.count(obj))
+	{
+		auto refs = objs.find(obj)->second;
+		renderData.erase(refs);
+		objs.erase(obj);
+
+		FixInstances(renderData, instanceBuffer);
+		instanceBuffer.Data(renderData.get_level<InstanceLevel>().size());
+	}
+	else if (staticObjs.count(obj))
+	{
+		auto refs = staticObjs.find(obj)->second;
+		staticRenderData.erase(refs);
+		staticObjs.erase(obj);
+
+		FixInstances(staticRenderData, staticInstanceBuffer);
+		staticInstanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
 	}
 }
 

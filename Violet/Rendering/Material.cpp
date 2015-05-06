@@ -32,11 +32,13 @@ void Material::Save(Persist& persist) const
 	persist.Set<Material>(Name(), materialProps, textures);
 }
 
-Material::Material(const UBO& props) : materialProps(props) {}
-Material::Material(const UBO& props, const std::vector<Tex>& texs)
+Material::Material(UBO props) : materialProps(props) {}
+Material::Material(UBO props, Tex tex)
+	: materialProps(props), textures({ tex }) {}
+Material::Material(UBO props, std::vector<Tex> texs)
 	: materialProps(props), textures(texs){}
 
-Material::Material(const std::string&, const UBO& props, const std::vector<Tex>& texs)
+Material::Material(const std::string&, UBO props, std::vector<Tex> texs)
 	: materialProps(props), textures(texs){}
 
 

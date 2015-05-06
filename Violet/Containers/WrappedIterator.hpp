@@ -102,7 +102,7 @@ range<Iter> make_range(Iter b, Iter e) { return{ b, e }; }
 
 
 template<class RangeTy, class Func>
-auto MapRange(RangeTy r, Func f) -> range<MapIter<decltype(std::begin(r)), Func>>
+auto MapRange(RangeTy& r, Func f) -> range<MapIter<decltype(std::begin(r)), Func>>
 {
 	return{ { std::begin(r), f }, { std::end(r), f } };
 }

@@ -21,9 +21,10 @@ struct Material
 	void Save(Persist& persist) const;
 
 	Material() = default;
-	Material(const UBO& props);
-	Material(const UBO& props, const std::vector<Tex>& texs);
-	Material(const std::string&, const UBO& props, const std::vector<Tex>& texs);
+	Material(UBO props);
+	Material(UBO props, Tex tex);
+	Material(UBO props, std::vector<Tex> texs);
+	Material(const std::string&, UBO props, std::vector<Tex> texs);
 
 	//I guess
 	using PersistCategory = EmbeddedResourcePersistTag;

@@ -12,12 +12,12 @@
 
 Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName, Persist& persist)
 	: enabled(true)
-	, rp(rp), position(position), objName(objName), persist(persist)
+	, rp(rp), r(r), position(position), objName(objName), persist(persist)
 	, tool(r, position)
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
 	, objectNameEdit(LB_WIDTH)
-	, posEdit("position")
+	, posEdit("position"), renderEdit("render")
 	, xEdit(LB_WIDTH / 3), yEdit(LB_WIDTH / 3), zEdit(LB_WIDTH / 3)
 	, angleEdit({ LB_WIDTH / 3, LB_WIDTH / 3, LB_WIDTH / 3 })
 	, scaleEdit(LB_WIDTH), objectSelect(LB_WIDTH)
@@ -201,6 +201,32 @@ void Edit::PhysTick(Events& e, Object camera)
 			[&]() {
 			position.Remove(selected);
 			tool.SetTarget({});
+		});
+
+		renderEdit.Draw(r, selected,
+			[&]() {
+			auto infRow = [&](const char* name, std::string t) {
+				UI::DrawText(name, l.PutSpace({ LB_WIDTH, UI::LINEH }));
+				UI::DrawText(t, l.PutSpace({ LB_WIDTH, UI::LINEH }));
+			};
+
+			auto tup = r.Info(selected);
+			infRow("shader", std::get<0>(tup).Name());
+			infRow("material", std::get<1>(tup).Name());
+			infRow("mesh", std::get<2>(tup).Name());
+			if (std::get<3>(tup) == Mobilty::Yes)
+				UI::DrawText("mobile", l.PutSpace({ LB_WIDTH, UI::LINEH }));
+			else
+				UI::DrawText("not mobile", l.PutSpace({ LB_WIDTH, UI::LINEH }));
+
+			return false;
+		},
+			[&]() {
+			r.Create(selected, { "assets/simple" }, { {}, { "assets/capsule.png" } },
+			{ "assets/capsule.obj" });
+		},
+			[&]() {
+			r.Remove(selected);
 		});
 
 		l.PutSpace(UI::LINEH);
