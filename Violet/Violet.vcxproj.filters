@@ -159,6 +159,15 @@
     <ClInclude Include="Viewport.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\Assets.hpp">
+      <Filter>Source Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Filesystem.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -251,6 +260,12 @@
     <ClCompile Include="Viewport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\Assets.cpp">
+      <Filter>Source Files\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Filesystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\simple.frag">
@@ -295,6 +310,12 @@
     <None Include="..\assets\text.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\assets\textured_uibox.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\textured_uibox.vert">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\GLFW\glfw3_32.lib">
@@ -306,6 +327,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\capsule.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\assets\cube.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

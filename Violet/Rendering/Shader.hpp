@@ -99,6 +99,7 @@ public:
 
 	Proxy operator[](const std::string& name);
 
+	//TODO: dirty bit
 	//synchronize with OpenGL. Note that this stalls anything using this UBO.
 	void Sync() const;
 
@@ -132,7 +133,9 @@ private:
 		explicit operator Vector2i() const;
 		Proxy& operator=(const Vector2i&);
         explicit operator Vector3f() const;
-        Proxy& operator=(const Vector3f&);
+		Proxy& operator=(const Vector3f&);
+		explicit operator Vector4f() const;
+		Proxy& operator=(const Vector4f&);
 		explicit operator Matrix3f() const;
 		Proxy& operator=(const Matrix3f&);
 		explicit operator Matrix4f() const;

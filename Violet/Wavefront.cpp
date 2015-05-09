@@ -6,6 +6,11 @@
 
 #include <fstream>
 
+bool IsWavefront(const std::string filename)
+{
+	return ends_with(filename, ".obj");
+}
+
 struct WavefrontVert
 {
 	//Prevent alignment issues from causing asserts

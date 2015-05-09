@@ -32,7 +32,7 @@ VertexData::VertexData(const std::string& file)
 	resource = VertexDataResource::FindResource(file);
 	if (!resource)
 	{
-		if (ends_with(file, ".obj"))
+		if (IsWavefront(file))
 			*this = WavefrontVertexData(file);
 		else
 			throw std::runtime_error("Unrecognized object file " + file);

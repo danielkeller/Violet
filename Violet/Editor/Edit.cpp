@@ -16,6 +16,7 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName,
 	, tool(r, position)
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
+	, meshesOpen(false)
 	, objectNameEdit(LB_WIDTH)
 	, posEdit("position"), renderEdit("render")
 	, xEdit(LB_WIDTH / 3), yEdit(LB_WIDTH / 3), zEdit(LB_WIDTH / 3)
@@ -125,6 +126,18 @@ void Edit::PhysTick(Events& e, Object camera)
 	position[camera]->pos *= (1 - e.ScrollDelta().y()*.05f);
 	
 	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Left);
+
+	//asset picker
+	if (selected != Object::none && r.Has(selected))
+	{
+		auto tup = r.Info(selected);
+		if (meshes.Draw(std::get<2>(tup)))
+		{
+			r.Remove(selected);
+			r.Create(selected, tup);
+			r.Save(selected);
+		}
+	}
 
 	//left bar
 	l.PushNext(UI::Layout::Dir::Down);

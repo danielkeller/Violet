@@ -3,6 +3,7 @@
 
 #include "UI/Elements.hpp"
 #include "Editor/Tool.hpp"
+#include "Assets.hpp"
 
 #include <unordered_set>
 #include <array>
@@ -49,6 +50,9 @@ private:
 		template<class Component, typename EditTy, typename AddTy, typename RemoveTy>
 		void Draw(Component& c, Object selected, EditTy edit, AddTy add, RemoveTy remove);
 	};
+
+	bool meshesOpen;
+	ObjAssets meshes;
 
 	//Name
 	std::string curObjectName;

@@ -12,7 +12,7 @@ Mesh::Mesh(std::string file)
 	resource = MeshResource::FindResource(file);
 	if (!resource)
 	{
-		if (ends_with(file, ".obj"))
+		if (IsWavefront(file))
 			*this = WavefrontMesh(file);
 		else
 			throw std::runtime_error("Unrecognized object file " + file);

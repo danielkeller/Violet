@@ -88,7 +88,10 @@ public:
 	range(iterator e) : begin_(e), end_(e) {} //empty range
 	iterator begin() { return begin_; }
 	iterator end() { return end_; }
-	typename std::iterator_traits<iterator>::difference_type size()
+
+	//Don't compile this if it doesn't make sense
+	template<class ret = typename std::iterator_traits<iterator>::difference_type>
+	ret size()
 	{
 		return end_ - begin_;
 	}

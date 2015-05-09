@@ -74,7 +74,8 @@
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalOptions>/Zm120 %(AdditionalOptions)</AdditionalOptions>
-      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -90,7 +91,8 @@
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalOptions>/Zm120 %(AdditionalOptions)</AdditionalOptions>
-      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -109,7 +111,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalOptions>/Zm120 %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>NDEBUG;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -130,7 +132,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalOptions>/Zm120 %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>NDEBUG;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -148,8 +150,10 @@
     <ClInclude Include="Containers\l_unordered_map.hpp" />
     <ClInclude Include="Containers\tuple_tree.hpp" />
     <ClInclude Include="Containers\WrappedIterator.hpp" />
+    <ClInclude Include="Editor\Assets.hpp" />
     <ClInclude Include="Editor\Edit.hpp" />
     <ClInclude Include="Editor\Tool.hpp" />
+    <ClInclude Include="Filesystem.hpp" />
     <ClInclude Include="Geometry\AABB.hpp" />
     <ClInclude Include="Geometry\Collide.hpp" />
     <ClInclude Include="Geometry\Mesh.hpp" />
@@ -183,6 +187,7 @@
     <ClInclude Include="Viewport.hpp" />
     <ClInclude Include="Wavefront.hpp" />
     <ClInclude Include="Window.hpp" />
+    <ClInclude Include="Windows.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GL\gl_core_3_3.c">
@@ -197,8 +202,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Editor\Assets.cpp" />
     <ClCompile Include="Editor\Edit.cpp" />
     <ClCompile Include="Editor\Tool.cpp" />
+    <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="Geometry\AABB.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -254,6 +261,8 @@
     <None Include="..\assets\simple.vert" />
     <None Include="..\assets\text.frag" />
     <None Include="..\assets\text.vert" />
+    <None Include="..\assets\textured_uibox.frag" />
+    <None Include="..\assets\textured_uibox.vert" />
     <None Include="..\assets\tool_arrow.frag" />
     <None Include="..\assets\tool_arrow.vert" />
     <None Include="..\assets\uibox.frag" />
@@ -265,6 +274,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\capsule.png" />
+    <Image Include="..\assets\cube.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

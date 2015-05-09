@@ -24,8 +24,8 @@ MappedFile::MappedFile(MappedFile&& f)
 }
 
 #ifdef _WIN32
-#undef APIENTRY
-#include <Windows.h>
+
+#include "Windows.hpp"
 
 MappedFile::MappedFile()
 	: dothrow(false), length(0), ptr(nullptr, &::UnmapViewOfFile)
@@ -34,19 +34,7 @@ MappedFile::MappedFile()
 void MappedFile::ThrowErrno(const std::string& text)
 {
 	if (dothrow)
-	{
-		DWORD errcode = GetLastError();
-		LPTSTR lpMsgBuf;
-		FormatMessage(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, errcode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPTSTR)&lpMsgBuf, 0, NULL);
-		std::string message = lpMsgBuf;
-		LocalFree(lpMsgBuf);
-		throw std::runtime_error(text + ": " + message);
-	}
+		ThrowErrno(text);
 }
 
 //need the return in case exceptions are off

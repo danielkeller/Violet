@@ -5,6 +5,12 @@ flat in ivec2 maxBoxFrag;
 
 in vec2 fragCoord;
 
+uniform Material
+{
+	vec4 fill;
+	vec4 stroke;
+};
+
 void main()
 {
 	ivec2 ifragCoord = ivec2(fragCoord);
@@ -13,7 +19,10 @@ void main()
 		min(maxBoxFrag.x - ifragCoord.x, maxBoxFrag.y - ifragCoord.y));
 
 	if (edgeDist == 0)
-		outputColor = vec4(.5, .5, .5, 1);
+		outputColor = stroke;
 	else
-		outputColor = vec4(1, 1, 1, 1);
+		outputColor = fill;
+
+	if (outputColor.a == 0)
+		discard;
 }

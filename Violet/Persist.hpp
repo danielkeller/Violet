@@ -88,7 +88,9 @@ public:
 		static_assert(std::is_same<data_t<Subsystem>, std::tuple<decltype(k), Args...>>::value,
 			"Wrong arugment types passed");
 
-		database.MakeInsertStmt(PersistSchema<Subsystem>::name).Bind(k, d...).Step();
+		auto stmt = database.MakeInsertStmt(PersistSchema<Subsystem>::name);
+		stmt.Bind(k, d...);
+		stmt.Step();
 		//std::thread(&PreparedStmt::Step, std::move(stmt)).detach();
 	}
 

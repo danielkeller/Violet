@@ -47,6 +47,7 @@ class Render
 public:
 	void Create(Object obj, ShaderProgram shader, Material mat,
 		VertexData vertData, Mobilty mobile = Mobilty::No);
+	void Create(Object obj, std::tuple<ShaderProgram, Material, VertexData, Mobilty>);
 	//For things like text that use custom instance data
 	//void Create(Object obj, ShaderProgram shader, Material mat, VAO vao);
 

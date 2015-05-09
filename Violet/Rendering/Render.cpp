@@ -69,6 +69,11 @@ void Render::InternalCreateStatic(Object obj, ShaderProgram shader,
 	staticInstanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
 }
 
+void Render::Create(Object obj, std::tuple<ShaderProgram, Material, VertexData, Mobilty> tup)
+{
+	Create(obj, std::get<0>(tup), std::get<1>(tup), std::get<2>(tup), std::get<3>(tup));
+}
+
 void Render::Create(Object obj, ShaderProgram shader, Material mat,
 	VertexData vertData, Mobilty mobile)
 {
