@@ -1,4 +1,3 @@
-#include "MappedFile.hpp"
 struct Tex::TexResource : public Resource<TexResource>
 {
 	TexResource(TexResource &&other)

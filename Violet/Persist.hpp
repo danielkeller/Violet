@@ -1,8 +1,6 @@
 #ifndef PERSIST_HPP
 #define PERSIST_HPP
 
-#include <string>
-#include <memory>
 #include <unordered_map>
 #include <thread>
 

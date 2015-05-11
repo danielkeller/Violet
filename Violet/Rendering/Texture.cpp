@@ -2,7 +2,6 @@
 
 #include "Texture.hpp"
 
-#include "MappedFile.hpp"
 #include "Profiling.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -26,8 +25,6 @@ std::string Tex::Name() const
 	return resource->Key();
 }
 
-std::vector<unsigned char> PNGmagic = { 0x89, 0x50, 0x4e, 0x47 };
-
 Tex::TexResource::TexResource(TexDim dim)
     : ResourceTy("#blankTexture#"), dim(dim)
 {
@@ -50,7 +47,7 @@ Tex::TexResource::TexResource(std::string path)
 
 	glGenTextures(1, &textureObject);
 	glBindTexture(GL_TEXTURE_2D, textureObject);
-	//Ideally this would be GL_BGRA for performance, but lodepng doesn't support it
+	//Ideally this would be GL_BGRA for performance, but stbi_image doesn't support it
 	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_RGBA), dim.x(), dim.y(), 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, data.get());
 

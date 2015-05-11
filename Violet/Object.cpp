@@ -3,6 +3,8 @@
 
 #include "Persist.hpp"
 
+#include <ostream>
+
 //Warning: if Object does an insert, everything else will get deleted
 
 Object::Object()
@@ -16,6 +18,16 @@ Object::Object()
 void Object::Init(Persist& persist)
 {
 	next = persist.NextObject().Id();
+}
+
+std::ostream & operator<<(std::ostream &os, const Object& p)
+{
+	return os << '[' << p.id << ']';
+}
+
+std::string to_string(Object obj)
+{
+	return '[' + std::to_string(obj.id) + ']';
 }
 
 const Object Object::invalid{static_cast<std::uint32_t>(-1)};

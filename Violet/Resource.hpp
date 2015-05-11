@@ -1,8 +1,6 @@
 #ifndef RESOURCE_HPP
 #define RESOURCE_HPP
-#include <string>
 #include <map>
-#include <memory>
 
 //uses CRTP
 template<class T, class K = std::string>

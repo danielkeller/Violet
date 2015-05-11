@@ -3,16 +3,11 @@
 #include "Rendering/Render.hpp"
 #include "Geometry/AABB.hpp"
 #include "Profiling.hpp"
-#include "Mobile.hpp"
 #include "Editor/Edit.hpp"
 #include "Time.hpp"
-#include "magic_ptr.hpp"
 #include "Rendering/RenderPasses.hpp"
 #include "Persist.hpp"
-
 #include "UI/PixelDraw.hpp"
-
-#include "Filesystem.hpp"
 
 #include <iostream>
 
@@ -97,15 +92,6 @@ try
 	Profile::Print();
 
     return EXIT_SUCCESS;
-}
-catch (const char* mesg)
-{
-    std::cerr << mesg << "\n";
-#ifndef __APPLE__
-    std::cerr << "Press enter to exit...\n";
-    getchar();
-#endif
-    return EXIT_FAILURE;
 }
 catch (std::exception &ex)
 {

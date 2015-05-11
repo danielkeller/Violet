@@ -143,7 +143,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BinTree.hpp" />
     <ClInclude Include="Containers\BinTree.hpp" />
     <ClInclude Include="Containers\l_bag.hpp" />
     <ClInclude Include="Containers\l_map.hpp" />
@@ -159,7 +158,6 @@
     <ClInclude Include="Geometry\Mesh.hpp" />
     <ClInclude Include="Geometry\Shapes.hpp" />
     <ClInclude Include="magic_ptr.hpp" />
-    <ClInclude Include="MappedFile.hpp" />
     <ClInclude Include="Mobile.hpp" />
     <ClInclude Include="Object.hpp" />
     <ClInclude Include="Persist.hpp" />
@@ -209,21 +207,15 @@
     <ClCompile Include="Geometry\AABB.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MappedFile.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Mobile.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Persist.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="Profiling.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Rendering\FBO.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />

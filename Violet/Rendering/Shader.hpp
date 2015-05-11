@@ -4,8 +4,6 @@
 #include "Resource.hpp"
 #include "BufferObject.hpp"
 
-#include <istream>
-#include <memory>
 #include <cstdint>
 
 class UBO;
@@ -98,10 +96,6 @@ public:
 	BASIC_EQUALITY(UBO, bindProxy)
 
 	Proxy operator[](const std::string& name);
-
-	//TODO: dirty bit
-	//synchronize with OpenGL. Note that this stalls anything using this UBO.
-	void Sync() const;
 
 	//Associates this UBO with its binding point.
 	void Bind() const;

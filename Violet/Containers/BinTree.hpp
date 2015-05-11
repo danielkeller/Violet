@@ -1,6 +1,5 @@
 #ifndef BINTREE_HPP
 #define BINTREE_HPP
-#include <vector>
 #include <array>
 #include "WrappedIterator.hpp"
 

@@ -51,7 +51,6 @@ void RenderPasses::Draw(Events e, float alpha)
 	InstData cameraMat(camera);
 	mobile.Update(alpha, &cameraMat, &cameraMat + 1);
 	commonUBO["camera"] = Matrix4f(view.PerspMat() * cameraMat.mat);
-	commonUBO.Sync();
 	commonUBO.Bind();
 
 	{
@@ -76,7 +75,6 @@ void RenderPasses::Draw(Events e, float alpha)
 void RenderPasses::Highlight(Object o, Highlights type)
 {
 	screenMat.materialProps["selected"][type] = o.Id();
-	screenMat.materialProps.Sync(); //TODO: this is redundant
 }
 
 Object RenderPasses::Pick(Vector2f posPixel) const

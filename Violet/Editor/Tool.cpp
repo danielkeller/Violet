@@ -25,13 +25,10 @@ Tool::Tool(Render& r, Position& position)
 	ShaderProgram arrowShader{ "assets/tool_arrow" };
 	UBO xMat = arrowShader.MakeUBO("Material", "ToolX");
 	xMat["direction"] = Vector3f{ 1, 0, 0 }; //Vector3f::UnitX();
-	xMat.Sync();
 	UBO yMat = arrowShader.MakeUBO("Material", "ToolY");
 	yMat["direction"] = Vector3f{ 0, 1, 0 };
-	yMat.Sync();
 	UBO zMat = arrowShader.MakeUBO("Material", "ToolZ");
 	zMat["direction"] = Vector3f{ 0, 0, 1 };
-	zMat.Sync();
 	r.Create(x, arrowShader, xMat, arrow, Mobilty::Yes);
 	r.Create(y, arrowShader, yMat, arrow, Mobilty::Yes);
 	r.Create(z, arrowShader, zMat, arrow, Mobilty::Yes);

@@ -33,7 +33,6 @@ void UI::TextStyle(Font font, Vector3f color, Vector3f bgColor)
 	static UBO txtUBO = txtShdr.MakeUBO("Material", "TxtMat");
 	txtUBO["color"] = color;
 	txtUBO["bgColor"] = bgColor;
-	txtUBO.Sync();
 }
 
 struct TextureQuad
@@ -176,7 +175,6 @@ static void WinResize(Vector2i sz)
 	static ShaderProgram txtShdr{ "assets/uibox" };
 	static UBO pixelUBO = txtShdr.MakeUBO("Common", "PixelCommon");
 	pixelUBO["pixelMat"] = PixelMat(sz);
-	pixelUBO.Sync();
 }
 
 void UI::Init(Window& w)
@@ -189,12 +187,10 @@ void UI::Init(Window& w)
 	static UBO boxUBO = boxShdr.MakeUBO("Material", "BoxMat");
 	boxUBO["fill"] = Vector4f{ 1, 1, 1, 1 };
 	boxUBO["stroke"] = Vector4f{ 1, 1, 1, 1 };
-	boxUBO.Sync();
 
 	static UBO hlboxUBO = boxShdr.MakeUBO("Material", "HlBoxMat");
 	hlboxUBO["fill"] = Vector4f{ 0, 0, 0, 0 };
 	hlboxUBO["stroke"] = hlColor;
-	hlboxUBO.Sync();
 
 	w.dim += make_magic(accessor<Vector2i>(&WinResize));
 	WinResize(*w.dim);

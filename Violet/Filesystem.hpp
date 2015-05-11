@@ -1,7 +1,6 @@
 #ifndef FILESYSTEM_HPP
 #define FILESYSTEM_HPP
 
-#include <memory>
 #include <iterator>
 #include "Containers/WrappedIterator.hpp"
 
@@ -23,5 +22,48 @@ private:
 };
 
 range<DirIter> Browse(std::string dir);
+
+class MappedFile
+{
+public:
+	MappedFile();
+	MappedFile(const std::string& name);
+	MappedFile(const MappedFile&) = delete;
+	MappedFile(MappedFile&&);
+	MappedFile& operator=(MappedFile f);
+
+#ifdef _WIN32
+#else //todo: get rid of this
+	~MappedFile();
+#endif
+
+	void Throws(bool dothrow_);
+
+	void Open(const std::string& name);
+	void Close();
+
+	bool operator!();
+	explicit operator bool();
+
+	template<class T>
+	const T* Data()
+	{
+		return static_cast<T*>(ptr.get());
+	}
+	size_t Size();
+
+private:
+	bool dothrow;
+	size_t length;
+#ifdef _WIN32
+	typedef int __stdcall deleter(const void*);
+	std::unique_ptr<void, deleter*> ptr;
+#else
+	void* ptr;
+	int fd; //TODO: this isn't actually needed
+#endif
+
+	void ThrowErrno(const std::string& text);
+};
 
 #endif

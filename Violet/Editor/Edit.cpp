@@ -8,8 +8,6 @@
 #include "UI/Text.hpp"
 #include "UI/Layout.hpp"
 
-#include <iostream>
-
 Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName, Persist& persist)
 	: enabled(true)
 	, rp(rp), r(r), position(position), objName(objName), persist(persist)

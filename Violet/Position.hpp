@@ -19,28 +19,12 @@ struct Transform
 		, scale(1)
 	{}
 
-	Matrix4f ToMatrix() const
-	{
-		//double check this.
-		return (Eigen::Translation3f(pos) * rot * Eigen::Scaling(scale)).matrix();
-	}
+	Matrix4f ToMatrix() const;
 
-	bool operator==(const Transform& other) const
-	{
-		return (std::tie(pos, scale) == std::tie(other.pos, other.scale))
-			&& rot.isApprox(other.rot); //?
-	}
+	bool operator==(const Transform& other) const;
+	bool operator!=(const Transform& other) const;
 
-	bool operator!=(const Transform& other) const
-	{
-		return !operator==(other);
-	}
-
-	friend std::ostream & operator<<(std::ostream &os, const Transform& p)
-	{
-		return os << p.pos.transpose() << ", " << p.rot.w() << ' ' << p.rot.vec().transpose()
-			<< ", " << p.scale;
-	}
+	friend std::ostream & operator<<(std::ostream &os, const Transform& p);
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

@@ -1,11 +1,8 @@
 #define PROFILE
-#include <iostream>
 
 #ifdef PROFILE
 #include <chrono>
 #include <map>
-#include <string>
-#include <iomanip>
 
 class Profile
 {
@@ -51,30 +48,6 @@ inline void Profile::CalibrateProfiling()
 	comp /= 1000;
 }
 
-inline std::string Profile::niceUnits(duration d)
-{
-	if (d < std::chrono::milliseconds(5))
-		return std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(d).count()) + "us";
-	else
-		return std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(d).count()) + "ms";
-}
-
-inline void Profile::Print()
-{
-	std::cout << std::setw(20) << "name"
-		<< std::setw(8) << "total"
-		<< std::setw(8) << "avg" << '\n';
-
-	for (const auto& datapt : data)
-	{
-		int n = datapt.second.first;
-		duration t = datapt.second.second;
-		std::cout << std::setw(20) << datapt.first
-			<< std::setw(8) << niceUnits(t*n)
-			<< std::setw(8) << niceUnits(t) << "\n";
-	}
-}
-
 #else
 class Profile
 {
@@ -83,6 +56,6 @@ public:
 	~Profile() {}
 
 	static void CalibrateProfiling() {}
-	static void Print() {std::cout << "No profiling data\n";}
+	static void Print();
 };
 #endif

@@ -1,8 +1,6 @@
 #ifndef TEXT_HPP
 #define TEXT_HPP
 
-#include <memory>
-
 struct StbTexteditRow;
 
 float STB_TEXTEDIT_GETWIDTH(std::string* str, int n, int i);

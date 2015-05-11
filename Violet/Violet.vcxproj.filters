@@ -78,12 +78,6 @@
     <ClInclude Include="Geometry\Mesh.hpp">
       <Filter>Source Files\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="BinTree.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MappedFile.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\VertexData.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
@@ -208,9 +202,6 @@
     </ClCompile>
     <ClCompile Include="Geometry\Mesh.cpp">
       <Filter>Source Files\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="MappedFile.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\GL\gl_core_3_3.c">
       <Filter>Libs</Filter>

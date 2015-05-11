@@ -3,6 +3,29 @@
 #include "Profiling.hpp"
 #include "Persist.hpp"
 
+Matrix4f Transform::ToMatrix() const
+{
+	//double check this.
+	return (Eigen::Translation3f(pos) * rot * Eigen::Scaling(scale)).matrix();
+}
+
+bool Transform::operator==(const Transform& other) const
+{
+	return (std::tie(pos, scale) == std::tie(other.pos, other.scale))
+		&& rot.isApprox(other.rot); //?
+}
+
+bool Transform::operator!=(const Transform& other) const
+{
+	return !operator==(other);
+}
+
+std::ostream & operator<<(std::ostream &os, const Transform& p)
+{
+	return os << p.pos.transpose() << ", " << p.rot.w() << ' ' << p.rot.vec().transpose()
+		<< ", " << p.scale;
+}
+
 magic_ptr<Transform> Position::operator[](Object obj)
 {
 	return make_magic(acc, obj);

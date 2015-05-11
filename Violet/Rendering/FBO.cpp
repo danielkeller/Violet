@@ -72,7 +72,7 @@ void FBO::CheckStatus() const
 		FBO_ERROR_CASE(GL_FRAMEBUFFER_UNSUPPORTED)
 		FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE)
 		FBO_ERROR_CASE(GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS)
-		case 0: throw std::runtime_error("Other framebuffer error");
+		case 0: throw std::logic_error("Other framebuffer error");
 		default: return;
 	}
 }

@@ -1,7 +1,6 @@
 #ifndef MAGIC_PTR_HPP
 #define MAGIC_PTR_HPP
 
-#include <memory>
 #include <map>
 
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))

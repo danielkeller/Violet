@@ -1,8 +1,6 @@
 #ifndef WINDOWS_HPP
 #define WINDOWS_HPP
 
-#include <string>
-
 #undef APIENTRY
 #include <Windows.h>
 

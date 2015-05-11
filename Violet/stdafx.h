@@ -7,6 +7,8 @@
 #include "Eigen/Core"
 #include "Eigen/Geometry"
 #include <vector>
+#include <memory>
+#include <string>
 
 using Eigen::Vector2i;
 using Eigen::Matrix3f;

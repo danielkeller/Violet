@@ -1,8 +1,11 @@
 #include "stdafx.h"
 #include "Persist.hpp"
+#include "Profiling.hpp"
+
 #define SQLITE_OMIT_DEPRECATED
 #include "sqlite/sqlite3.h"
-#include "Profiling.hpp"
+
+#include <iostream>
 
 #define SQLITE_CHECK_OK(op) do { \
 	int result = op; \

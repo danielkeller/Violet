@@ -2,7 +2,6 @@
 #define L_MAP_HPP
 
 #include <functional>
-#include <memory>
 #include "WrappedIterator.hpp"
 
 template<class Key, class T,

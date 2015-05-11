@@ -178,7 +178,7 @@ Window::Window()
     //set up glfw
     glfwSetErrorCallback(error_callback);
     if (!glfwInit()) 
-        throw "Could not initialize glfw";
+        throw std::runtime_error("Could not initialize glfw");
     
     //only allow non-deprecated GL3.3 calls
 #ifdef __APPLE__
@@ -196,7 +196,7 @@ Window::Window()
 	window = glfwCreateWindow(newEvents.dimVec.x(), newEvents.dimVec.y(),
 		"Simple example", NULL, NULL);
     if (!window)
-		throw "Could not create window";
+		throw std::runtime_error("Could not create window");
 
 	GetInput();
 

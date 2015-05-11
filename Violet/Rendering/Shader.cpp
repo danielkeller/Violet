@@ -1,12 +1,10 @@
 #include "stdafx.h"
 #include "Shader.hpp"
-#include <iostream>
-#include <fstream>
-#include <vector>
 
 #include "Utils/Template.hpp"
 #include "Persist.hpp"
 #include "RenderPasses.hpp"
+#include "Filesystem.hpp"
 
 struct Uniforms
 {
@@ -56,7 +54,7 @@ struct ShaderProgram::ShaderResource : public Resource<ShaderResource>
 
 	//the actual GL program reference
 	GLuint program;
-	void init(std::istream &vert, std::istream &frag, const std::string& vertName, const std::string& fragName);
+	void init(const char* vert, const char* frag, const std::string& vertName, const std::string& fragName);
 
 	Uniforms uniforms;
 };
@@ -86,9 +84,9 @@ struct UBO::UBOResource : public Resource<UBOResource>
 ShaderProgram::ShaderResource::ShaderResource(std::string path)
 	: ResourceTy(path)
 {
-    std::ifstream vert(path + ".vert");
-    std::ifstream frag(path + ".frag");
-    init(vert, frag, path + ".vert", path + ".frag");
+    MappedFile vert(path + ".vert");
+	MappedFile frag(path + ".frag");
+    init(vert.Data<char>(), frag.Data<char>(), path + ".vert", path + ".frag");
 }
 
 ShaderProgram::ShaderResource::ShaderResource(ShaderResource &&other)
@@ -161,7 +159,7 @@ void ShaderProgram::TextureOrder(const std::vector<std::string>& order)
 	}
 }
 
-GLuint CreateShader(GLenum eShaderType, std::istream &t, const std::string& name)
+GLuint CreateShader(GLenum eShaderType, const char* t, const std::string& name)
 {
     if (!t)
         throw std::runtime_error("Shader file '" + name + "'not found");
@@ -176,13 +174,7 @@ GLuint CreateShader(GLenum eShaderType, std::istream &t, const std::string& name
 		"#line 0 ";
 #endif
 
-    //read the stream into a string
-    t.seekg(0, std::ios::end);
-    size_t size = static_cast<size_t>(t.tellg());
-    std::string buffer(size, ' ');
-    t.seekg(0);
-    t.read(&buffer[0], size); 
-    buffer = versionString + '"' + name + "\"\n" + buffer;
+	std::string buffer = versionString + '"' + name + "\"\n" + t;
 
     //create the shader Render
     GLuint shader = glCreateShader(eShaderType);
@@ -208,7 +200,7 @@ GLuint CreateShader(GLenum eShaderType, std::istream &t, const std::string& name
     return shader;
 }
 
-void ShaderProgram::ShaderResource::init(std::istream &vert, std::istream &frag,
+void ShaderProgram::ShaderResource::init(const char* vert, const char* frag,
     const std::string& vertName, const std::string& fragName)
 {
     //create our empty program Render
@@ -363,12 +355,7 @@ UBO::UBO(std::string name, ShaderProgram shader, std::string block, std::vector<
 		throw std::runtime_error("Wrong amount of saved data for " + shader.Name() + "." + block);
 
 	resource->data = data;
-	Sync();
-}
-
-void UBO::Sync() const
-{
-	resource->bufferObject.Data(resource->data);
+	resource->bufferObject.Data(data);
 }
 
 void UBO::Bind() const
@@ -413,7 +400,8 @@ UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
 		+ "' in shader " + ubo.resource->shader.Name());
 	Eigen::Map<T>(reinterpret_cast<typename T::Scalar*>(
         ubo.resource->data.data() + unif.offset))
-        = val;
+		= val;
+	ubo.resource->bufferObject.Data(ubo.resource->data);
 	return *this;
 }
 
@@ -423,6 +411,7 @@ UBO::Proxy& UBO::Proxy::ScalarAssignOpHelper(const T& val)
 	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform '" + unif.name
 		+ "' in shader " + ubo.resource->shader.Name());
 	*reinterpret_cast<T*>(ubo.resource->data.data() + unif.offset) = val;
+	ubo.resource->bufferObject.Data(ubo.resource->data);
 	return *this;
 }
 
@@ -489,7 +478,7 @@ UBO::Proxy& UBO::Proxy::operator=(const uint32_t& v)
 UBO::Proxy UBO::Proxy::operator[](GLuint offset)
 {
 	if (unif.size <= offset)
-		throw std::runtime_error(std::to_string(offset) + " is is past the end of " + unif.name);
+		throw std::domain_error(std::to_string(offset) + " is is past the end of " + unif.name);
 
 	Uniform offsetted = unif;
 	offsetted.offset = unif.offset + unif.stride * offset;

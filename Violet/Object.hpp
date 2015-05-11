@@ -1,8 +1,6 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include <vector>
-#include <ostream>
 #include <cstdint>
 
 class Persist;
@@ -22,15 +20,8 @@ public:
 	bool operator<(const Object& other) const
 	{ return id < other.id;	}
 
-    friend std::ostream & operator<<(std::ostream &os, const Object& p)
-    {
-        return os << '[' << p.id << ']';
-    }
-    
-    friend std::string to_string(Object obj)
-    {
-        return '[' + std::to_string(obj.id) + ']';
-    }
+	friend std::ostream & operator<<(std::ostream &os, const Object& p);
+	friend std::string to_string(Object obj);
 
     static const Object invalid;
     static const Object none;

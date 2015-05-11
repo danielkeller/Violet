@@ -1,6 +1,5 @@
 #ifndef L_BAG_HPP
 #define L_BAG_HPP
-#include <vector>
 
 template<class T, class DiffT>
 class perma_ref
