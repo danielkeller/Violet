@@ -119,22 +119,33 @@ private:
 	BufferObjTy::IndexedBindProxy bindProxy;
 	std::shared_ptr<UBOResource> resource;
 
+	void Sync();
+
 	struct Proxy
 	{
 		Proxy(UBO& ubo, Uniform unif)
 			: ubo(ubo), unif(unif) {}
 
-		explicit operator Vector2i() const;
-		Proxy& operator=(const Vector2i&);
-        explicit operator Vector3f() const;
-		Proxy& operator=(const Vector3f&);
-		explicit operator Vector4f() const;
-		Proxy& operator=(const Vector4f&);
-		explicit operator Matrix3f() const;
-		Proxy& operator=(const Matrix3f&);
-		explicit operator Matrix4f() const;
-		Proxy& operator=(const Matrix4f&);
-		explicit operator std::uint32_t() const;
+		template<typename Scalar, int Rows, int Cols>
+		operator Eigen::Matrix<Scalar, Rows, Cols>() const
+		{
+			Scalar dummy{};
+			CheckType(dummy, Rows, Cols);
+			return Eigen::Map<Eigen::Matrix<Scalar, Rows, Cols>>(Ptr(dummy));
+		}
+
+		template<typename Derived>
+		Proxy& operator=(const Eigen::MatrixBase<Derived>& data)
+		{
+			Derived::Scalar dummy{};
+			CheckType(dummy, data.rows(), data.cols());
+			Eigen::Map<Eigen::MatrixBase<Derived>::PlainObject>(
+				Ptr(dummy), data.rows(), data.cols()) = data;
+			ubo.Sync();
+			return *this;
+		}
+
+		operator std::uint32_t() const;
 		Proxy& operator=(const std::uint32_t&);
 
 		Proxy operator[](GLuint offset);
@@ -143,12 +154,15 @@ private:
 		UBO& ubo;
 		const Uniform unif;
 
-		template<typename T, GLenum ty>
-		T ConvertOpHelper() const;
-		template<GLenum ty, typename T>
-		UBO::Proxy& AssignOpHelper(const T&);
-		template<GLenum ty, typename T>
-		UBO::Proxy& ScalarAssignOpHelper(const T&);
+		void CheckType(GLenum type) const;
+		void CheckType(float dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
+		void CheckType(int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
+		void CheckType(unsigned int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
+
+		//Warning: these violate const correctness
+		unsigned int* Ptr(unsigned int) const;
+		int* Ptr(int) const;
+		float* Ptr(float) const;
 	};
     HAS_HASH
 };

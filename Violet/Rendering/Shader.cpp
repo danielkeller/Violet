@@ -380,99 +380,76 @@ UBO::Proxy UBO::operator[](const std::string& name)
 	return Proxy(*this, resource->Block()[name]);
 }
 
+void UBO::Sync()
+{
+	resource->bufferObject.Data(resource->data);
+}
+
 template<>
 const char* PersistSchema<UBO>::name = "ubo";
 template<>
 Columns PersistSchema<UBO>::cols = {"name", "shader", "block", "data"};
 
-template<typename T, GLenum ty>
-T UBO::Proxy::ConvertOpHelper() const
+void UBO::Proxy::CheckType(GLenum type) const
 {
-	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform '" + unif.name
+	if (unif.type != type) throw std::runtime_error("Wrong type for uniform '" + unif.name
 		+ "' in shader " + ubo.resource->shader.Name());
-	return FromBytes<T>()(ubo.resource->data.data() + unif.offset);
 }
 
-template<GLenum ty, typename T>
-UBO::Proxy& UBO::Proxy::AssignOpHelper(const T& val)
+void UBO::Proxy::CheckType(float dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const
 {
-	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform '" + unif.name
-		+ "' in shader " + ubo.resource->shader.Name());
-	Eigen::Map<T>(reinterpret_cast<typename T::Scalar*>(
-        ubo.resource->data.data() + unif.offset))
-		= val;
-	ubo.resource->bufferObject.Data(ubo.resource->data);
-	return *this;
+	     if (Cols == 1 && Rows == 1) CheckType(GL_FLOAT);
+	else if (Cols == 1 && Rows == 2) CheckType(GL_FLOAT_VEC2);
+	else if (Cols == 1 && Rows == 3) CheckType(GL_FLOAT_VEC3);
+	else if (Cols == 1 && Rows == 4) CheckType(GL_FLOAT_VEC4);
+	else if (Cols == 2 && Rows == 2) CheckType(GL_FLOAT_MAT2);
+	else if (Cols == 3 && Rows == 3) CheckType(GL_FLOAT_MAT3);
+	else if (Cols == 4 && Rows == 4) CheckType(GL_FLOAT_MAT4);
+	else throw std::domain_error(
+		"Unsupported matrix type float " + to_string(Rows) + "x" + to_string(Cols));
 }
 
-template<GLenum ty, typename T>
-UBO::Proxy& UBO::Proxy::ScalarAssignOpHelper(const T& val)
+void UBO::Proxy::CheckType(int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const
 {
-	if (unif.type != ty) throw std::runtime_error("Wrong type for uniform '" + unif.name
-		+ "' in shader " + ubo.resource->shader.Name());
-	*reinterpret_cast<T*>(ubo.resource->data.data() + unif.offset) = val;
-	ubo.resource->bufferObject.Data(ubo.resource->data);
-	return *this;
+	     if (Cols == 1 && Rows == 1) CheckType(GL_INT);
+	else if (Cols == 1 && Rows == 2) CheckType(GL_INT_VEC2);
+	else if (Cols == 1 && Rows == 3) CheckType(GL_INT_VEC3);
+	else if (Cols == 1 && Rows == 4) CheckType(GL_INT_VEC4);
+	else throw std::domain_error(
+		"Unsupported matrix type int " + to_string(Rows) + "x" + to_string(Cols));
 }
 
-UBO::Proxy::operator Vector2i() const
-{
-	return ConvertOpHelper<Vector2i, GL_INT_VEC2>();
+void UBO::Proxy::CheckType(unsigned int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const
+{	
+	     if (Cols == 1 && Rows == 1) CheckType(GL_UNSIGNED_INT);
+	else if (Cols == 1 && Rows == 2) CheckType(GL_UNSIGNED_INT_VEC2);
+	else if (Cols == 1 && Rows == 3) CheckType(GL_UNSIGNED_INT_VEC3);
+	else if (Cols == 1 && Rows == 4) CheckType(GL_UNSIGNED_INT_VEC4);
+	else throw std::domain_error(
+		"Unsupported matrix type uint " + to_string(Rows) + "x" + to_string(Cols));
 }
 
-UBO::Proxy& UBO::Proxy::operator=(const Vector2i& v)
-{
-	return AssignOpHelper<GL_INT_VEC2>(v);
-}
+#define PROXY_PTR(Type) \
+	Type* UBO::Proxy::Ptr(Type) const \
+	{\
+		return reinterpret_cast<Type*>(ubo.resource->data.data() + unif.offset);\
+	}
 
-UBO::Proxy::operator Vector3f() const
-{
-    return ConvertOpHelper<Vector3f, GL_FLOAT_VEC3>();
-}
-
-UBO::Proxy& UBO::Proxy::operator=(const Vector3f& v)
-{
-    return AssignOpHelper<GL_FLOAT_VEC3>(v);
-}
-
-UBO::Proxy::operator Vector4f() const
-{
-	return ConvertOpHelper<Vector4f, GL_FLOAT_VEC4>();
-}
-
-UBO::Proxy& UBO::Proxy::operator=(const Vector4f& v)
-{
-	return AssignOpHelper<GL_FLOAT_VEC4>(v);
-}
-
-UBO::Proxy::operator Matrix3f() const
-{
-	return ConvertOpHelper<Matrix3f, GL_FLOAT_MAT3>();
-}
-
-UBO::Proxy& UBO::Proxy::operator=(const Matrix3f& v)
-{
-	return AssignOpHelper<GL_FLOAT_MAT3>(v);
-}
-
-UBO::Proxy::operator Matrix4f() const
-{
-	return ConvertOpHelper<Matrix4f, GL_FLOAT_MAT4>();
-}
-
-UBO::Proxy& UBO::Proxy::operator=(const Matrix4f& v)
-{
-	return AssignOpHelper<GL_FLOAT_MAT4>(v);
-}
+PROXY_PTR(float)
+PROXY_PTR(int)
+PROXY_PTR(unsigned int)
 
 UBO::Proxy::operator uint32_t() const
 {
-	return ConvertOpHelper<uint32_t, GL_UNSIGNED_INT>();
+	Eigen::Matrix<uint32_t, 1, 1> mat = *this;
+	return mat(1,1);
 }
 
 UBO::Proxy& UBO::Proxy::operator=(const uint32_t& v)
 {
-	return ScalarAssignOpHelper<GL_UNSIGNED_INT>(v);
+	Eigen::Matrix<uint32_t, 1, 1> mat;
+	mat << v;
+	return *this = mat;
 }
 
 UBO::Proxy UBO::Proxy::operator[](GLuint offset)

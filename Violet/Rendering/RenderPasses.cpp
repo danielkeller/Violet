@@ -50,7 +50,7 @@ void RenderPasses::Draw(Events e, float alpha)
 	//for now it's just this
 	InstData cameraMat(camera);
 	mobile.Update(alpha, &cameraMat, &cameraMat + 1);
-	commonUBO["camera"] = Matrix4f(view.PerspMat() * cameraMat.mat);
+	commonUBO["camera"] = view.PerspMat() * cameraMat.mat;
 	commonUBO.Bind();
 
 	{

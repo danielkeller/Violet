@@ -189,7 +189,7 @@ void UI::Init(Window& w)
 	boxUBO["stroke"] = Vector4f{ 1, 1, 1, 1 };
 
 	static UBO hlboxUBO = boxShdr.MakeUBO("Material", "HlBoxMat");
-	hlboxUBO["fill"] = Vector4f{ 0, 0, 0, 0 };
+	hlboxUBO["fill"] = Vector4f::Zero();
 	hlboxUBO["stroke"] = hlColor;
 
 	w.dim += make_magic(accessor<Vector2i>(&WinResize));
