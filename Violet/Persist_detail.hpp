@@ -290,6 +290,16 @@ namespace Persist_detail
 		PreparedStmt* stmt;
 	};
 
+	class Transaction
+	{
+	public:
+		~Transaction();
+	private:
+		Transaction(Database* db);
+		Database* db;
+		friend class Database;
+	};
+
 	class Database
 	{
 	public:
@@ -305,9 +315,13 @@ namespace Persist_detail
 		PreparedStmt MakeExistsStmt(const char* subsystem);
 		PreparedStmt MakeDeleteStmt(const char* subsystem);
 
+		Transaction Begin();
+
 	private:
 		std::unique_ptr<sqlite3, decltype(&::sqlite3_close)> db;
 		std::unordered_map<const char*, std::initializer_list<const char*>> schema;
 		Persist* persist;
+		int transactDepth; //safely nest transactions
+		friend class Transaction;
 	};
 }

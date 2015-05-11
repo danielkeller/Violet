@@ -186,7 +186,7 @@ range<const char*> PreparedStmtImpl::GetBlob(int num)
 }
 
 Database::Database(Persist* persist, std::string file)
-	: db(nullptr, &sqlite3_close), persist(persist)
+	: db(nullptr, &sqlite3_close), persist(persist), transactDepth(0)
 {
 	EXCEPT_INFO_BEGIN
 
@@ -207,11 +207,6 @@ Database::Database(Persist* persist, std::string file)
 PreparedStmt Database::MakeStmt(const std::string& sql)
 {
 	return{ persist, db.get(), sql };
-}
-
-Persist::Persist()
-	: database(this, "data.db")
-{
 }
 
 void Database::Track(const char* name, Columns cols)
@@ -328,6 +323,31 @@ PreparedStmt Database::MakeDeleteStmt(const char* subsystem)
 	command << "delete from " << subsystem << " where " << key << " = ?";
 
 	return MakeStmt(command.str());
+}
+
+Transaction Database::Begin()
+{
+	return{ this };
+}
+
+Transaction::Transaction(Database* db)
+	: db(db)
+{
+	if (db->transactDepth++ == 0)
+		db->MakeStmt("begin transaction").Step();
+}
+
+Transaction::~Transaction()
+{
+	auto p = Profile::Profile("sql commit");
+
+	if (--db->transactDepth == 0)
+		db->MakeStmt("end transaction").Step();
+}
+
+Persist::Persist()
+: database(this, "data.db")
+{
 }
 
 Object Persist::NextObject()
