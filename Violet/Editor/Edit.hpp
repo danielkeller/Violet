@@ -4,6 +4,7 @@
 #include "UI/Elements.hpp"
 #include "Editor/Tool.hpp"
 #include "Assets.hpp"
+#include "Component.hpp"
 
 #include <unordered_set>
 #include <array>
@@ -13,14 +14,21 @@ class RenderPasses;
 class Persist;
 class Events;
 
-class Edit
+class Edit : public Component
 {
 public:
-	Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName, Persist& persist);
+	Edit(Render& r, RenderPasses& rp, Position& position,
+		ObjectName& objName, ComponentManager& mgr, Persist& persist);
 
     void Editable(Object o);
 
 	void PhysTick(Events& e, Object camera);
+
+	void Load(Persist&);
+	void Unload(Persist&);
+	bool Has(Object) const;
+	void Save(Object, Persist&) const;
+	void Remove(Object);
 
 private:
 	bool enabled;
@@ -28,10 +36,9 @@ private:
 	Render& r;
 	Position& position;
 	ObjectName& objName;
+	ComponentManager& mgr;
 	Persist& persist;
     Tool tool;
-
-    std::unordered_set<Object> editable;
 
     Object focused;
     Object selected;
@@ -47,8 +54,9 @@ private:
 		UI::TextButton addButton, removeButton;
 		std::string name;
 
-		template<class Component, typename EditTy, typename AddTy, typename RemoveTy>
-		void Draw(Component& c, Object selected, EditTy edit, AddTy add, RemoveTy remove);
+		template<typename EditTy, typename AddTy, typename RemoveTy>
+		void Draw(Persist& persist, Component& c, Object selected,
+			EditTy edit, AddTy add, RemoveTy remove);
 	};
 
 	bool meshesOpen;
@@ -67,7 +75,7 @@ private:
 	UI::FloatEdit scaleEdit;
 
 	//Object
-	UI::TextButton newObject;
+	UI::TextButton newObject, delObject;
 	UI::SelectList<Object> objectSelect;
 };
 

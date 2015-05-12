@@ -69,6 +69,15 @@ public:
 	//be orthogonal to l_bag
 	using perma_ref = key_type;
 
+	size_type count(const key_type& k) const
+	{
+		auto pos = find_ind(k);
+		if (pos == inds.end() || pos->first != k)
+			return 0;
+		else
+			return 1;
+	}
+
 	iterator find(const key_type& k)
     {
         auto pos = find_ind(k);
@@ -136,7 +145,7 @@ public:
 	}
 
 private:
-    typename indsty::iterator find_ind(const key_type& k)
+    typename indsty::const_iterator find_ind(const key_type& k) const
     {
         return std::lower_bound(inds.begin(), inds.end(), k, Comparer());
     }

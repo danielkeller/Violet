@@ -98,7 +98,8 @@ public:
 	void Delete(key_t<Subsystem> k)
 	{
 		Track<Subsystem>();
-		database.MakeDeleteStmt(PersistSchema<Subsystem>::name).Bind(k).Step();
+		if (Exists<Subsystem>(k))
+			database.MakeDeleteStmt(PersistSchema<Subsystem>::name).Bind(k).Step();
 	}
 
 private:

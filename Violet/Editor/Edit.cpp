@@ -8,9 +8,10 @@
 #include "UI/Text.hpp"
 #include "UI/Layout.hpp"
 
-Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName, Persist& persist)
+Edit::Edit(Render& r, RenderPasses& rp, Position& position,
+	ObjectName& objName, ComponentManager& mgr, Persist& persist)
 	: enabled(true)
-	, rp(rp), r(r), position(position), objName(objName), persist(persist)
+	, rp(rp), r(r), position(position), objName(objName), persist(persist), mgr(mgr)
 	, tool(r, position)
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
@@ -20,16 +21,49 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName,
 	, xEdit(LB_WIDTH / 3), yEdit(LB_WIDTH / 3), zEdit(LB_WIDTH / 3)
 	, angleEdit({ LB_WIDTH / 3, LB_WIDTH / 3, LB_WIDTH / 3 })
 	, scaleEdit(LB_WIDTH), objectSelect(LB_WIDTH)
-	, newObject("new", MOD_WIDTH)
+	, newObject("+", MOD_WIDTH), delObject("-", MOD_WIDTH)
 {
-	for (auto o : persist.GetAll<Edit>())
-		editable.insert(std::get<0>(o));
 }
 
 void Edit::Editable(Object o)
 {
-    editable.insert(o);
-	persist.Set<Edit>(o);
+	auto& name = objName[o];
+	auto it = std::lower_bound(objectSelect.items.begin(),
+		objectSelect.items.end(), name,
+		[](std::pair<Object, std::string>& l, const std::string& r)
+	{return l.second < r; });
+
+	objectSelect.items.try_emplace(it, o, name);
+}
+
+void Edit::Load(Persist& persist)
+{
+	for (auto o : persist.GetAll<Edit>())
+		Editable(std::get<0>(o));
+}
+
+void Edit::Unload(Persist& persist)
+{
+	for (auto o : persist.GetAll<Edit>())
+		Remove(std::get<0>(o));
+}
+
+bool Edit::Has(Object obj) const
+{
+	return objectSelect.items.count(obj) != 0;
+}
+
+void Edit::Save(Object obj, Persist& persist) const
+{
+	if (objectSelect.items.count(obj))
+		persist.Set<Edit>(obj);
+	else
+		persist.Delete<Edit>(obj);
+}
+
+void Edit::Remove(Object obj)
+{
+	objectSelect.items.erase(obj);
 }
 
 //decompose rot into rotation around axis (twist) and rotation perpendicular (swing)
@@ -42,8 +76,9 @@ std::tuple<Quaternionf, Quaternionf> TwistSwing(const Quaternionf& rot, const Ve
 	return std::make_tuple(twist, twist.conjugate() * rot);
 }
 
-template<class Component, typename EditTy, typename AddTy, typename RemoveTy>
-void Edit::ComponentEditor::Draw(Component& c, Object selected, EditTy edit, AddTy add, RemoveTy remove)
+template<typename EditTy, typename AddTy, typename RemoveTy>
+void Edit::ComponentEditor::Draw(Persist& persist, Component& c, Object selected,
+	EditTy edit, AddTy add, RemoveTy remove)
 {
 	UI::LayoutStack& l = UI::CurLayout();
 	l.PushNext(UI::Layout::Dir::Right); l.PutSpace(MOD_WIDTH);
@@ -54,12 +89,13 @@ void Edit::ComponentEditor::Draw(Component& c, Object selected, EditTy edit, Add
 		bool doRemove = removeButton.Draw(); l.Pop();
 
 		if (edit())
-			c.Save(selected);
+			c.Save(selected, persist);
 
 		if (doRemove)
 		{
 			remove();
-			c.Save(selected);
+			c.Remove(selected);
+			c.Save(selected, persist);
 		}
 	}
 	else
@@ -67,7 +103,7 @@ void Edit::ComponentEditor::Draw(Component& c, Object selected, EditTy edit, Add
 		if (addButton.Draw())
 		{
 			add();
-			c.Save(selected);
+			c.Save(selected, persist);
 		}
 		l.Pop();
 	}
@@ -88,7 +124,7 @@ void Edit::PhysTick(Events& e, Object camera)
     {
 		if (picked == Object::none) //click outside to deselect
 			newSelect = Object::none;
-		else if (editable.count(picked)) //click to select
+		else if (objectSelect.items.count(picked)) //click to select
 			newSelect = picked;
 
 		//don't register picks outside of the viewport
@@ -99,7 +135,7 @@ void Edit::PhysTick(Events& e, Object camera)
 	else if (e.MouseRelease(GLFW_MOUSE_BUTTON_LEFT)
 		&& selected != Object::none
 		&& selected != focused) //a hack to see if we were dragging the tool
-		position.Save(selected);
+		position.Save(selected, persist);
 
 	//focus reverts to the selectable object that was selected
 	if (!e.MouseButton(GLFW_MOUSE_BUTTON_LEFT))
@@ -133,11 +169,11 @@ void Edit::PhysTick(Events& e, Object camera)
 		{
 			r.Remove(selected);
 			r.Create(selected, tup);
-			r.Save(selected);
+			r.Save(selected, persist);
 		}
 	}
 
-	//left bar
+	//right bar
 	l.PushNext(UI::Layout::Dir::Down);
 	l.EnsureWidth(LB_WIDTH);
 
@@ -147,12 +183,12 @@ void Edit::PhysTick(Events& e, Object camera)
 		{
 			objName.Rename(selected, curObjectName);
 			//so it comes back alphabetically
-			objectSelect.items.erase(selected);
+			Remove(selected); Editable(selected);
 		}
 
 		l.PutSpace(UI::LINEH);
 
-		posEdit.Draw(position, selected,
+		posEdit.Draw(persist, position, selected,
 			[&]()
 		{
 			Transform xfrm = *position[selected];
@@ -210,11 +246,10 @@ void Edit::PhysTick(Events& e, Object camera)
 			tool.SetTarget(position[selected]);
 		},
 			[&]() {
-			position.Remove(selected);
 			tool.SetTarget({});
 		});
 
-		renderEdit.Draw(r, selected,
+		renderEdit.Draw(persist, r, selected,
 			[&]() {
 			auto infRow = [&](const char* name, std::string t) {
 				UI::DrawText(name, l.PutSpace({ LB_WIDTH, UI::LINEH }));
@@ -236,34 +271,30 @@ void Edit::PhysTick(Events& e, Object camera)
 			r.Create(selected, { "assets/simple" }, { {}, { "assets/capsule.png" } },
 			{ "assets/capsule.obj" });
 		},
-			[&]() {
-			r.Remove(selected);
-		});
+			[&]() {});
 
 		l.PutSpace(UI::LINEH);
 	}
 
-	l.PushNext(UI::Layout::Dir::Left);
+	l.PushNext(UI::Layout::Dir::Right);
+
 	if (newObject.Draw())
 	{
 		Object n;
 		Editable(n);
+		Save(n, persist);
 	}
+
 	UI::DrawText("objects", l.PutSpace(LB_WIDTH - 2 * MOD_WIDTH));
+	
+	if (selected != Object::none && delObject.Draw())
+	{
+		mgr.Delete(selected);
+		mgr.Save(selected, persist);
+		newSelect = Object::none;
+	}
+
 	l.Pop();
-
-	//TODO: not this (n log(n))
-	for (Object o : editable)
-		if (objectSelect.items.find(o) == objectSelect.items.end())
-		{
-			auto& name = objName[o];
-			auto it = std::lower_bound(objectSelect.items.begin(),
-				objectSelect.items.end(), name,
-				[](std::pair<Object, std::string>& l, const std::string& r)
-				{return l.second < r; });
-
-			objectSelect.items.try_emplace(it, o, name);
-		}
 
 	objectSelect.Draw(newSelect);
 

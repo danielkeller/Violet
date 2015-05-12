@@ -33,13 +33,10 @@ magic_ptr<Transform> Position::operator[](Object obj)
 
 using namespace std::placeholders;
 
-Position::Position(Persist& persist)
-	: persist(persist)
+Position::Position()
 	//std::bind doesn't work because reasons
-	, acc([this](Object o){return Get(o); }, [this](Object o, const Transform& t) { Set(o, t); })
+	: acc([this](Object o){return Get(o); }, [this](Object o, const Transform& t) { Set(o, t); })
 {
-	for (const auto& row : persist.GetAll<Position>())
-		Set(std::get<0>(row), std::get<1>(row));
 }
 
 
@@ -60,15 +57,27 @@ void Position::Watch(Object obj, magic_ptr<Transform> w)
 	data[obj].target += w;
 }
 
+void Position::Load(Persist& persist)
+{
+	for (const auto& row : persist.GetAll<Position>())
+		Set(std::get<0>(row), std::get<1>(row));
+}
+
+void Position::Unload(Persist& persist)
+{
+	for (const auto& row : persist.GetAll<Position>())
+		Remove(std::get<0>(row));
+}
+
 bool Position::Has(Object obj) const
 {
 	return data.count(obj) > 0;
 }
 
-void Position::Save(Object obj)
+void Position::Save(Object obj, Persist& persist) const
 {
 	if (Has(obj))
-		persist.Set<Position>(obj, data[obj].loc);
+		persist.Set<Position>(obj, data.at(obj).loc);
 	else
 		persist.Delete<Position>(obj);
 }

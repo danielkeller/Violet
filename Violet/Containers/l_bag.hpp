@@ -86,7 +86,7 @@ public:
 
 	const_iterator find(perma_ref r) const
     {
-        return const_cast<l_bag*>(this)->get(r);
+        return const_cast<l_bag*>(this)->find(r);
     }
 
     //linear time

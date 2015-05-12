@@ -75,6 +75,8 @@ public:
 	template<size_t Level>
 	using iter_t = typename std::tuple_element<Level, data_t>::type::iterator;
 	template<size_t Level>
+	using const_iter_t = typename std::tuple_element<Level, data_t>::type::const_iterator;
+	template<size_t Level>
 	using perma_ref_t = typename std::tuple_element<Level, data_t>::type::perma_ref;
 	template<size_t Level>
 	using range_t = range<iter_t<Level>>;
@@ -98,6 +100,12 @@ public:
 
 	template<size_t Level>
 	iter_t<Level> find(perma_ref_t<Level> pr)
+	{
+		return std::get<Level>(data).find(pr);
+	}
+
+	template<size_t Level>
+	const_iter_t<Level> find(perma_ref_t<Level> pr) const
 	{
 		return std::get<Level>(data).find(pr);
 	}

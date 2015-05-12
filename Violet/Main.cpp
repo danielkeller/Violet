@@ -16,16 +16,22 @@ try
 {
 	Profile::CalibrateProfiling();
 
+	ComponentManager mgr;
 	//Components
 	Persist persist;
 	Object::Init(persist);
 	ObjectName objName(persist);
-
 	Window w;
-	Position position(persist);
-	Render r(position, persist);
+
+	Position position;
+	Render r(position);
 	RenderPasses passes(position, w, r);
-	Edit edit(r, passes, position, objName, persist);
+	Edit edit(r, passes, position, objName, mgr, persist);
+
+	mgr.Register(&position);
+	mgr.Register(&r);
+	mgr.Register(&edit);
+	mgr.Load(persist);
 
 	UI::Init(w);
 
@@ -48,7 +54,7 @@ try
 
 		r.Create(teapotObj, shdr, { {}, capsuleTex }, capsule, Mobilty::Yes);
 		r.Create(teapot2Obj, shdr, { {}, capsuleTex }, capsule, Mobilty::No);
-		r.Save(teapotObj); r.Save(teapot2Obj);
+		mgr.Save(teapotObj, persist); mgr.Save(teapot2Obj, persist);
 	}
 
 	edit.Editable(teapotObj);

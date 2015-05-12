@@ -11,6 +11,8 @@
 #include "Containers/l_bag.hpp"
 #include "Containers/tuple_tree.hpp"
 
+#include "Component.hpp"
+
 #include <unordered_set>
 #include <unordered_map>
 #include <array>
@@ -41,7 +43,7 @@ struct InstData
 
 using InstanceVec = l_bag<InstData, Eigen::aligned_allocator<InstData>>;
 
-class Render
+class Render : public Component
 {
 public:
 	void Create(Object obj, ShaderProgram shader, Material mat,
@@ -50,15 +52,17 @@ public:
 	//For things like text that use custom instance data
 	//void Create(Object obj, ShaderProgram shader, Material mat, VAO vao);
 
+	void Load(Persist&);
+	void Unload(Persist&);
 	bool Has(Object obj) const;
+	void Save(Object obj, Persist&) const;
 	void Remove(Object obj);
-	void Save(Object obj);
 
 	void Draw(float alpha);
 
 	std::tuple<ShaderProgram, Material, VertexData, Mobilty> Info(Object obj);
 
-	Render(Position&, Persist&);
+	Render(Position&);
 	Render(const Render&) = delete;
 	void operator=(const Render&) = delete;
 
@@ -67,7 +71,6 @@ public:
 private:
 	Position& position;
 	Mobile mobile;
-	Persist& persist;
 
 	static const int ShaderLevel = 0, MatLevel = 1, VAOLevel = 2, InstanceLevel = 3;
 	using render_data_t = tuple_tree<ShaderProgram, Material, VAO, InstData>;

@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include "magic_ptr.hpp"
 #include "Object.hpp"
+#include "Component.hpp"
 
 struct BinaryPersistTag;
 class Persist;
@@ -31,21 +32,23 @@ struct Transform
 	using PersistCategory = BinaryPersistTag;
 };
 
-class Position
+class Position : public Component
 {
 	struct ObjData;
 
 public:
-	Position(Persist& persist);
+	Position();
 
 	magic_ptr<Transform> operator[](Object obj);
 	const Transform& Get(Object obj);
 	void Set(Object obj, const Transform& t);
 	void Watch(Object obj, magic_ptr<Transform> w);
 
-	bool Has(Object obj) const;
 	//void Add(Object obj);
-	void Save(Object obj);
+	void Load(Persist&);
+	void Unload(Persist&);
+	bool Has(Object obj) const;
+	void Save(Object obj, Persist&) const;
 	void Remove(Object obj);
 
 private:
@@ -60,8 +63,6 @@ private:
 		Eigen::aligned_allocator<std::pair<Object, ObjData>>> data;
 
 	accessor<Transform, Object> acc;
-
-	Persist& persist;
 };
 
 MAKE_PERSIST_TRAITS(Position, Object, Transform)
