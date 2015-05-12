@@ -1,7 +1,7 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 
-#include "Resource.hpp"
+#include "Core/Resource.hpp"
 
 struct ResourcePersistTag;
 

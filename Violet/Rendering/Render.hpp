@@ -2,7 +2,7 @@
 #define RENDER_H
 
 #include "Shader.hpp"
-#include "Object.hpp"
+#include "Core/Object.hpp"
 #include "VAO.hpp"
 #include "RenderPasses.hpp"
 #include "Material.hpp"
@@ -11,7 +11,7 @@
 #include "Containers/l_bag.hpp"
 #include "Containers/tuple_tree.hpp"
 
-#include "Component.hpp"
+#include "Core/Component.hpp"
 
 #include <unordered_set>
 #include <unordered_map>

@@ -2,7 +2,7 @@
 
 #include "Texture.hpp"
 
-#include "Profiling.hpp"
+#include "Utils/Profiling.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG //enable additional ones as needed

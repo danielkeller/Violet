@@ -31,6 +31,12 @@
     <Filter Include="Source Files\UI">
       <UniqueIdentifier>{3b4775a7-6560-4d61-9504-18642c596ee1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{f562b482-f09d-48ed-ab98-ac79e2cab184}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\File">
+      <UniqueIdentifier>{2f2a5c3b-9eba-4190-9a8e-ac0ccba11dde}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Rendering\Render.hpp">
@@ -45,19 +51,7 @@
     <ClInclude Include="Rendering\VAO.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Object.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Profiling.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Wavefront.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Window.hpp">
@@ -96,9 +90,6 @@
     <ClInclude Include="Editor\Tool.hpp">
       <Filter>Source Files\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Time.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Position.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -129,12 +120,6 @@
     <ClInclude Include="Rendering\Material.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Persist.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Persist_detail.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Template.hpp">
       <Filter>Source Files\Utils</Filter>
     </ClInclude>
@@ -156,14 +141,35 @@
     <ClInclude Include="Editor\Assets.hpp">
       <Filter>Source Files\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Filesystem.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Windows.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Component.hpp">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="Core\Component.hpp">
+      <Filter>Source Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Object.hpp">
+      <Filter>Source Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Resource.hpp">
+      <Filter>Source Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Time.hpp">
+      <Filter>Source Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Profiling.hpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Filesystem.hpp">
+      <Filter>Source Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Wavefront.hpp">
+      <Filter>Source Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Persist_detail.hpp">
+      <Filter>Source Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="File\Persist.hpp">
+      <Filter>Source Files\File</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -174,12 +180,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Wavefront.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Render.cpp">
@@ -193,9 +193,6 @@
     </ClCompile>
     <ClCompile Include="Rendering\Texture.cpp">
       <Filter>Source Files\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Profiling.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Mobile.cpp">
       <Filter>Source Files</Filter>
@@ -221,9 +218,6 @@
     <ClCompile Include="Editor\Tool.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Time.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Position.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -232,9 +226,6 @@
     </ClCompile>
     <ClCompile Include="..\sqlite\sqlite3.c">
       <Filter>Libs</Filter>
-    </ClCompile>
-    <ClCompile Include="Persist.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Material.cpp">
       <Filter>Source Files\Rendering</Filter>
@@ -257,14 +248,29 @@
     <ClCompile Include="Editor\Assets.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Filesystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\Thumbnail.cpp">
       <Filter>Source Files\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Component.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Object.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Time.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Profiling.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="File\Filesystem.cpp">
+      <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="File\Wavefront.cpp">
+      <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="File\Persist.cpp">
+      <Filter>Source Files\File</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,7 @@
 
 using vectorVector3f = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>;
 
-#include "Resource.hpp"
+#include "Core/Resource.hpp"
 #include "Shapes.hpp"
 #include "Containers/WrappedIterator.hpp"
 

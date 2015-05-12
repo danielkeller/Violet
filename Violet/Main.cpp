@@ -2,11 +2,11 @@
 #include "Window.hpp"
 #include "Rendering/Render.hpp"
 #include "Geometry/AABB.hpp"
-#include "Profiling.hpp"
+#include "Utils/Profiling.hpp"
 #include "Editor/Edit.hpp"
-#include "Time.hpp"
+#include "Core/Time.hpp"
 #include "Rendering/RenderPasses.hpp"
-#include "Persist.hpp"
+#include "File/Persist.hpp"
 #include "UI/PixelDraw.hpp"
 
 #include <iostream>

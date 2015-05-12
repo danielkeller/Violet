@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "Text.hpp"
-#include "Resource.hpp"
+#include "Core/Resource.hpp"
 #include "Rendering/Texture.hpp"
-#include "Filesystem.hpp"
+#include "File/Filesystem.hpp"
 #include "PixelDraw.hpp"
 #include "Layout.hpp"
 

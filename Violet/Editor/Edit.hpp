@@ -4,7 +4,7 @@
 #include "UI/Elements.hpp"
 #include "Editor/Tool.hpp"
 #include "Assets.hpp"
-#include "Component.hpp"
+#include "Core/Component.hpp"
 
 #include <unordered_set>
 #include <array>

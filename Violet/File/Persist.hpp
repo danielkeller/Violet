@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <thread>
 
-#include "Object.hpp"
+#include "Core/Object.hpp"
 #include "Containers/WrappedIterator.hpp"
 
 //requirements: standard layout, no pointer members

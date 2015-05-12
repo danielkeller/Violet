@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "VertexData.hpp"
 #include "Geometry/Mesh.hpp"
-#include "Wavefront.hpp"
+#include "File/Wavefront.hpp"
 
 struct SimpleVert
 {

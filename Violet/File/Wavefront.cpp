@@ -2,7 +2,7 @@
 #include "Wavefront.hpp"
 #include "Geometry/Mesh.hpp"
 #include "Rendering/VertexData.hpp"
-#include "Profiling.hpp"
+#include "Utils/Profiling.hpp"
 
 #include <fstream>
 

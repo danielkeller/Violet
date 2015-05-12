@@ -1,7 +1,7 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include "Resource.hpp"
+#include "Core/Resource.hpp"
 #include "BufferObject.hpp"
 
 #include <cstdint>

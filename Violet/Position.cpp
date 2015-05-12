@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Position.hpp"
-#include "Profiling.hpp"
-#include "Persist.hpp"
+#include "Utils/Profiling.hpp"
+#include "File/Persist.hpp"
 
 Matrix4f Transform::ToMatrix() const
 {

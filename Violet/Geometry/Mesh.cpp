@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Mesh.hpp"
 #include "Collide.hpp"
-#include "Wavefront.hpp"
+#include "File/Wavefront.hpp"
 #include <functional>
 #include <iostream>
 

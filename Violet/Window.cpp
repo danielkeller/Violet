@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Window.hpp"
 
-#include "Profiling.hpp"
+#include "Utils/Profiling.hpp"
 
 #include "GLFW/glfw3.h"
 

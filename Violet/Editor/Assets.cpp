@@ -4,9 +4,9 @@
 #include "UI/Layout.hpp"
 #include "UI/Elements.hpp"
 #include "UI/Text.hpp"
-#include "Filesystem.hpp"
+#include "File/Filesystem.hpp"
 
-#include "Wavefront.hpp"
+#include "File/Wavefront.hpp"
 
 Asset::Asset()
 	: thumb("assets/cube.png")

@@ -1,7 +1,7 @@
 #ifndef VERTEX_DATA_HPP
 #define VERTEX_DATA_HPP
 
-#include "Resource.hpp"
+#include "Core/Resource.hpp"
 #include "BufferObject.hpp"
 
 struct ResourcePersistTag;

@@ -5,7 +5,7 @@
 #include "Shader.hpp"
 #include "Material.hpp"
 #include "VAO.hpp"
-#include "Object.hpp"
+#include "Core/Object.hpp"
 #include "Viewport.hpp"
 #include "Mobile.hpp"
 

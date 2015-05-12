@@ -2,7 +2,7 @@
 #define TOOL_HPP
 
 #include "Rendering/VertexData.hpp"
-#include "Object.hpp"
+#include "Core/Object.hpp"
 #include "Position.hpp"
 
 class Render;

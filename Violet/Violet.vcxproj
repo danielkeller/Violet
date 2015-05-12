@@ -143,28 +143,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Component.hpp" />
     <ClInclude Include="Containers\BinTree.hpp" />
     <ClInclude Include="Containers\l_bag.hpp" />
     <ClInclude Include="Containers\l_map.hpp" />
     <ClInclude Include="Containers\l_unordered_map.hpp" />
     <ClInclude Include="Containers\tuple_tree.hpp" />
     <ClInclude Include="Containers\WrappedIterator.hpp" />
+    <ClInclude Include="Core\Component.hpp" />
+    <ClInclude Include="Core\Object.hpp" />
+    <ClInclude Include="Core\Resource.hpp" />
+    <ClInclude Include="Core\Time.hpp" />
     <ClInclude Include="Editor\Assets.hpp" />
     <ClInclude Include="Editor\Edit.hpp" />
     <ClInclude Include="Editor\Tool.hpp" />
-    <ClInclude Include="Filesystem.hpp" />
+    <ClInclude Include="File\Filesystem.hpp" />
+    <ClInclude Include="File\Persist.hpp" />
+    <ClInclude Include="File\Persist_detail.hpp" />
+    <ClInclude Include="File\Wavefront.hpp" />
     <ClInclude Include="Geometry\AABB.hpp" />
     <ClInclude Include="Geometry\Collide.hpp" />
     <ClInclude Include="Geometry\Mesh.hpp" />
     <ClInclude Include="Geometry\Shapes.hpp" />
     <ClInclude Include="magic_ptr.hpp" />
     <ClInclude Include="Mobile.hpp" />
-    <ClInclude Include="Object.hpp" />
-    <ClInclude Include="Persist.hpp" />
-    <ClInclude Include="Persist_detail.hpp" />
     <ClInclude Include="Position.hpp" />
-    <ClInclude Include="Profiling.hpp" />
     <ClInclude Include="Rendering\BufferObject.hpp" />
     <ClInclude Include="Rendering\FBO.hpp" />
     <ClInclude Include="Rendering\Material.hpp" />
@@ -175,16 +177,14 @@
     <ClInclude Include="Rendering\Texture_detail.hpp" />
     <ClInclude Include="Rendering\VAO.hpp" />
     <ClInclude Include="Rendering\VertexData.hpp" />
-    <ClInclude Include="Resource.hpp" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Time.hpp" />
     <ClInclude Include="UI\Elements.hpp" />
     <ClInclude Include="UI\PixelDraw.hpp" />
     <ClInclude Include="UI\Layout.hpp" />
     <ClInclude Include="UI\Text.hpp" />
+    <ClInclude Include="Utils\Profiling.hpp" />
     <ClInclude Include="Utils\Template.hpp" />
     <ClInclude Include="Viewport.hpp" />
-    <ClInclude Include="Wavefront.hpp" />
     <ClInclude Include="Window.hpp" />
     <ClInclude Include="Windows.hpp" />
   </ItemGroup>
@@ -201,25 +201,21 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="Core\Component.cpp" />
+    <ClCompile Include="Core\Object.cpp" />
+    <ClCompile Include="Core\Time.cpp" />
     <ClCompile Include="Editor\Assets.cpp" />
     <ClCompile Include="Editor\Edit.cpp" />
     <ClCompile Include="Editor\Thumbnail.cpp" />
     <ClCompile Include="Editor\Tool.cpp" />
-    <ClCompile Include="Filesystem.cpp" />
+    <ClCompile Include="File\Filesystem.cpp" />
+    <ClCompile Include="File\Persist.cpp" />
+    <ClCompile Include="File\Wavefront.cpp" />
     <ClCompile Include="Geometry\AABB.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mobile.cpp" />
-    <ClCompile Include="Object.cpp" />
-    <ClCompile Include="Persist.cpp" />
     <ClCompile Include="Position.cpp" />
-    <ClCompile Include="Profiling.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Rendering\FBO.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\Render.cpp" />
@@ -236,13 +232,12 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Zm120 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zm120 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="Time.cpp" />
     <ClCompile Include="UI\Elements.cpp" />
     <ClCompile Include="UI\Layout.cpp" />
     <ClCompile Include="UI\PixelDraw.cpp" />
     <ClCompile Include="UI\Text.cpp" />
+    <ClCompile Include="Utils\Profiling.cpp" />
     <ClCompile Include="Viewport.cpp" />
-    <ClCompile Include="Wavefront.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -3,8 +3,8 @@
 
 #include <unordered_map>
 #include "magic_ptr.hpp"
-#include "Object.hpp"
-#include "Component.hpp"
+#include "Core/Object.hpp"
+#include "Core/Component.hpp"
 
 struct BinaryPersistTag;
 class Persist;
