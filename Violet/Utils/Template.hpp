@@ -73,4 +73,10 @@ std::result_of_t<F(Args...)> invoke(F f, std::tuple<Args...> args)
 	return invokeImpl(f, args, gen_seq<sizeof...(Args));
 }
 
+struct StaticBlock
+{
+	template<class Fun>
+	StaticBlock(const Fun& f) { f(); }
+};
+
 #endif

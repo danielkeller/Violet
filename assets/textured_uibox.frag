@@ -7,4 +7,6 @@ uniform sampler2D tex;
 void main()
 {
 	outputColor = texture(tex, texCoordFrag);
+	if (outputColor.a < .001)
+		discard;
 }

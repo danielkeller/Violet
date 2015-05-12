@@ -263,6 +263,9 @@
     <ClCompile Include="Component.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\Thumbnail.cpp">
+      <Filter>Source Files\Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\simple.frag">
@@ -311,6 +314,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\assets\textured_uibox.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\shaded.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\shaded.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

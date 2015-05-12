@@ -204,6 +204,7 @@
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Editor\Assets.cpp" />
     <ClCompile Include="Editor\Edit.cpp" />
+    <ClCompile Include="Editor\Thumbnail.cpp" />
     <ClCompile Include="Editor\Tool.cpp" />
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="Geometry\AABB.cpp" />
@@ -251,6 +252,8 @@
     <None Include="..\assets\color.vert" />
     <None Include="..\assets\screen.frag" />
     <None Include="..\assets\screen.vert" />
+    <None Include="..\assets\shaded.frag" />
+    <None Include="..\assets\shaded.vert" />
     <None Include="..\assets\simple.frag" />
     <None Include="..\assets\simple.vert" />
     <None Include="..\assets\text.frag" />

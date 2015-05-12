@@ -98,7 +98,7 @@ void UI::EndFrame()
 	quadShdr.use();
 	quadVAO.BindInstanceData(quadShdr, quadInstances);
 	BindPixelUBO();
-
+	
 	for (const auto& q : FrameVisuals().quads)
 	{
 		quadInstances.Assign(0, q.quad);

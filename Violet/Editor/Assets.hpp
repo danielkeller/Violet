@@ -20,20 +20,21 @@ public:
 	bool Draw(std::string& cur);
 	std::vector<Asset> assets;
 
-private:
-	std::vector<UI::Button> buttons;
-
 	static const int THM_SIZE = 100;
 	static const int THM_CHARS = 13;
 	static const int THM_SPACE = 8;
 	static const int ROWS = 4;
 	static const int WIDTH = THM_SIZE*ROWS + THM_SPACE*(ROWS + 1);
+
+private:
+	std::vector<UI::Button> buttons;
 };
 
 class ObjAssets
 {
 	Assets a;
 public:
+	static Tex Thumb(const std::string& path);
 	ObjAssets();
 	//true if selection changed
 	bool Draw(VertexData& cur);

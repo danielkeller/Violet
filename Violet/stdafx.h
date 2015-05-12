@@ -70,6 +70,12 @@ using Eigen::Quaternionf;
 	catch (std::logic_error& err) { \
 	throw std::logic_error(std::string("for ") + str + ": " + err.what());}
 
+//for static initialization code:
+
+#define STATIC_IMPL(var) for (static bool var = false; !var; var = true)
+//runs following block only once
+#define STATIC STATIC_IMPL(init##__COUNTER__)
+
 #include <utility>
 //combine std and :: overload set for swap
 using std::swap;

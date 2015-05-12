@@ -67,7 +67,10 @@ ObjAssets::ObjAssets()
 {
 	for (auto path : Browse("assets"))
 		if (IsWavefront(path))
+		{
 			a.assets.emplace_back(path);
+			a.assets.back().thumb = Thumb(path);
+		}
 }
 
 bool ObjAssets::Draw(VertexData& cur)
