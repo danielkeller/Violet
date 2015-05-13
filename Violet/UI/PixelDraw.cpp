@@ -10,6 +10,19 @@
 
 using namespace UI;
 
+static const float maxZ = 10.f;
+
+Matrix4f UI::PixelMat(Vector2i dim)
+{
+	Matrix4f ret;
+	ret <<
+		2.f / float(dim.x()), 0, 0, -1,
+		0, 2.f / float(dim.y()), 0, -1,
+		0, 0, -1.f / maxZ, .999f,
+		0, 0, 0, 1;
+	return ret;
+}
+
 struct UI::Settings
 {
 	Settings() : screenTex(TexDim{ 0, 0 }) {}
@@ -236,11 +249,11 @@ const Schema AttribTraits<Box2z>::schema = {
 
 template<>
 const Schema AttribTraits<TextQuad>::schema = {
-	{ "topLeft",     GL_FLOAT, false, 0,                 { 2, 1 } },
-	{ "botRight",    GL_FLOAT, false, 2 * sizeof(float), { 2, 1 } },
-	{ "topLeftTex",  GL_FLOAT, false, 4 * sizeof(float), { 2, 1 } },
-	{ "botRightTex", GL_FLOAT, false, 6 * sizeof(float), { 2, 1 } },
-	{ "z",           GL_INT,   true,  8 * sizeof(float), { 1, 1 } }
+	{ "minBox",    GL_FLOAT, false, 0,                 { 2, 1 } },
+	{ "maxBox",    GL_FLOAT, false, 2 * sizeof(float), { 2, 1 } },
+	{ "minBoxTex", GL_FLOAT, false, 4 * sizeof(float), { 2, 1 } },
+	{ "maxBoxTex", GL_FLOAT, false, 6 * sizeof(float), { 2, 1 } },
+	{ "z",         GL_INT,   true,  8 * sizeof(float), { 1, 1 } }
 };
 
 static void WinResize(Vector2i sz)
@@ -264,8 +277,8 @@ void UI::Init(Window& w)
 	static ShaderProgram boxShdr("assets/uibox");
 
 	static UBO boxUBO = boxShdr.MakeUBO("Material", "BoxMat");
-	boxUBO["fill"] = Vector4f{ 1, 1, 1, 1 };
-	boxUBO["stroke"] = Vector4f{ 1, 1, 1, 1 };
+	boxUBO["fill"] = Vector4f{ .98f, .98f, .98f, 1 };
+	boxUBO["stroke"] = Vector4f{ .98f, .98f, .98f, 1 };
 
 	static UBO hlboxUBO = boxShdr.MakeUBO("Material", "HlBoxMat");
 	hlboxUBO["fill"] = Vector4f::Zero();

@@ -8,9 +8,9 @@ Vector2i Scooch(Vector2i init, Layout::Dir dir, int distance)
 	switch (dir)
 	{
 	case Layout::Dir::Up:
-		return{ init.x(), init.y() - distance };
-	case Layout::Dir::Down:
 		return{ init.x(), init.y() + distance };
+	case Layout::Dir::Down:
+		return{ init.x(), init.y() - distance };
 	case Layout::Dir::Left:
 		return{ init.x() - distance, init.y() };
 	case Layout::Dir::Right:
@@ -84,13 +84,13 @@ Layout Layout::Top(Vector2i box, Dir dir)
 	switch (dir)
 	{
 	case Dir::Right:
-		return{ dir, Dir::Down, 0, box.x(), box.y(), { 0, 0 } };
+		return{ dir, Dir::Up, 0, box.x(), box.y(), { 0, 0 } };
 	case Dir::Left:
-		return{ dir, Dir::Down, 0, box.x(), box.y(), { box.x(), 0 } };
+		return{ dir, Dir::Up, 0, box.x(), box.y(), { box.x(), 0 } };
 	case Dir::Down:
-		return{ dir, Dir::Right, 0, box.y(), box.x(), { 0, 0 } };
-	case Dir::Up:
 		return{ dir, Dir::Right, 0, box.y(), box.x(), { 0, box.y() } };
+	case Dir::Up:
+		return{ dir, Dir::Right, 0, box.y(), box.x(), { 0, 0 } };
 	default: assert(false && "Layout broken");
 		return{};
 	}

@@ -30,8 +30,6 @@ Vector2f Viewport::Pixel2View(Vector2f posPixel) const
 	Eigen::AlignedBox2f vp = screenBox.cast<float>();
 	Eigen::Array2f posView = (posPixel - vp.min()).cwiseQuotient(vp.sizes());
 
-	posView.y() = 1 - posView.y();
-
 	return posView;
 }
 

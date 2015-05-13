@@ -250,7 +250,7 @@ Events Window::GetInput()
 	//get the mouse position too
 	double x, y;
 	glfwGetCursorPos(window, &x, &y);
-	newEvents.mouseCur << float(x), float(y);
+	newEvents.mouseCur << float(x), float(dim.get().y() - y);
 
 	for (int b = 0; b < newEvents.mouseButtonsCur.size(); ++b)
 		newEvents.mouseButtonsCur[b] = glfwGetMouseButton(window, b) == GLFW_PRESS;
@@ -279,19 +279,6 @@ void Window::PostDraw()
     //Check errors normally
     CheckGLError();
 #endif
-}
-
-static const float maxZ = 10.f;
-
-Matrix4f PixelMat(Vector2i dim)
-{
-	Matrix4f ret;
-	ret <<
-		2.f / float(dim.x()), 0, 0, -1,
-		0, -2.f / float(dim.y()), 0, 1,
-		0, 0, -1.f / maxZ, .999f,
-		0, 0, 0, 1;
-	return ret;
 }
 
 bool Window::ShouldClose() const

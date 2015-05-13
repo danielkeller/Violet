@@ -76,25 +76,26 @@ void UI::DrawText(const std::string& text, AlignedBox2i container)
 {
 	Vector2i dim{ TextDim(text).x(), LINEH }; //doesn't give useful y dimension
 	Vector2i space = (container.sizes() - dim) / 2;
-	space.y() += BASELINE_DEPTH; //start at the correct point
+	space.y() += BASELINE_HEIGHT; //start at the correct point
 	//UI::DrawBox(container);
-	//the "bottom left" is actually the top left because of our coordinates
 	DrawText(text, container.corner(AlignedBox2i::BottomLeft) + space);
 }
 
 void UI::DrawText(const std::string& text, Vector2i pos)
 {
 	Vector2f posf = pos.cast<float>();
+	//the coordinate system is backwards wrt ours so use negative y coords
+	posf.y() *= -1;
 
 	auto& cdata = GetFont().resource->cdata;
 	for (int character : text)
 	{
 		stbtt_aligned_quad q;
 		stbtt_GetPackedQuad(cdata, 512, 512, character - 32,
-			&posf.x(), &posf.y(), &q, 1);
+			&posf.x(), &posf.y(), &q, 0);
 
 		DrawChar(
-			{ Vector2f{ q.x0, q.y0 }, Vector2f{ q.x1, q.y1 } },
+			{ Vector2f{ q.x0, -q.y0 }, Vector2f{ q.x1, -q.y1 } },
 			{ Vector2f{ q.s0, q.t0 }, Vector2f{ q.s1, q.t1 } });
 	}
 }

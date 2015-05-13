@@ -110,7 +110,4 @@ private:
 //print out a message if there are GL errors
 void CheckGLError();
 
-//ortho matrix for pixel drawing
-Matrix4f PixelMat(Vector2i dim);
-
 #endif

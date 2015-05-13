@@ -13,7 +13,7 @@ Tex ObjAssets::Thumb(const std::string& path)
 	static UBO cam = shader.MakeUBO("Common", "ThumbCamera");
 	STATIC
 	{
-		mat["light"] = Vector3f{ 1, -1, 1 }.normalized();
+		mat["light"] = Vector3f{ -1, 1, 1 }.normalized();
 		cam["camera"] = view.PerspMat();
 	}
 

@@ -18,6 +18,9 @@ namespace UI
 
 	static const Vector4f hlColor = { .6f, 0.f, 9.f, 1.f };
 
+	//ortho matrix for pixel drawing
+	Matrix4f PixelMat(Vector2i dim);
+
 	//go higher
 	void PushZ(int dz = 1);
 	//go lower

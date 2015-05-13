@@ -28,7 +28,7 @@ bool Assets::Draw(std::string& cur)
 
 	int height = l.Current().maxFill;
 
-	Vector2i origin = l.Current().Box().corner(UI::AlignedBox2i::BottomLeft);
+	Vector2i origin = l.Current().Box().corner(UI::AlignedBox2i::TopLeft);
 	Vector2i size{ THM_SIZE, THM_SIZE };
 
 	auto it = assets.begin();
@@ -44,9 +44,9 @@ bool Assets::Draw(std::string& cur)
 		{
 			if (it == assets.end())
 				goto done;
-			Vector2i top = origin + Vector2i{ x, y };
-			UI::AlignedBox2i box{ top, top + size };
-			UI::AlignedBox2i textBox{ top + Vector2i{ 0, THM_SIZE - UI::LINEH }, top + size };
+			Vector2i init = origin + Vector2i{ x, - THM_SIZE - y };
+			UI::AlignedBox2i box{ init, init + size };
+			UI::AlignedBox2i textBox{ init, init + Vector2i{ THM_SIZE, UI::LINEH } };
 
 			UI::DrawBox(box);
 			UI::DrawQuad(it->thumb, box);

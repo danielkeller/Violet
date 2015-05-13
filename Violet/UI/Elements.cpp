@@ -137,10 +137,12 @@ bool LineEdit::Draw(std::string& text)
 	auto l = CurLayout().PutSpace({ width, LINEH });
 	auto box = l.Box();
 	//as far as stb_textedit is concerned
-	Vector2i origin = box.min() + Vector2i{ TEXT_LEFT_PAD, BASELINE_DEPTH };
+	Vector2i origin = box.corner(AlignedBox2i::BottomLeft)
+		+ Vector2i{ TEXT_LEFT_PAD, BASELINE_HEIGHT };
 
 	auto mouse = FrameEvents().MousePosPxl().cast<int>();
 	Vector2f mouseOffs = (mouse - origin).cast<float>();
+	mouseOffs.y() *= -1;
 
 	if (text != lastText)
 		stb_textedit_clear_state(&state, true);
@@ -202,10 +204,11 @@ bool LineEdit::Draw(std::string& text)
 	long timeHalfSec = std::chrono::duration_cast<
 		std::chrono::duration<long, std::ratio<1,2>>>(FrameEvents().simTime).count();
 
+	UI::PushZ();
 	if (focused && timeHalfSec & 1) //blink
 	{
 		stb_textedit_find_charpos(&find, &text, state.cursor, true);
-		DrawText("|", origin + Vector2i{ find.x - 3, find.y });
+		DrawText("|", origin + Vector2i{ find.x - 3, -find.y });
 	}
 
 	if (state.select_start != state.select_end)
@@ -213,8 +216,9 @@ bool LineEdit::Draw(std::string& text)
 		int start = std::min(state.select_start, state.select_end);
 		stb_textedit_find_charpos(&find, &text, start, true);
 		std::string uline(std::abs(state.select_end - state.select_start), '_');
-		DrawText(uline, origin + Vector2i{ find.x, find.y });
+		DrawText(uline, origin + Vector2i{ find.x, -find.y });
 	}
+	UI::PopZ();
 
 	return ret;
 }

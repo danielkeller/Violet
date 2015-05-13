@@ -1,5 +1,3 @@
-#extension GL_ARB_fragment_coord_conventions : require
-
 out vec4 outputColor;
 
 uniform sampler2D boxes;
@@ -13,8 +11,6 @@ flat in ivec2 minBoxFrag;
 flat in ivec2 maxBoxFrag;
 
 in float zFrag;
-
-layout(origin_upper_left) in vec4 gl_FragCoord;
 
 float PI = 3.1415927;
 
@@ -44,6 +40,6 @@ void main()
 	float zDiff = (otherZ - zFrag) * zScale;
 
 	float sh = shadow2(zDiff, gl_FragCoord.xy, 1)*.3
-		+ shadow2(zDiff, gl_FragCoord.xy - vec2(0, zDiff*.6), 2)*.5;
+		+ shadow2(zDiff, gl_FragCoord.xy + vec2(0, zDiff*.6), 2)*.5;
 	outputColor = (1 - sh)*vec4(1);
 }
