@@ -11,6 +11,7 @@ in vec2 topLeft;
 in vec2 topLeftTex;
 in vec2 botRight;
 in vec2 botRightTex;
+in int z;
 
 vec2 pickVec(vec2 topleft, vec2 botright)
 {
@@ -21,6 +22,6 @@ vec2 pickVec(vec2 topleft, vec2 botright)
 
 void main()
 {
-    gl_Position = pixelMat*vec4(pickVec(topLeft, botRight), 0, 1);
+    gl_Position = pixelMat*vec4(pickVec(topLeft, botRight), z + 0.2, 1);
 	texCoordFrag = pickVec(topLeftTex, botRightTex);
 }

@@ -12,8 +12,10 @@ std::string Profile::niceUnits(duration d)
 {
 	if (d < std::chrono::milliseconds(5))
 		return std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(d).count()) + "us";
-	else
+	else if (d < std::chrono::seconds(5))
 		return std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(d).count()) + "ms";
+	else
+		return std::to_string(std::chrono::duration_cast<std::chrono::seconds>(d).count()) + "s";
 }
 
 void Profile::Print()

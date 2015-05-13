@@ -93,10 +93,9 @@ void UI::DrawText(const std::string& text, Vector2i pos)
 		stbtt_GetPackedQuad(cdata, 512, 512, character - 32,
 			&posf.x(), &posf.y(), &q, 1);
 
-		TextQuad tq{
+		DrawChar(
 			{ Vector2f{ q.x0, q.y0 }, Vector2f{ q.x1, q.y1 } },
-			{ Vector2f{ q.s0, q.t0 }, Vector2f{ q.s1, q.t1 } } };
-		DrawChar(tq);
+			{ Vector2f{ q.s0, q.t0 }, Vector2f{ q.s1, q.t1 } });
 	}
 }
 

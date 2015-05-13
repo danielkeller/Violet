@@ -281,13 +281,15 @@ void Window::PostDraw()
 #endif
 }
 
+static const float maxZ = 10.f;
+
 Matrix4f PixelMat(Vector2i dim)
 {
 	Matrix4f ret;
 	ret <<
 		2.f / float(dim.x()), 0, 0, -1,
 		0, -2.f / float(dim.y()), 0, 1,
-		0, 0, 1, 0,
+		0, 0, -1.f / maxZ, .999f,
 		0, 0, 0, 1;
 	return ret;
 }

@@ -4,6 +4,7 @@ flat in ivec2 minBoxFrag;
 flat in ivec2 maxBoxFrag;
 
 in vec2 fragCoord;
+in float zFrag;
 
 uniform Material
 {
@@ -25,4 +26,6 @@ void main()
 
 	if (outputColor.a == 0)
 		discard;
+
+	outputColor.a = zFrag;
 }

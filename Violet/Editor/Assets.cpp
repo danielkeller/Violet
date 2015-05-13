@@ -21,8 +21,10 @@ bool Assets::Draw(std::string& cur)
 	UI::LayoutStack& l = UI::CurLayout();
 	l.PushNext(UI::Layout::Dir::Down);
 	l.EnsureWidth(WIDTH);
+	UI::PushZ(3);
 
 	UI::DrawBox(l.Current());
+	UI::DrawShadow(l.Current());
 
 	int height = l.Current().maxFill;
 
@@ -35,6 +37,7 @@ bool Assets::Draw(std::string& cur)
 
 	bool ret = false;
 
+	UI::PushZ();
 	for (int y = THM_SPACE; y < height; y += THM_SIZE + THM_SPACE)
 	{
 		for (int x = THM_SPACE; x < WIDTH; x += THM_SIZE + THM_SPACE, ++it, ++button)
@@ -45,6 +48,7 @@ bool Assets::Draw(std::string& cur)
 			UI::AlignedBox2i box{ top, top + size };
 			UI::AlignedBox2i textBox{ top + Vector2i{ 0, THM_SIZE - UI::LINEH }, top + size };
 
+			UI::DrawBox(box);
 			UI::DrawQuad(it->thumb, box);
 			if (cur == it->name)
 				UI::DrawHlBox(box);
@@ -55,11 +59,15 @@ bool Assets::Draw(std::string& cur)
 				cur = it->name;
 				ret = true;
 			}
+			if (button->hovered)
+				UI::DrawShadow(box);
 		}
 	}
 done:
+	UI::PopZ();
 
 	l.Pop();
+	UI::PopZ();
 	return ret;
 }
 

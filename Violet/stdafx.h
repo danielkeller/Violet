@@ -72,9 +72,8 @@ using Eigen::Quaternionf;
 
 //for static initialization code:
 
-#define STATIC_IMPL(var) for (static bool var = false; !var; var = true)
 //runs following block only once
-#define STATIC STATIC_IMPL(init##__COUNTER__)
+#define STATIC for (static bool STATIC_inited = false; !STATIC_inited; STATIC_inited = true)
 
 #include <utility>
 //combine std and :: overload set for swap

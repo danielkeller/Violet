@@ -328,6 +328,12 @@
     <None Include="..\assets\shaded.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\assets\uishadow.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\assets\uishadow.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\GLFW\glfw3_32.lib">

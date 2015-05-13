@@ -259,6 +259,8 @@
     <None Include="..\assets\tool_arrow.vert" />
     <None Include="..\assets\uibox.frag" />
     <None Include="..\assets\uibox.vert" />
+    <None Include="..\assets\uishadow.frag" />
+    <None Include="..\assets\uishadow.vert" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\GLFW\glfw3_32.lib" />

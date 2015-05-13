@@ -3,6 +3,7 @@
 
 #include "Rendering/Shader.hpp"
 #include "Rendering/VAO.hpp"
+#include "Rendering/FBO.hpp"
 #include "Window.hpp"
 #include "Layout.hpp"
 #include "Text.hpp"
@@ -11,7 +12,10 @@ using namespace UI;
 
 struct UI::Settings
 {
+	Settings() : screenTex(TexDim{ 0, 0 }) {}
 	Font font;
+	TypedTex<> screenTex;
+	FBO fbo;
 };
 
 Settings& GetSettings()
@@ -35,6 +39,19 @@ void UI::TextStyle(Font font, Vector3f color, Vector3f bgColor)
 	txtUBO["bgColor"] = bgColor;
 }
 
+struct Box2z
+{
+	AlignedBox2i box;
+	int z;
+};
+
+struct TextQuad
+{
+	Eigen::AlignedBox2f pos;
+	Eigen::AlignedBox2f tex;
+	int z;
+};
+
 struct TextureQuad
 {
 	Tex tex;
@@ -43,10 +60,13 @@ struct TextureQuad
 
 struct UI::Visuals
 {
+	Visuals() : zStack({ 1 }) {}
 	std::vector<TextQuad> textInsts;
-	std::vector<AlignedBox2i> boxes;
-	std::vector<AlignedBox2i> hlBoxes;
+	std::vector<Box2z> boxes;
+	std::vector<Box2z> hlBoxes;
+	std::vector<Box2z> shadows;
 	std::vector<TextureQuad> quads;
+	std::vector<int> zStack;
 };
 
 Visuals& FrameVisuals()
@@ -76,11 +96,14 @@ LayoutStack& UI::CurLayout()
 
 void UI::EndFrame()
 {
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
 	//Draw boxes
 	static ShaderProgram boxShdr("assets/uibox");
 	static UBO boxUBO = boxShdr.MakeUBO("Material", "BoxMat");
 	static VAO boxVAO(boxShdr, UnitBox);
-	static BufferObject<AlignedBox2i, GL_ARRAY_BUFFER, GL_STREAM_DRAW> boxInstances;
+	static BufferObject<Box2z, GL_ARRAY_BUFFER, GL_STREAM_DRAW> boxInstances;
 
 	boxInstances.Data(FrameVisuals().boxes);
 	boxVAO.BindInstanceData(boxShdr, boxInstances);
@@ -88,6 +111,13 @@ void UI::EndFrame()
 	boxShdr.use();
 	BindPixelUBO();
 	boxUBO.Bind();
+
+	{
+		auto bound = GetSettings().fbo.Bind(GL_FRAMEBUFFER);
+		GetSettings().fbo.PreDraw({ Eigen::Matrix<GLuint, 4, 1>::Zero() });
+		boxVAO.Draw();
+	}
+
 	boxVAO.Draw();
 
 	//Draw textured quads
@@ -98,7 +128,7 @@ void UI::EndFrame()
 	quadShdr.use();
 	quadVAO.BindInstanceData(quadShdr, quadInstances);
 	BindPixelUBO();
-	
+
 	for (const auto& q : FrameVisuals().quads)
 	{
 		quadInstances.Assign(0, q.quad);
@@ -124,7 +154,7 @@ void UI::EndFrame()
 
 	//Draw hilight boxes
 	static UBO hlboxUBO = boxShdr.MakeUBO("Material", "HlBoxMat");
-	static BufferObject<AlignedBox2i, GL_ARRAY_BUFFER, GL_STREAM_DRAW> hlBoxInstances;
+	static BufferObject<Box2z, GL_ARRAY_BUFFER, GL_STREAM_DRAW> hlBoxInstances;
 
 	hlBoxInstances.Data(FrameVisuals().hlBoxes);
 	boxVAO.BindInstanceData(boxShdr, hlBoxInstances);
@@ -133,32 +163,74 @@ void UI::EndFrame()
 	BindPixelUBO();
 	hlboxUBO.Bind();
 	boxVAO.Draw();
+
+	//Draw shadows
+	static ShaderProgram shadowShdr("assets/uishadow");
+	static VAO shadowVAO(shadowShdr, UnitBox);
+	static BufferObject<Box2z, GL_ARRAY_BUFFER, GL_STREAM_DRAW> shadowInstances;
+
+	shadowInstances.Data(FrameVisuals().shadows);
+	shadowVAO.BindInstanceData(shadowShdr, shadowInstances);
+
+	shadowShdr.use();
+	GetSettings().screenTex.Bind(0);
+	BindPixelUBO();
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_DST_COLOR, GL_ZERO);
+	shadowVAO.Draw();
+	glDisable(GL_BLEND);
+
+	glDisable(GL_DEPTH_TEST);
 }
 
-void UI::DrawChar(TextQuad q)
+void UI::PushZ(int dz)
 {
+	auto& stack = FrameVisuals().zStack;
+	stack.push_back(stack.back() + dz);
+}
+
+void UI::PopZ()
+{
+	FrameVisuals().zStack.pop_back();
+}
+
+int UI::CurZ()
+{
+	return FrameVisuals().zStack.back();
+}
+
+void UI::DrawChar(Eigen::AlignedBox2f pos, Eigen::AlignedBox2f tex)
+{
+	TextQuad q{ pos, tex, CurZ() };
 	FrameVisuals().textInsts.push_back(q);
 }
 
 void UI::DrawBox(AlignedBox2i box)
 {
-	FrameVisuals().boxes.push_back(box);
+	FrameVisuals().boxes.push_back({ box, CurZ() });
+}
+
+void UI::DrawShadow(AlignedBox2i box)
+{
+	FrameVisuals().shadows.push_back({ box, CurZ() });
 }
 
 void UI::DrawHlBox(AlignedBox2i box)
 {
-	FrameVisuals().hlBoxes.push_back(box);
+	FrameVisuals().hlBoxes.push_back({ box, CurZ() + 1 });
 }
 
 void UI::DrawQuad(Tex t, AlignedBox2i box, Eigen::AlignedBox2f tex)
 {
-	FrameVisuals().quads.push_back({ t, { box.cast<float>(), tex } });
+	FrameVisuals().quads.push_back({ t, { box.cast<float>(), tex, CurZ() } });
 }
 
 template<>
-const Schema AttribTraits<AlignedBox2i>::schema = {
+const Schema AttribTraits<Box2z>::schema = {
 	{ "minBox", GL_INT, true, 0,               { 2, 1 } },
 	{ "maxBox", GL_INT, true, 2 * sizeof(int), { 2, 1 } },
+	{ "z",      GL_INT, true, 4 * sizeof(int), { 1, 1 } }
 };
 
 
@@ -168,6 +240,7 @@ const Schema AttribTraits<TextQuad>::schema = {
 	{ "botRight",    GL_FLOAT, false, 2 * sizeof(float), { 2, 1 } },
 	{ "topLeftTex",  GL_FLOAT, false, 4 * sizeof(float), { 2, 1 } },
 	{ "botRightTex", GL_FLOAT, false, 6 * sizeof(float), { 2, 1 } },
+	{ "z",           GL_INT,   true,  8 * sizeof(float), { 1, 1 } }
 };
 
 static void WinResize(Vector2i sz)
@@ -175,6 +248,12 @@ static void WinResize(Vector2i sz)
 	static ShaderProgram txtShdr{ "assets/uibox" };
 	static UBO pixelUBO = txtShdr.MakeUBO("Common", "PixelCommon");
 	pixelUBO["pixelMat"] = PixelMat(sz);
+
+	auto& s = GetSettings();
+	s.screenTex = TypedTex<>(sz);
+	s.fbo.AttachTexes({ s.screenTex });
+	s.fbo.AttachDepth(RenderBuffer{ GL_DEPTH_COMPONENT, sz });
+	s.fbo.CheckStatus();
 }
 
 void UI::Init(Window& w)
