@@ -16,11 +16,16 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position,
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
 	, meshesOpen(false)
+
 	, objectNameEdit(LB_WIDTH)
+
 	, posEdit("position"), renderEdit("render")
 	, xEdit(LB_WIDTH / 3), yEdit(LB_WIDTH / 3), zEdit(LB_WIDTH / 3)
 	, angleEdit({ LB_WIDTH / 3, LB_WIDTH / 3, LB_WIDTH / 3 })
 	, scaleEdit(LB_WIDTH), objectSelect(LB_WIDTH)
+
+	, meshButton("none", LB_WIDTH)
+
 	, newObject("+", MOD_WIDTH), delObject("-", MOD_WIDTH)
 {
 }
@@ -162,7 +167,7 @@ void Edit::PhysTick(Events& e, Object camera)
 	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Left);
 
 	//asset picker
-	if (selected != Object::none && r.Has(selected))
+	if (meshesOpen)
 	{
 		auto tup = r.Info(selected);
 		if (meshes.Draw(std::get<2>(tup)))
@@ -170,6 +175,7 @@ void Edit::PhysTick(Events& e, Object camera)
 			r.Remove(selected);
 			r.Create(selected, tup);
 			r.Save(selected, persist);
+			meshesOpen = false;
 		}
 	}
 
@@ -193,13 +199,13 @@ void Edit::PhysTick(Events& e, Object camera)
 		{
 			Transform xfrm = *position[selected];
 
-			//save the object once we stop editing
-			bool moved = false;
+			bool stopped = false, moved = false;
 
 			l.PushNext(UI::Layout::Dir::Right);
-			moved |= xEdit.Draw(xfrm.pos.x())
+			stopped |= xEdit.Draw(xfrm.pos.x())
 				| yEdit.Draw(xfrm.pos.y())
 				| zEdit.Draw(xfrm.pos.z());
+			moved |= xEdit.editing | yEdit.editing | zEdit.editing;
 			l.Pop();
 
 			UI::DrawText("rotation", l.PutSpace({ LB_WIDTH, UI::LINEH }));
@@ -210,7 +216,8 @@ void Edit::PhysTick(Events& e, Object camera)
 			//to separate out the rest of the rotation and edit just the apparent rotation
 			for (int axis = 0; axis < 3; ++axis)
 			{
-				moved |= angleEdit[axis].Draw(curAngle[axis]);
+				stopped |= angleEdit[axis].Draw(curAngle[axis]);
+				moved |= angleEdit[axis].editing;
 
 				Quaternionf swing;
 				Quaternionf twist;
@@ -232,15 +239,18 @@ void Edit::PhysTick(Events& e, Object camera)
 			//xfrm.rot.normalize(); //?
 
 			UI::DrawText("scale", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-			moved |= scaleEdit.Draw(xfrm.scale);
+			stopped |= scaleEdit.Draw(xfrm.scale);
+			moved |= scaleEdit.editing;
 
+			//track the position
 			if (moved)
 			{
 				position[selected].set(xfrm);
 				tool.SetTarget(position[selected]);
 			}
 
-			return moved;
+			//save the object once we stop editing
+			return stopped;
 		},
 			[&]() {
 			tool.SetTarget(position[selected]);
@@ -259,7 +269,12 @@ void Edit::PhysTick(Events& e, Object camera)
 			auto tup = r.Info(selected);
 			infRow("shader", std::get<0>(tup).Name());
 			infRow("material", std::get<1>(tup).Name());
-			infRow("mesh", std::get<2>(tup).Name());
+
+			UI::DrawText("mesh", l.PutSpace({ LB_WIDTH, UI::LINEH }));
+			meshButton.text = std::get<2>(tup).Name();
+			if (meshButton.Draw())
+				meshesOpen = true;
+			
 			if (std::get<3>(tup) == Mobilty::Yes)
 				UI::DrawText("mobile", l.PutSpace({ LB_WIDTH, UI::LINEH }));
 			else
@@ -306,6 +321,8 @@ void Edit::PhysTick(Events& e, Object camera)
 	if (selected != newSelect)
 	{
 		selected = newSelect;
+
+		meshesOpen = false;
 
 		if (selected != Object::none)
 		{

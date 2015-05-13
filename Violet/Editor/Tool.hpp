@@ -6,7 +6,7 @@
 #include "Position.hpp"
 
 class Render;
-class Events;
+struct Events;
 class RenderPasses;
 
 class Tool

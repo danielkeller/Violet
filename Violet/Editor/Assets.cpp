@@ -67,6 +67,7 @@ done:
 	UI::PopZ();
 
 	l.Pop();
+
 	UI::PopZ();
 	return ret;
 }

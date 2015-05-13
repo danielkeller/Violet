@@ -98,6 +98,15 @@ void Events::PopScroll()
 	scrollAmt << 0, 0;
 }
 
+bool Events::HasKeyEvent(KeyEvent key)
+{
+	if (key.action == RELEASE_OR_REPEAT)
+		return HasKeyEvent({ key.key, GLFW_REPEAT }) || HasKeyEvent({ key.key, GLFW_RELEASE });
+
+	return std::find(keyEvents.begin(), keyEvents.end(), key)
+		!= keyEvents.end();
+}
+
 bool Events::PopKeyEvent(KeyEvent key)
 {
 	if (key.action == RELEASE_OR_REPEAT) //only pop one of them
@@ -138,7 +147,8 @@ static void error_callback(int error, const char* description)
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	getWindow(window)->newEvents.keyEvents.emplace_back(
+	auto& events = getWindow(window)->newEvents;
+	events.keyEvents.emplace_back(
 		KeyEvent{ { key, mods }, action });
 
 	if (action != GLFW_PRESS)
@@ -198,8 +208,6 @@ Window::Window()
     if (!window)
 		throw std::runtime_error("Could not create window");
 
-	GetInput();
-
 	glfwSetWindowUserPointer(window, this);
 
 	//add our input callbacks
@@ -254,6 +262,8 @@ Events Window::GetInput()
 
 	for (int b = 0; b < newEvents.mouseButtonsCur.size(); ++b)
 		newEvents.mouseButtonsCur[b] = glfwGetMouseButton(window, b) == GLFW_PRESS;
+	
+	newEvents.scrollPopped = newEvents.mousePopped = false;
 
 	//make events that happened visible
 	Events ret = newEvents;

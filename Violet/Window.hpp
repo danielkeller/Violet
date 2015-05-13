@@ -30,9 +30,8 @@ struct KeyEvent
 	POD_EQUALITY(KeyEvent);
 };
 
-class Events
+struct Events
 {
-public:
 	bool MouseButton(int num) const;
 	bool MouseClick(int num) const;
 	bool MouseRelease(int num) const;
@@ -54,6 +53,7 @@ public:
 	void PopMouse();
 	void PopScroll();
 
+	bool HasKeyEvent(KeyEvent key);
 	bool PopKeyEvent(KeyEvent key);
 	bool PopKey(Key key); //RELEASE_OR_REPEAT event
 
@@ -62,9 +62,9 @@ public:
 	Viewport view;
 	Vector2i dimVec;
 
-	using MouseBottons = std::array<bool, 5>;
+	using MouseButtons = std::array<bool, 5>;
 
-	MouseBottons mouseButtonsOld, mouseButtonsCur;
+	MouseButtons mouseButtonsOld, mouseButtonsCur;
 	Vector2f mouseOld, mouseCur, scrollAmt;
 	bool mousePopped, scrollPopped;
 	

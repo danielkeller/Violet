@@ -11,7 +11,7 @@
 
 class Render;
 class Window;
-class Events;
+struct Events;
 
 class RenderPasses
 {

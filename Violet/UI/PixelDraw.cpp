@@ -27,6 +27,7 @@ struct UI::Settings
 {
 	Settings() : screenTex(TexDim{ 0, 0 }) {}
 	Font font;
+	Vector3f textColor;
 	TypedTex<> screenTex;
 	FBO fbo;
 };
@@ -42,19 +43,22 @@ Font UI::GetFont()
 	return GetSettings().font;
 }
 
-void UI::TextStyle(Font font, Vector3f color, Vector3f bgColor)
+void UI::TextStyle(Font font, Vector3f color)
 {
 	GetSettings().font = font;
-
-	static ShaderProgram txtShdr{ "assets/text" };
-	static UBO txtUBO = txtShdr.MakeUBO("Material", "TxtMat");
-	txtUBO["color"] = color;
-	txtUBO["bgColor"] = bgColor;
+	GetSettings().textColor = color;
 }
 
 struct Box2z
 {
 	AlignedBox2i box;
+	int z;
+};
+
+struct UIBox
+{
+	AlignedBox2i box;
+	Vector4f fill, stroke;
 	int z;
 };
 
@@ -75,8 +79,7 @@ struct UI::Visuals
 {
 	Visuals() : zStack({ 1 }) {}
 	std::vector<TextQuad> textInsts;
-	std::vector<Box2z> boxes;
-	std::vector<Box2z> hlBoxes;
+	std::vector<UIBox> boxes;
 	std::vector<Box2z> shadows;
 	std::vector<TextureQuad> quads;
 	std::vector<int> zStack;
@@ -114,16 +117,15 @@ void UI::EndFrame()
 
 	//Draw boxes
 	static ShaderProgram boxShdr("assets/uibox");
-	static UBO boxUBO = boxShdr.MakeUBO("Material", "BoxMat");
 	static VAO boxVAO(boxShdr, UnitBox);
-	static BufferObject<Box2z, GL_ARRAY_BUFFER, GL_STREAM_DRAW> boxInstances;
+	static BufferObject<UIBox, GL_ARRAY_BUFFER, GL_STREAM_DRAW> boxInstances;
 
 	boxInstances.Data(FrameVisuals().boxes);
+	//TODO: just set numInstances
 	boxVAO.BindInstanceData(boxShdr, boxInstances);
 
 	boxShdr.use();
 	BindPixelUBO();
-	boxUBO.Bind();
 
 	{
 		auto bound = GetSettings().fbo.Bind(GL_FRAMEBUFFER);
@@ -150,8 +152,13 @@ void UI::EndFrame()
 	}
 
 	//Draw text
+	glEnable(GL_BLEND);
+	//blend from constant (text) color to dest color by source color
+	glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR);
+	auto textColor = GetSettings().textColor;
+	glBlendColor(textColor.x(), textColor.y(), textColor.z(), 1.f);
+
 	static ShaderProgram txtShdr{ "assets/text" };
-	static UBO txtUBO = txtShdr.MakeUBO("Material", "TxtMat");
 	static VAO txtVAO(txtShdr, UnitBox);
 	static BufferObject<TextQuad, GL_ARRAY_BUFFER, GL_STREAM_DRAW> charInstances;
 
@@ -160,24 +167,13 @@ void UI::EndFrame()
 	txtVAO.BindInstanceData(txtShdr, charInstances);
 
 	txtShdr.use();
-	txtUBO.Bind();
 	BindPixelUBO();
 
 	txtVAO.Draw();
 
-	//Draw hilight boxes
-	static UBO hlboxUBO = boxShdr.MakeUBO("Material", "HlBoxMat");
-	static BufferObject<Box2z, GL_ARRAY_BUFFER, GL_STREAM_DRAW> hlBoxInstances;
-
-	hlBoxInstances.Data(FrameVisuals().hlBoxes);
-	boxVAO.BindInstanceData(boxShdr, hlBoxInstances);
-
-	boxShdr.use();
-	BindPixelUBO();
-	hlboxUBO.Bind();
-	boxVAO.Draw();
-
 	//Draw shadows
+	glBlendFunc(GL_DST_COLOR, GL_ZERO);
+
 	static ShaderProgram shadowShdr("assets/uishadow");
 	static VAO shadowVAO(shadowShdr, UnitBox);
 	static BufferObject<Box2z, GL_ARRAY_BUFFER, GL_STREAM_DRAW> shadowInstances;
@@ -188,10 +184,8 @@ void UI::EndFrame()
 	shadowShdr.use();
 	GetSettings().screenTex.Bind(0);
 	BindPixelUBO();
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_DST_COLOR, GL_ZERO);
 	shadowVAO.Draw();
+
 	glDisable(GL_BLEND);
 
 	glDisable(GL_DEPTH_TEST);
@@ -219,19 +213,25 @@ void UI::DrawChar(Eigen::AlignedBox2f pos, Eigen::AlignedBox2f tex)
 	FrameVisuals().textInsts.push_back(q);
 }
 
+void UI::DrawBox(AlignedBox2i box, Vector4f fill, Vector4f stroke)
+{
+	FrameVisuals().boxes.push_back({ box, fill, stroke, CurZ() });
+}
+
 void UI::DrawBox(AlignedBox2i box)
 {
-	FrameVisuals().boxes.push_back({ box, CurZ() });
+	DrawBox(box, backgroundColor, backgroundColor);
+}
+
+void UI::DrawHlBox(AlignedBox2i box)
+{
+	FrameVisuals().boxes.push_back(
+		{ box, Vector4f::Zero(), { .6f, 0.f, 9.f, 1.f }, CurZ() + 1 });
 }
 
 void UI::DrawShadow(AlignedBox2i box)
 {
 	FrameVisuals().shadows.push_back({ box, CurZ() });
-}
-
-void UI::DrawHlBox(AlignedBox2i box)
-{
-	FrameVisuals().hlBoxes.push_back({ box, CurZ() + 1 });
 }
 
 void UI::DrawQuad(Tex t, AlignedBox2i box, Eigen::AlignedBox2f tex)
@@ -246,6 +246,14 @@ const Schema AttribTraits<Box2z>::schema = {
 	{ "z",      GL_INT, true, 4 * sizeof(int), { 1, 1 } }
 };
 
+template<>
+const Schema AttribTraits<UIBox>::schema = {
+	{ "minBox", GL_INT,   true,  0,               { 2, 1 } },
+	{ "maxBox", GL_INT,   true,  2 * sizeof(int), { 2, 1 } },
+	{ "fill",   GL_FLOAT, false, 4 * sizeof(int), { 4, 1 } },
+	{ "stroke", GL_FLOAT, false, 8 * sizeof(int), { 4, 1 } },
+	{ "z",      GL_INT,   true,  12 * sizeof(int), { 1, 1 } }
+};
 
 template<>
 const Schema AttribTraits<TextQuad>::schema = {
@@ -273,16 +281,6 @@ void UI::Init(Window& w)
 {
 	//init styles
 	TextStyle({});
-
-	static ShaderProgram boxShdr("assets/uibox");
-
-	static UBO boxUBO = boxShdr.MakeUBO("Material", "BoxMat");
-	boxUBO["fill"] = Vector4f{ .98f, .98f, .98f, 1 };
-	boxUBO["stroke"] = Vector4f{ .98f, .98f, .98f, 1 };
-
-	static UBO hlboxUBO = boxShdr.MakeUBO("Material", "HlBoxMat");
-	hlboxUBO["fill"] = Vector4f::Zero();
-	hlboxUBO["stroke"] = hlColor;
 
 	w.dim += make_magic(accessor<Vector2i>(&WinResize));
 	WinResize(*w.dim);

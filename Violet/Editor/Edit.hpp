@@ -12,7 +12,7 @@
 class Render;
 class RenderPasses;
 class Persist;
-class Events;
+struct Events;
 
 class Edit : public Component
 {
@@ -22,6 +22,7 @@ public:
 
     void Editable(Object o);
 
+	//FIXME: should this actually take e?
 	void PhysTick(Events& e, Object camera);
 
 	void Load(Persist&);
@@ -73,6 +74,9 @@ private:
 	std::array<float,3> curAngle;
 	std::array<UI::FloatEdit,3> angleEdit;
 	UI::FloatEdit scaleEdit;
+
+	//Render
+	UI::TextButton meshButton;
 
 	//Object
 	UI::TextButton newObject, delObject;

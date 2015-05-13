@@ -172,13 +172,25 @@ private:
 	{
 		auto& level = std::get<Level>(data);
 		auto it = level.find(std::get<Level>(refs));
-		//range_of depends on the lower element being there so do that first
+
+		//these depend on the lower element being there so do them first
+		auto& lower = std::get<Level + 1>(data);
+		auto lower_next = lower.get_perma(lower.find(it->second) + 1);
 		bool last = range_of<Level>(it).size() == 1;
-		//note non-short-circuting and
-		if (last & erase<Level + 1>(refs))
+
+		bool erased = erase<Level + 1>(refs);
+
+		if (erased)
 		{
-			level.erase(it);
-			return true;
+			if (last)
+			{
+				level.erase(it);
+				return true;
+			}
+			else if (it->second == std::get<Level + 1>(refs))
+			{
+				it->second = lower_next;
+			}
 		}
 		return false;
 	}

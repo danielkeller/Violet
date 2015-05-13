@@ -2,7 +2,7 @@
 #define BOX_HPP
 
 class Window;
-class Events;
+struct Events;
 
 #include "Rendering/Texture.hpp"
 
@@ -16,7 +16,7 @@ namespace UI
 
 	using AlignedBox2i = Eigen::AlignedBox2i;
 
-	static const Vector4f hlColor = { .6f, 0.f, 9.f, 1.f };
+	static const Vector4f backgroundColor = { .98f, .98f, .98f, 1 };
 
 	//ortho matrix for pixel drawing
 	Matrix4f PixelMat(Vector2i dim);
@@ -30,14 +30,15 @@ namespace UI
 	void DrawChar(Eigen::AlignedBox2f pos, Eigen::AlignedBox2f tex);
 	void DrawQuad(Tex t, AlignedBox2i box, Eigen::AlignedBox2f tex =
 		{ Vector2f{ 0.f, 0.f }, Vector2f{ 1.f, 1.f } });
-	void DrawBox(AlignedBox2i box);
+	void DrawBox(AlignedBox2i box, Vector4f fill, Vector4f stroke);
 	void DrawShadow(AlignedBox2i box);
 	void DrawHlBox(AlignedBox2i box);
+	void DrawBox(AlignedBox2i box);
 
 	void Init(Window& w);
 	void BindPixelUBO();
 
-	void TextStyle(Font font, Vector3f color = { 0, 0, 0 }, Vector3f bgColor = { 1, 1, 1 });
+	void TextStyle(Font font, Vector3f color = { .1f, .1f, .1f });
 
 	Font GetFont();
 

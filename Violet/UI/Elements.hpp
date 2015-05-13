@@ -17,6 +17,16 @@ namespace UI
 
 	static const int DEFAULT_WIDTH = 80;
 
+	struct Focusable
+	{
+		Focusable();
+		bool focused;
+		static bool anyFocused;
+		//returns true if focus was just lost
+		bool Draw(AlignedBox2i box);
+		void Unfocus();
+	};
+
 	struct Button
 	{
 		Button();
@@ -47,11 +57,11 @@ namespace UI
 	{
 		LineEdit(int width = DEFAULT_WIDTH);
 		int width;
+		Focusable focus;
 		STB_TexteditState state;
-		bool focused;
 		std::string lastText;
 
-		//returns true if the textedit just lost focus
+		//returns true if the textedit just lost focus or enter is pressed
 		bool Draw(std::string& text);
 	};
 
@@ -62,7 +72,7 @@ namespace UI
 		int prec;
 		bool editing;
 		std::string editStr;
-		//returns true if the textedit just lost focus
+		//returns true if the textedit just lost focus or enter is pressed
 		bool Draw(float& val);
 	private:
 		void SetDispVal(float val);
