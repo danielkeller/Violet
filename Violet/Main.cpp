@@ -10,10 +10,13 @@
 #include "UI/PixelDraw.hpp"
 
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 
 int main(void)
 try
 {
+	std::srand(static_cast<unsigned int>(std::time(nullptr)));
 	Profile::CalibrateProfiling();
 
 	ComponentManager mgr;
@@ -48,12 +51,11 @@ try
 	if (!persist.Exists<Render>(teapotObj) || !persist.Exists<Render>(teapot2Obj))
 	{
 		//load the object
-		Tex capsuleTex{ "assets/capsule.png" };
-		ShaderProgram shdr{ "assets/simple" };
 		VertexData capsule{ "assets/capsule.obj" };
+		Material capsuleMat{ "capsule", { "assets/simple" }, { "assets/capsule.png" } };
 
-		r.Create(teapotObj, shdr, { {}, capsuleTex }, capsule, Mobilty::Yes);
-		r.Create(teapot2Obj, shdr, { {}, capsuleTex }, capsule, Mobilty::No);
+		r.Create(teapotObj, capsuleMat, capsule, Mobilty::Yes);
+		r.Create(teapot2Obj, capsuleMat, capsule, Mobilty::No);
 		mgr.Save(teapotObj, persist); mgr.Save(teapot2Obj, persist);
 	}
 

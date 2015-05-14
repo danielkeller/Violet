@@ -123,7 +123,8 @@ void PreparedStmtImpl::Bind1(int num, std::vector<std::string> val)
 	for (const auto& str : val)
 		concat += str + '\t';
 
-	concat.erase(concat.end() - 1, concat.end());
+	if (concat.size() > 0)
+		concat.erase(concat.end() - 1, concat.end());
 
 	Bind1(num, concat);
 }

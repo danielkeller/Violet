@@ -54,6 +54,8 @@ namespace tt_detail
 	};
 }
 
+//TODO: why does this have issues with const members?
+
 //type that stores tuple-like elements sorted lexicographically, but keeping
 //each level linear in memory, and minimizing duplicate items
 template<class... Contents>

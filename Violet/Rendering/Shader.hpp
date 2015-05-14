@@ -100,7 +100,7 @@ public:
 	//Associates this UBO with its binding point.
 	void Bind() const;
 
-	std::string Name() const;
+	std::string Key() const;
 	void Save(Persist&) const;
 
 	friend struct Proxy;

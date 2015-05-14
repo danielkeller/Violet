@@ -23,15 +23,16 @@ Tool::Tool(Render& r, Position& position)
 	VertexData arrow("ToolArrow", arrowVerts, arrowInds);
 
 	ShaderProgram arrowShader{ "assets/tool_arrow" };
-	UBO xMat = arrowShader.MakeUBO("Material", "ToolX");
-	xMat["direction"] = Vector3f::UnitX();
-	UBO yMat = arrowShader.MakeUBO("Material", "ToolY");
-	yMat["direction"] = Vector3f::UnitY();
-	UBO zMat = arrowShader.MakeUBO("Material", "ToolZ");
-	zMat["direction"] = Vector3f::UnitZ();
-	r.Create(x, arrowShader, xMat, arrow, Mobilty::Yes);
-	r.Create(y, arrowShader, yMat, arrow, Mobilty::Yes);
-	r.Create(z, arrowShader, zMat, arrow, Mobilty::Yes);
+	Material xMat{ "ToolX", arrowShader };
+	xMat.ubo["direction"] = Vector3f::UnitX();
+	Material yMat{ "ToolY", arrowShader };
+	yMat.ubo["direction"] = Vector3f::UnitY();
+	Material zMat{ "ToolZ", arrowShader };
+	zMat.ubo["direction"] = Vector3f::UnitZ();
+
+	r.Create(x, xMat, arrow, Mobilty::Yes);
+	r.Create(y, yMat, arrow, Mobilty::Yes);
+	r.Create(z, zMat, arrow, Mobilty::Yes);
 }
 
 void Tool::SetTarget(magic_ptr<Transform> t)

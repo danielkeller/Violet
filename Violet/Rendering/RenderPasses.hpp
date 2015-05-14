@@ -2,12 +2,11 @@
 #define RENDER_PASSES_HPP
 
 #include "FBO.hpp"
-#include "Shader.hpp"
-#include "Material.hpp"
 #include "VAO.hpp"
 #include "Core/Object.hpp"
 #include "Viewport.hpp"
 #include "Mobile.hpp"
+#include "Material.hpp"
 
 class Render;
 class Window;
@@ -54,7 +53,6 @@ private:
 	ShaderProgram simpleShader;
 	UBO commonUBO;
 
-	ShaderProgram screenShader;
 	Material screenMat;
 	VAO screenQuad;
 	Viewport view;

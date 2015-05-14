@@ -1,39 +1,40 @@
 #ifndef MATERIAL_HPP
 #define MATERIAL_HPP
 
-#include "Texture.hpp"
 #include "Shader.hpp"
+#include "Texture.hpp"
 
 class Persist;
 struct EmbeddedResourcePersistTag;
 
-struct Material
+class Material
 {
-	UBO materialProps;
-	std::vector<Tex> textures;
+public:
+	using Id = std::int64_t;
 
-	bool operator==(const Material& t) const;
-	bool operator!=(const Material& t) const;
+	Material();
+	Material(Id, Persist&);
+	Material(const std::string& name, ShaderProgram);
+	Material(const std::string& name, ShaderProgram, Tex);
+	Material(const std::string& name, ShaderProgram, std::vector<Tex>);
+
+	BASIC_EQUALITY(Material, id);
+
+	Id id;
+	std::string name;
+
+	ShaderProgram shader;
+	UBO ubo;
+	std::vector<Tex> textures;
 
 	void use() const;
 
-	std::string Name() const;
 	void Save(Persist& persist) const;
-
-	Material() = default;
-	Material(UBO props);
-	Material(UBO props, Tex tex);
-	Material(UBO props, std::vector<Tex> texs);
-	Material(const std::string&, UBO props, std::vector<Tex> texs);
-
-	//I guess
+	Id Key() const;
 	using PersistCategory = EmbeddedResourcePersistTag;
-
-	HAS_HASH
+	Material(std::int64_t, const std::string&, ShaderProgram, UBO, std::vector<Tex>);
 };
 
-MEMBER_HASH(Material, materialProps)
-
-MAKE_PERSIST_TRAITS(Material, std::string, UBO, std::vector<Tex>)
+MAKE_PERSIST_TRAITS(Material, Material::Id, std::string, ShaderProgram, UBO, std::vector<Tex>)
 
 #endif

@@ -46,11 +46,8 @@ using InstanceVec = l_bag<InstData, Eigen::aligned_allocator<InstData>>;
 class Render : public Component
 {
 public:
-	void Create(Object obj, ShaderProgram shader, Material mat,
-		VertexData vertData, Mobilty mobile = Mobilty::No);
-	void Create(Object obj, std::tuple<ShaderProgram, Material, VertexData, Mobilty>);
-	//For things like text that use custom instance data
-	//void Create(Object obj, ShaderProgram shader, Material mat, VAO vao);
+	void Create(Object obj, Material mat, VertexData vertData, Mobilty mobile = Mobilty::No);
+	void Create(Object obj, std::tuple<Material, VertexData, Mobilty>);
 
 	void Load(Persist&);
 	void Unload(Persist&);
@@ -60,13 +57,11 @@ public:
 
 	void Draw(float alpha);
 
-	std::tuple<ShaderProgram, Material, VertexData, Mobilty> Info(Object obj);
+	std::tuple<Material, VertexData, Mobilty> Info(Object obj);
 
 	Render(Position&);
 	Render(const Render&) = delete;
 	void operator=(const Render&) = delete;
-
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 private:
 	Position& position;
@@ -89,11 +84,9 @@ private:
 
 	std::unordered_map<Object, render_data_t::perma_refs_t> objs;
 
-	void InternalCreateStatic(Object obj, ShaderProgram shader, Material mat,
-		VertexData vertData);
+	void InternalCreateStatic(Object obj, Material mat, VertexData vertData);
 
-	void InternalCreate(Object obj, ShaderProgram shader, Material mat,
-		VertexData vertData);
+	void InternalCreate(Object obj, Material mat, VertexData vertData);
 
 	template<class BufferObjTy>
 	void FixInstances(render_data_t& dat, BufferObjTy& buf);
@@ -101,6 +94,6 @@ private:
 	void DrawBucket(render_data_t& dat);
 };
 
-MAKE_PERSIST_TRAITS(Render, Object, bool, ShaderProgram, Material, VertexData);
+MAKE_PERSIST_TRAITS(Render, Object, bool, Material, VertexData);
 
 #endif

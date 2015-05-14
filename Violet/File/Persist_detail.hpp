@@ -11,19 +11,19 @@ namespace Persist_detail
 	using namespace std::placeholders;
 
 	template<class Other>
-	struct PersistTraits
+	struct PersistCategory
 	{
 		using Category = typename Other::PersistCategory;
 	};
 
 	template<class Other>
-	struct PersistTraits<std::vector<Other>>
+	struct PersistCategory<std::vector<Other>>
 	{
 		using Category = VectorPersistTag;
 	};
 
 	template<class Other>
-	using cat_t = typename PersistTraits<Other>::Category;
+	using cat_t = typename PersistCategory<Other>::Category;
 
 	struct PreparedStmtImpl
 	{
@@ -88,10 +88,11 @@ namespace Persist_detail
 		}
 
 		template<typename Other>
-		std::string Prepare(const Other& val, EmbeddedResourcePersistTag)
+		typename PersistTraits<Other>::key
+		Prepare(const Other& val, EmbeddedResourcePersistTag)
 		{
 			val.Save(*persist);
-			return val.Name();
+			return val.Key();
 		}
 
 		template<typename... Values>
@@ -138,24 +139,26 @@ namespace Persist_detail
 			return FromBytes<Other>()(r.begin());
 		}
 
+		template<typename Other>
+		Other Get1(int num, EmbeddedResourcePersistTag)
+		{
+			auto key = Get1<typename PersistTraits<Other>::key>(num);
+			//this is the only way I can think of to construct an object from a tuple
+			return std::pair<Other, int>(std::piecewise_construct,
+				persist->Get<Other>(key), std::make_tuple(0)).first;
+		}
+
 		template<typename Other, typename OtherTag>
 		Other Get1(int num, OtherTag)
 		{
 			return Decode<Other>(Get1<std::string>(num), OtherTag());
 		}
 
+		//TODO: not just reources
 		template<typename Other>
 		Other Decode(std::string name, ResourcePersistTag)
 		{
 			return{ name };
-		}
-
-		template<typename Other>
-		Other Decode(std::string name, EmbeddedResourcePersistTag)
-		{
-			//this is the only way I can think of to construct an object from a tuple
-			return std::pair<Other, int>(std::piecewise_construct,
-				persist->Get<Other>(name), std::make_tuple(0)).first;
 		}
 
 		range<const char*> GetBlob(int num);

@@ -254,6 +254,13 @@ void UI::DrawQuad(Tex t, AlignedBox2i box, Eigen::AlignedBox2f tex)
 	FrameVisuals().quads.push_back({ t, { box.cast<float>(), tex, CurZ() } });
 }
 
+void UI::DrawDivider(AlignedBox2i box)
+{
+	DrawBox({ box.corner(AlignedBox2i::TopLeft),
+		box.corner(AlignedBox2i::TopRight) + Vector2i{ 0, 1 } },
+		0, Colors::divider);
+}
+
 template<>
 const Schema AttribTraits<Box2z>::schema = {
 	{ "minBox", GL_INT, true, 0,               { 2, 1 } },

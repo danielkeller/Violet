@@ -86,6 +86,7 @@ void Edit::ComponentEditor::Draw(Persist& persist, Component& c, Object selected
 	EditTy edit, AddTy add, RemoveTy remove)
 {
 	UI::LayoutStack& l = UI::CurLayout();
+
 	l.PushNext(UI::Layout::Dir::Right); l.PutSpace(MOD_WIDTH);
 	UI::DrawText(name, l.PutSpace({ LB_WIDTH - 2 * MOD_WIDTH, UI::LINEH }));
 
@@ -164,13 +165,13 @@ void Edit::PhysTick(Events& e, Object camera)
 
 	position[camera]->pos *= (1 - e.ScrollDelta().y()*.05f);
 	
-	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Left);
+	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Right);
 
 	//asset picker
 	if (meshesOpen)
 	{
 		auto tup = r.Info(selected);
-		if (meshes.Draw(std::get<2>(tup)))
+		if (meshes.Draw(std::get<1>(tup)))
 		{
 			r.Remove(selected);
 			r.Create(selected, tup);
@@ -261,21 +262,18 @@ void Edit::PhysTick(Events& e, Object camera)
 
 		renderEdit.Draw(persist, r, selected,
 			[&]() {
-			auto infRow = [&](const char* name, std::string t) {
-				UI::DrawText(name, l.PutSpace({ LB_WIDTH, UI::LINEH }));
-				UI::DrawText(t, l.PutSpace({ LB_WIDTH, UI::LINEH }));
-			};
 
 			auto tup = r.Info(selected);
-			infRow("shader", std::get<0>(tup).Name());
-			infRow("material", std::get<1>(tup).Name());
+			UI::DrawText("material", l.PutSpace({ LB_WIDTH, UI::LINEH }));
+			//UI::DrawText();
+			UI::DrawText(std::get<0>(tup).name, l.PutSpace({ LB_WIDTH, UI::LINEH }));
 
 			UI::DrawText("mesh", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-			meshButton.text = std::get<2>(tup).Name();
+			meshButton.text = std::get<1>(tup).Name();
 			if (meshButton.Draw())
 				meshesOpen = true;
 			
-			if (std::get<3>(tup) == Mobilty::Yes)
+			if (std::get<2>(tup) == Mobilty::Yes)
 				UI::DrawText("mobile", l.PutSpace({ LB_WIDTH, UI::LINEH }));
 			else
 				UI::DrawText("not mobile", l.PutSpace({ LB_WIDTH, UI::LINEH }));
@@ -283,7 +281,7 @@ void Edit::PhysTick(Events& e, Object camera)
 			return false;
 		},
 			[&]() {
-			r.Create(selected, { "assets/simple" }, { {}, { "assets/capsule.png" } },
+			r.Create(selected, { "Default", { "assets/simple" }, { "assets/capsule.png" } },
 			{ "assets/capsule.obj" });
 		},
 			[&]() {});

@@ -2,47 +2,55 @@
 #include "Material.hpp"
 #include "File/Persist.hpp"
 
-bool Material::operator == (const Material& t) const
+#include <cstdlib>
+
+Material::Material()
+	: id(std::rand())
+{}
+
+Material::Material(Id id, Persist& persist)
+	: id(id)
 {
-	return materialProps == t.materialProps && textures == t.textures;
+	std::tie(std::ignore, name, shader, ubo, textures) = persist.Get<Material>(id);
 }
-bool Material::operator!=(const Material& t) const
+
+Material::Material(const std::string& name, ShaderProgram shader)
+	: Material(name, shader, {})
+{}
+	
+Material::Material(const std::string& name, ShaderProgram shader, Tex tex)
+	: Material(name, shader, {1, tex})
+{}
+
+Material::Material(const std::string& name, ShaderProgram shader, std::vector<Tex> texes)
+	: Material(std::rand(), name, shader, shader.MakeUBO("Material", name), texes)
+{}
+
+Material::Material(std::int64_t id, const std::string& name, ShaderProgram shader, UBO ubo,
+	std::vector<Tex> texes)
+	: id(id), name(name), shader(shader)
+	, ubo(shader.MakeUBO("Material", name)), textures(texes)
+{}
+
+void Material::Save(Persist& persist) const
 {
-	return !(*this == t);
+	persist.Set<Material>(id, name, shader, ubo, textures);
+}
+
+Material::Id Material::Key() const
+{
+	return id;
 }
 
 void Material::use() const
 {
+	shader.use();
 	for (GLuint i = 0; i < textures.size(); ++i)
 		textures[i].Bind(i);
-
-	materialProps.Bind();
+	ubo.Bind();
 }
-
-std::string Material::Name() const
-{
-	std::string ret = materialProps.Name();
-	for (const auto& tex : textures)
-		ret += "#" + tex.Name();
-	return ret;
-}
-
-void Material::Save(Persist& persist) const
-{
-	persist.Set<Material>(Name(), materialProps, textures);
-}
-
-Material::Material(UBO props) : materialProps(props) {}
-Material::Material(UBO props, Tex tex)
-	: materialProps(props), textures({ tex }) {}
-Material::Material(UBO props, std::vector<Tex> texs)
-	: materialProps(props), textures(texs){}
-
-Material::Material(const std::string&, UBO props, std::vector<Tex> texs)
-	: materialProps(props), textures(texs){}
-
 
 template<>
 const char* PersistSchema<Material>::name = "material";
 template<>
-Columns PersistSchema<Material>::cols = {"name", "ubo", "texes"};
+Columns PersistSchema<Material>::cols = { "id", "name", "shader", "ubo", "texes" };

@@ -16,8 +16,8 @@ void Render::FixInstances(render_data_t& dat, BufferObjTy& buf)
 	GLsizei offset = 0;
 
 	for (auto& shader : dat)
-		for (auto& mat : dat.children<MatLevel>(shader))
-			for (auto& vao : dat.children<VAOLevel>(mat))
+		for (auto& ss : dat.children<MatLevel>(shader))
+			for (auto& vao : dat.children<VAOLevel>(ss))
 			{
 				auto numInstances =
 					static_cast<GLsizei>(dat.children<InstanceLevel>(vao).size());
@@ -26,9 +26,9 @@ void Render::FixInstances(render_data_t& dat, BufferObjTy& buf)
 			}
 }
 
-void Render::InternalCreate(Object obj, ShaderProgram shader, Material mat, VertexData vertData)
+void Render::InternalCreate(Object obj, Material mat, VertexData vertData)
 {
-	auto refs = renderData.emplace(shader, mat, std::tie(shader, vertData),
+	auto refs = renderData.emplace(mat.shader, mat, std::tie(mat.shader, vertData),
 		InstData{ obj, position.Get(obj).ToMatrix() });
 
 	objs.insert(std::make_pair(obj, refs));
@@ -38,8 +38,7 @@ void Render::InternalCreate(Object obj, ShaderProgram shader, Material mat, Vert
 	instanceBuffer.Data(renderData.get_level<InstanceLevel>().size());
 }
 
-void Render::InternalCreateStatic(Object obj, ShaderProgram shader,
-	Material mat, VertexData vertData)
+void Render::InternalCreateStatic(Object obj, Material mat, VertexData vertData)
 {
 	using InstPermaRef = render_data_t::perma_ref_t<InstanceLevel>;
 	static accessor<Transform, InstPermaRef> locaccesor = 
@@ -52,7 +51,7 @@ void Render::InternalCreateStatic(Object obj, ShaderProgram shader,
 		};
 
 	auto inst = InstData{ obj, position.Get(obj).ToMatrix() };
-	auto refs = staticRenderData.emplace(shader, mat, std::tie(shader, vertData), inst);
+	auto refs = staticRenderData.emplace(mat.shader, mat, std::tie(mat.shader, vertData), inst);
 
 	staticObjs.insert(std::make_pair(obj, refs));
 
@@ -63,18 +62,17 @@ void Render::InternalCreateStatic(Object obj, ShaderProgram shader,
 	staticInstanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
 }
 
-void Render::Create(Object obj, std::tuple<ShaderProgram, Material, VertexData, Mobilty> tup)
+void Render::Create(Object obj, std::tuple<Material, VertexData, Mobilty> tup)
 {
-	Create(obj, std::get<0>(tup), std::get<1>(tup), std::get<2>(tup), std::get<3>(tup));
+	Create(obj, std::get<0>(tup), std::get<1>(tup), std::get<2>(tup));
 }
 
-void Render::Create(Object obj, ShaderProgram shader, Material mat,
-	VertexData vertData, Mobilty mobile)
+void Render::Create(Object obj, Material mat, VertexData vertData, Mobilty mobile)
 {
 	if (mobile == Mobilty::Yes)
-		InternalCreate(obj, shader, mat, vertData);
+		InternalCreate(obj, mat, vertData);
 	else
-		InternalCreateStatic(obj, shader, mat, vertData);
+		InternalCreateStatic(obj, mat, vertData);
 }
 
 void Render::DrawBucket(render_data_t& dat)
@@ -82,10 +80,10 @@ void Render::DrawBucket(render_data_t& dat)
 	for (auto& shader : dat)
 	{
 		shader.first.use();
-		for (auto& mat : dat.children<MatLevel>(shader))
+		for (auto& ss : dat.children<MatLevel>(shader))
 		{
-			mat.first.use();
-			for (auto& vao : dat.children<VAOLevel>(mat))
+			ss.first.use();
+			for (auto& vao : dat.children<VAOLevel>(ss))
 			{
 				vao.first.Draw();
 			}
@@ -112,7 +110,7 @@ const Schema AttribTraits<InstData>::schema = {
 void Render::Load(Persist& persist)
 {
 	for (const auto& row : persist.GetAll<Render>())
-		Create(std::get<0>(row), std::get<2>(row), std::get<3>(row), std::get<4>(row),
+		Create(std::get<0>(row), std::get<2>(row), std::get<3>(row),
 			std::get<1>(row) ? Mobilty::Yes : Mobilty::No);
 }
 
@@ -133,7 +131,6 @@ void Render::Save(Object obj, Persist& persist) const
 	{
 		auto refs = objs.find(obj)->second;
 		persist.Set<Render>(obj, true,
-			renderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
 			renderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
 			renderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());
 	}
@@ -141,7 +138,6 @@ void Render::Save(Object obj, Persist& persist) const
 	{
 		auto refs = staticObjs.find(obj)->second;
 		persist.Set<Render>(obj, false,
-			staticRenderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
 			staticRenderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
 			staticRenderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());
 	}
@@ -171,13 +167,12 @@ void Render::Remove(Object obj)
 	}
 }
 
-std::tuple<ShaderProgram, Material, VertexData, Mobilty> Render::Info(Object obj)
+std::tuple<Material, VertexData, Mobilty> Render::Info(Object obj)
 {
 	if (objs.count(obj))
 	{
 		auto refs = objs.find(obj)->second;
 		return std::make_tuple(
-			renderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
 			renderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
 			renderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData(),
 			Mobilty::Yes);
@@ -186,7 +181,6 @@ std::tuple<ShaderProgram, Material, VertexData, Mobilty> Render::Info(Object obj
 	{
 		auto refs = staticObjs.find(obj)->second;
 		return std::make_tuple(
-			staticRenderData.find<ShaderLevel>(std::get<ShaderLevel>(refs))->first,
 			staticRenderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
 			staticRenderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData(),
 			Mobilty::No);
@@ -197,4 +191,4 @@ std::tuple<ShaderProgram, Material, VertexData, Mobilty> Render::Info(Object obj
 template<>
 const char* PersistSchema<Render>::name = "render";
 template<>
-Columns PersistSchema<Render>::cols = { "object", "static", "shader", "mat", "vertdata" };
+Columns PersistSchema<Render>::cols = { "object", "static", "shader", "ss", "vertdata" };

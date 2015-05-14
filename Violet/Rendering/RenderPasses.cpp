@@ -8,12 +8,11 @@ RenderPasses::RenderPasses(Position& p, Window& w, Render& r)
 	: r(r), w(w), mobile(p), camera(Object::invalid)
 	, simpleShader("assets/simple")
 	, commonUBO(simpleShader.MakeUBO("Common", "Common"))
-	, screenShader("assets/screen")
-	, screenMat(screenShader.MakeUBO("Material", "screenMat"))
-	, screenQuad(screenShader, UnitBox)
+	, screenMat("screenMat", { "assets/screen" })
+	, screenQuad(screenMat.shader, UnitBox)
 	, view({ Vector2i::Zero(), Vector2i{-1,-1} })
 {
-	screenShader.TextureOrder({ "color", "picker" });
+	screenMat.shader.TextureOrder({ "color", "picker" });
 }
 
 void RenderPasses::WindowResize(Eigen::Vector2i size)
@@ -67,14 +66,13 @@ void RenderPasses::Draw(Events e, float alpha)
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	
-	screenShader.use();
 	screenMat.use();
 	screenQuad.Draw();
 }
 
 void RenderPasses::Highlight(Object o, Highlights type)
 {
-	screenMat.materialProps["selected"][type] = o.Id();
+	screenMat.ubo["selected"][type] = o.Id();
 }
 
 Object RenderPasses::Pick(Vector2f posPixel) const

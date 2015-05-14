@@ -117,9 +117,6 @@
     <ClInclude Include="Rendering\RenderPasses.hpp">
       <Filter>Source Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Material.hpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Template.hpp">
       <Filter>Source Files\Utils</Filter>
     </ClInclude>
@@ -173,6 +170,9 @@
     </ClInclude>
     <ClInclude Include="UI\Colorscheme.hpp">
       <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Material.hpp">
+      <Filter>Source Files\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -230,9 +230,6 @@
     <ClCompile Include="..\sqlite\sqlite3.c">
       <Filter>Libs</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Material.cpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="UI\Text.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
@@ -277,6 +274,9 @@
     </ClCompile>
     <ClCompile Include="UI\Colorscheme.cpp">
       <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Material.cpp">
+      <Filter>Source Files\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

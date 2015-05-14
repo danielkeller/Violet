@@ -34,6 +34,8 @@ namespace UI
 	void DrawHlBox(AlignedBox2i box);
 	void DrawBox(AlignedBox2i box);
 
+	void DrawDivider(AlignedBox2i box);
+
 	void Init(Window& w);
 	void BindPixelUBO();
 

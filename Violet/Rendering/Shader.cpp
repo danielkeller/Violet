@@ -142,6 +142,10 @@ GLint ShaderProgram::GetAttribLocation(const std::string& name) const
 
 UBO ShaderProgram::MakeUBO(const std::string& block, const std::string& name) const
 {
+	if (std::count(resource->uniforms.blocks.begin(),
+		resource->uniforms.blocks.end(), block) == 0)
+		return UBO{};
+
 	auto res = UBO::UBOResource::FindResource(name);
 	if (res)
 		return res;
@@ -363,7 +367,7 @@ void UBO::Bind() const
 	bindProxy.Bind();
 }
 
-std::string UBO::Name() const
+std::string UBO::Key() const
 {
 	return resource->Key();
 }

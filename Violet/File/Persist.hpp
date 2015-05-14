@@ -13,7 +13,7 @@ struct BinaryPersistTag {};
 //requirements: std::string Name() const, Foo::Foo(std::string)
 struct ResourcePersistTag {};
 
-//requirements: std::string Name() const, Save(Persist&) const,
+//requirements: PersistTraits<Foo>::key Key() const, Save(Persist&) const,
 //Foo::Foo(PersistTraits<Foo>::data...)
 struct EmbeddedResourcePersistTag {};
 
@@ -32,6 +32,7 @@ struct PersistSchema
 
 template<class Subsystem> struct PersistTraits;
 
+//FIXME: const correctness
 class Persist
 {
 	template<class Subsystem>
@@ -98,6 +99,7 @@ public:
 	void Delete(key_t<Subsystem> k)
 	{
 		Track<Subsystem>();
+		auto tr = database.Begin();
 		if (Exists<Subsystem>(k))
 			database.MakeDeleteStmt(PersistSchema<Subsystem>::name).Bind(k).Step();
 	}
