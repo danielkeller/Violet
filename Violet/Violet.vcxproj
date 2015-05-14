@@ -243,6 +243,7 @@
     <ClCompile Include="UI\Layout.cpp" />
     <ClCompile Include="UI\PixelDraw.cpp" />
     <ClCompile Include="UI\Text.cpp" />
+    <ClCompile Include="UI\TextElements.cpp" />
     <ClCompile Include="Utils\Profiling.cpp" />
     <ClCompile Include="Viewport.cpp" />
     <ClCompile Include="Window.cpp" />
