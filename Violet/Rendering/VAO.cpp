@@ -32,7 +32,7 @@ void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schem
                     + offset*stride + props.offset + column*props.matrixStride);
             else
                 glVertexAttribPointer(
-                    vertAttrib + column, props.dims[0], props.glType, GL_FALSE, stride,
+                    vertAttrib + column, props.dims[0], props.glType, GL_TRUE, stride,
                     static_cast<const char*>(nullptr)
 				    + offset*stride + props.offset + column*props.matrixStride);
 

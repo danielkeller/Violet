@@ -178,6 +178,7 @@
     <ClInclude Include="Rendering\VAO.hpp" />
     <ClInclude Include="Rendering\VertexData.hpp" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="UI\Colorscheme.hpp" />
     <ClInclude Include="UI\Elements.hpp" />
     <ClInclude Include="UI\PixelDraw.hpp" />
     <ClInclude Include="UI\Layout.hpp" />
@@ -231,6 +232,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Zm120 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zm120 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="UI\Colorscheme.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="UI\Elements.cpp" />
     <ClCompile Include="UI\Layout.cpp" />

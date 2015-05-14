@@ -23,6 +23,18 @@ Matrix4f UI::PixelMat(Vector2i dim)
 	return ret;
 }
 
+std::uint32_t ColorSwizzle(UI::Color color)
+{
+	std::uint32_t ret = 0;
+
+	ret |= (color & 0xFF000000) >> 24;
+	ret |= (color & 0x00FF0000) >> 8;
+	ret |= (color & 0x0000FF00) << 8;
+	ret |= (color & 0x000000FF) << 24;
+
+	return ret;
+}
+
 struct UI::Settings
 {
 	Settings() : screenTex(TexDim{ 0, 0 }) {}
@@ -43,10 +55,12 @@ Font UI::GetFont()
 	return GetSettings().font;
 }
 
-void UI::TextStyle(Font font, Vector3f color)
+void UI::TextStyle(Font font, Color color)
 {
 	GetSettings().font = font;
-	GetSettings().textColor = color;
+	GetSettings().textColor.x() = float((color >> 24) & 0xFF) / 255.f;
+	GetSettings().textColor.y() = float((color >> 16) & 0xFF) / 255.f;
+	GetSettings().textColor.z() = float((color >>  8) & 0xFF) / 255.f;
 }
 
 struct Box2z
@@ -58,7 +72,7 @@ struct Box2z
 struct UIBox
 {
 	AlignedBox2i box;
-	Vector4f fill, stroke;
+	Color fill, stroke;
 	int z;
 };
 
@@ -129,7 +143,8 @@ void UI::EndFrame()
 
 	{
 		auto bound = GetSettings().fbo.Bind(GL_FRAMEBUFFER);
-		GetSettings().fbo.PreDraw({ Eigen::Matrix<GLuint, 4, 1>::Zero() });
+		Eigen::Matrix<GLuint, 4, 1> black{ 0, 0, 0, 0 };
+		GetSettings().fbo.PreDraw({ black });
 		boxVAO.Draw();
 	}
 
@@ -213,20 +228,20 @@ void UI::DrawChar(Eigen::AlignedBox2f pos, Eigen::AlignedBox2f tex)
 	FrameVisuals().textInsts.push_back(q);
 }
 
-void UI::DrawBox(AlignedBox2i box, Vector4f fill, Vector4f stroke)
+void UI::DrawBox(AlignedBox2i box, Color fill, Color stroke)
 {
-	FrameVisuals().boxes.push_back({ box, fill, stroke, CurZ() });
+	FrameVisuals().boxes.push_back({ box,
+		ColorSwizzle(fill), ColorSwizzle(stroke), CurZ() });
 }
 
 void UI::DrawBox(AlignedBox2i box)
 {
-	DrawBox(box, backgroundColor, backgroundColor);
+	DrawBox(box, Colors::bg, Colors::bg);
 }
 
 void UI::DrawHlBox(AlignedBox2i box)
 {
-	FrameVisuals().boxes.push_back(
-		{ box, Vector4f::Zero(), { .6f, 0.f, 9.f, 1.f }, CurZ() + 1 });
+	FrameVisuals().boxes.push_back({ box, 0, ColorSwizzle(Colors::hilight), CurZ() + 1 });
 }
 
 void UI::DrawShadow(AlignedBox2i box)
@@ -248,11 +263,11 @@ const Schema AttribTraits<Box2z>::schema = {
 
 template<>
 const Schema AttribTraits<UIBox>::schema = {
-	{ "minBox", GL_INT,   true,  0,               { 2, 1 } },
-	{ "maxBox", GL_INT,   true,  2 * sizeof(int), { 2, 1 } },
-	{ "fill",   GL_FLOAT, false, 4 * sizeof(int), { 4, 1 } },
-	{ "stroke", GL_FLOAT, false, 8 * sizeof(int), { 4, 1 } },
-	{ "z",      GL_INT,   true,  12 * sizeof(int), { 1, 1 } }
+	{ "minBox", GL_INT,           true,  0,               { 2, 1 } },
+	{ "maxBox", GL_INT,           true,  2 * sizeof(int), { 2, 1 } },
+	{ "fill",   GL_UNSIGNED_BYTE, false, 4 * sizeof(int), { 4, 1 } },
+	{ "stroke", GL_UNSIGNED_BYTE, false, 5 * sizeof(int), { 4, 1 } },
+	{ "z",      GL_INT,           true,  6 * sizeof(int), { 1, 1 } }
 };
 
 template<>

@@ -73,6 +73,7 @@ namespace UI
 		bool editing;
 		std::string editStr;
 		//returns true if the textedit just lost focus or enter is pressed
+		//and the number is changed
 		bool Draw(float& val);
 	private:
 		void SetDispVal(float val);

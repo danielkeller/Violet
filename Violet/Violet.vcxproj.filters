@@ -171,6 +171,9 @@
     <ClInclude Include="File\Persist.hpp">
       <Filter>Source Files\File</Filter>
     </ClInclude>
+    <ClInclude Include="UI\Colorscheme.hpp">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -271,6 +274,9 @@
     </ClCompile>
     <ClCompile Include="File\Persist.cpp">
       <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Colorscheme.cpp">
+      <Filter>Source Files\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -233,7 +233,7 @@ bool LineEdit::Draw(std::string& text)
 		DrawHlBox({ ulStart, ulStart + Vector2i{ width - 2 * TEXT_LEFT_PAD, 1 } });
 	else
 		DrawBox({ ulStart, ulStart + Vector2i{ width - 2 * TEXT_LEFT_PAD, 1 } },
-			Vector4f::Zero(), { .8f, .8f, .8f, 1.f });
+			0, UI::Colors::divider);
 
 	lastText = text;
 	DrawText(text, origin);
@@ -249,8 +249,7 @@ bool LineEdit::Draw(std::string& text)
 		stb_textedit_find_charpos(&find, &text, state.cursor, true);
 		//leave a pixel of daylight between the cursor and the underline
 		Vector2i cursStart{ ulStart + Vector2i{ find.x, 2 } };
-		DrawBox({ cursStart, cursStart + Vector2i{ 1, LINEH - 2 } },
-			Vector4f::Zero(), { .5f, .5f, .5f, 1.f });
+		DrawBox({ cursStart, cursStart + Vector2i{ 1, LINEH - 2 } }, 0, UI::Colors::secondary);
 	}
 	UI::PopZ();
 
@@ -264,7 +263,7 @@ bool LineEdit::Draw(std::string& text)
 		stb_textedit_find_charpos(&find, &text, end, true);
 		Vector2i selEnd{ ulStart + Vector2i{ find.x + 1, LINEH } };
 
-		DrawBox({ selStart, selEnd }, { .8f, .75f, .8f, 1.f }, Vector4f::Zero());
+		DrawBox({ selStart, selEnd }, UI::Colors::selection, 0);
 	}
 
 	return ret;
@@ -308,7 +307,7 @@ bool FloatEdit::Draw(float& val)
 	std::string dispStr = editStr;
 
 	bool ret;
-	if ((ret = edit.Draw(dispStr)))
+	if ((ret = edit.Draw(dispStr) && editing))
 		editing = false;
 
 	if (dispStr != editStr) //user changed it
