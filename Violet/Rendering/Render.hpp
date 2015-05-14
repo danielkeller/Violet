@@ -43,6 +43,12 @@ struct InstData
 
 using InstanceVec = l_bag<InstData, Eigen::aligned_allocator<InstData>>;
 
+namespace Render_detail
+{
+	static const int ShaderLevel = 0, MatLevel = 1, VAOLevel = 2, InstanceLevel = 3;
+	using render_data_t = tuple_tree<ShaderProgram, Material, VAO, InstData>;
+}
+
 class Render : public Component
 {
 public:
@@ -67,31 +73,30 @@ private:
 	Position& position;
 	Mobile mobile;
 
-	static const int ShaderLevel = 0, MatLevel = 1, VAOLevel = 2, InstanceLevel = 3;
-	using render_data_t = tuple_tree<ShaderProgram, Material, VAO, InstData>;
+	template<GLenum bufferUsage>
+	struct Bucket
+	{
+		using render_data_t = Render_detail::render_data_t;
 
-	render_data_t staticRenderData;
-	BufferObject<InstData, GL_ARRAY_BUFFER, GL_STATIC_DRAW> staticInstanceBuffer;
+		render_data_t data;
+		BufferObject<InstData, GL_ARRAY_BUFFER, bufferUsage> instances;
+		std::unordered_map<Object, render_data_t::perma_refs_t> objs;
 
-	std::unordered_map<Object, render_data_t::perma_refs_t> staticObjs;
+		render_data_t::perma_refs_t
+		Create(Object obj, Material mat, VertexData vertData, const InstData& inst);
+		void FixInstances();
+		void Draw();
 
-	//maybe:
-	//l_unordered_map<ShaderProgram, l_unordered_map<Material,
-	//	l_unordered_map<VertexData, Render_detail::Shape>>> renderData;
+		void Save(Object obj, bool mobile, Persist& persist) const;
+		void Remove(Object obj);
+		std::tuple<Material, VertexData> Info(Object obj);
+	};
 
-	render_data_t renderData;
-    BufferObject<InstData, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instanceBuffer;
-
-	std::unordered_map<Object, render_data_t::perma_refs_t> objs;
+	Bucket<GL_STREAM_DRAW> mBucket;
+	Bucket<GL_STATIC_DRAW> sBucket;
 
 	void InternalCreateStatic(Object obj, Material mat, VertexData vertData);
-
 	void InternalCreate(Object obj, Material mat, VertexData vertData);
-
-	template<class BufferObjTy>
-	void FixInstances(render_data_t& dat, BufferObjTy& buf);
-
-	void DrawBucket(render_data_t& dat);
 };
 
 MAKE_PERSIST_TRAITS(Render, Object, bool, Material, VertexData);

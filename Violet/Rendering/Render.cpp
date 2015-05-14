@@ -5,37 +5,45 @@
 #include "Mobile.hpp"
 #include "File/Persist.hpp"
 
+using namespace Render_detail;
+
 Render::Render(Position& position)
 	: position(position), mobile(position)
-	, instanceBuffer()
 {}
 
-template<class BufferObjTy>
-void Render::FixInstances(render_data_t& dat, BufferObjTy& buf)
+template<GLenum bufferUsage>
+void Render::Bucket<bufferUsage>::FixInstances()
 {
 	GLsizei offset = 0;
 
-	for (auto& shader : dat)
-		for (auto& ss : dat.children<MatLevel>(shader))
-			for (auto& vao : dat.children<VAOLevel>(ss))
+	for (auto& shader : data)
+		for (auto& ss : data.children<MatLevel>(shader))
+			for (auto& vao : data.children<VAOLevel>(ss))
 			{
 				auto numInstances =
-					static_cast<GLsizei>(dat.children<InstanceLevel>(vao).size());
-				vao.first.BindInstanceData(shader.first, buf, offset, numInstances);
+					static_cast<GLsizei>(data.children<InstanceLevel>(vao).size());
+				vao.first.BindInstanceData(shader.first, instances, offset, numInstances);
 				offset += numInstances;
 			}
 }
 
+template<GLenum bufferUsage>
+render_data_t::perma_refs_t
+Render::Bucket<bufferUsage>::Create(
+	Object obj, Material mat,
+	VertexData vertData, const InstData& inst)
+{
+	auto refs = data.emplace(mat.shader, mat, std::tie(mat.shader, vertData), inst);
+	objs.insert(std::make_pair(obj, refs));
+	FixInstances();
+	return refs;
+}
+
 void Render::InternalCreate(Object obj, Material mat, VertexData vertData)
 {
-	auto refs = renderData.emplace(mat.shader, mat, std::tie(mat.shader, vertData),
-		InstData{ obj, position.Get(obj).ToMatrix() });
-
-	objs.insert(std::make_pair(obj, refs));
-
-	FixInstances(renderData, instanceBuffer);
+	mBucket.Create(obj, mat, vertData, InstData{ obj, position.Get(obj).ToMatrix() });
 	//send the actual data each draw call
-	instanceBuffer.Data(renderData.get_level<InstanceLevel>().size());
+	mBucket.instances.Data(mBucket.data.get_level<InstanceLevel>().size());
 }
 
 void Render::InternalCreateStatic(Object obj, Material mat, VertexData vertData)
@@ -44,22 +52,19 @@ void Render::InternalCreateStatic(Object obj, Material mat, VertexData vertData)
 	static accessor<Transform, InstPermaRef> locaccesor = 
 		[this](InstPermaRef ref, const Transform& v) mutable
 		{
-			auto& it = staticRenderData.find<InstanceLevel>(ref);
+			auto& it = sBucket.data.find<InstanceLevel>(ref);
 			it->mat = v.ToMatrix();
-			size_t offset = it - staticRenderData.begin<InstanceLevel>();
-			staticInstanceBuffer.Assign(offset, *it);
+			size_t offset = it - sBucket.data.begin<InstanceLevel>();
+			sBucket.instances.Assign(offset, *it);
 		};
 
 	auto inst = InstData{ obj, position.Get(obj).ToMatrix() };
-	auto refs = staticRenderData.emplace(mat.shader, mat, std::tie(mat.shader, vertData), inst);
-
-	staticObjs.insert(std::make_pair(obj, refs));
+	auto refs = sBucket.Create(obj, mat, vertData, inst);
 
 	auto instref = std::get<InstanceLevel>(refs);
 	position.Watch(obj, make_magic(locaccesor, instref));
-
-	FixInstances(staticRenderData, staticInstanceBuffer);
-	staticInstanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
+	//send the data now
+	sBucket.instances.Data(sBucket.data.get_level<InstanceLevel>().vector());
 }
 
 void Render::Create(Object obj, std::tuple<Material, VertexData, Mobilty> tup)
@@ -75,15 +80,16 @@ void Render::Create(Object obj, Material mat, VertexData vertData, Mobilty mobil
 		InternalCreateStatic(obj, mat, vertData);
 }
 
-void Render::DrawBucket(render_data_t& dat)
+template<GLenum bufferUsage>
+void Render::Bucket<bufferUsage>::Draw()
 {
-	for (auto& shader : dat)
+	for (auto& shader : data)
 	{
 		shader.first.use();
-		for (auto& ss : dat.children<MatLevel>(shader))
+		for (auto& ss : data.children<MatLevel>(shader))
 		{
 			ss.first.use();
-			for (auto& vao : dat.children<VAOLevel>(ss))
+			for (auto& vao : data.children<VAOLevel>(ss))
 			{
 				vao.first.Draw();
 			}
@@ -93,12 +99,11 @@ void Render::DrawBucket(render_data_t& dat)
 
 void Render::Draw(float alpha)
 {
-	auto vec = renderData.get_level<InstanceLevel>().vector();
+	auto vec = mBucket.data.get_level<InstanceLevel>().vector();
 	mobile.Update(alpha, vec.begin(), vec.end());
-	instanceBuffer.Data(vec);
+	mBucket.instances.Data(vec);
 
-	DrawBucket(renderData);
-	DrawBucket(staticRenderData);
+	mBucket.Draw(); sBucket.Draw();
 }
 
 template<>
@@ -122,69 +127,66 @@ void Render::Unload(Persist& persist)
 
 bool Render::Has(Object obj) const
 {
-	return objs.count(obj) || staticObjs.count(obj);
+	return mBucket.objs.count(obj) || mBucket.objs.count(obj);
+}
+
+template<GLenum bufferUsage>
+void Render::Bucket<bufferUsage>::Save(Object obj, bool mobile, Persist& persist) const
+{
+	auto refs = objs.find(obj)->second;
+	persist.Set<Render>(obj, mobile,
+		data.find<MatLevel>(std::get<MatLevel>(refs))->first,
+		data.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());
 }
 
 void Render::Save(Object obj, Persist& persist) const
 {
-	if (objs.count(obj))
-	{
-		auto refs = objs.find(obj)->second;
-		persist.Set<Render>(obj, true,
-			renderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
-			renderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());
-	}
-	else if (staticObjs.count(obj))
-	{
-		auto refs = staticObjs.find(obj)->second;
-		persist.Set<Render>(obj, false,
-			staticRenderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
-			staticRenderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());
-	}
+	if (mBucket.objs.count(obj))
+		mBucket.Save(obj, true, persist);
+	else if (sBucket.objs.count(obj))
+		sBucket.Save(obj, false, persist);
 	else
 		persist.Delete<Render>(obj);
 }
 
+template<GLenum bufferUsage>
+void Render::Bucket<bufferUsage>::Remove(Object obj)
+{
+	auto refs = objs.find(obj)->second;
+	data.erase(refs);
+	objs.erase(obj);
+	FixInstances();
+}
+
 void Render::Remove(Object obj)
 {
-	if (objs.count(obj))
+	if (mBucket.objs.count(obj))
 	{
-		auto refs = objs.find(obj)->second;
-		renderData.erase(refs);
-		objs.erase(obj);
-
-		FixInstances(renderData, instanceBuffer);
-		instanceBuffer.Data(renderData.get_level<InstanceLevel>().size());
+		mBucket.Remove(obj);
+		mBucket.instances.Data(mBucket.data.get_level<InstanceLevel>().size());
 	}
-	else if (staticObjs.count(obj))
+	else if (sBucket.objs.count(obj))
 	{
-		auto refs = staticObjs.find(obj)->second;
-		staticRenderData.erase(refs);
-		staticObjs.erase(obj);
-
-		FixInstances(staticRenderData, staticInstanceBuffer);
-		staticInstanceBuffer.Data(staticRenderData.get_level<InstanceLevel>().vector());
+		sBucket.Remove(obj);
+		sBucket.instances.Data(sBucket.data.get_level<InstanceLevel>().vector());
 	}
+}
+
+template<GLenum bufferUsage>
+std::tuple<Material, VertexData> Render::Bucket<bufferUsage>::Info(Object obj)
+{
+	auto refs = objs.find(obj)->second;
+	return std::make_tuple(
+		data.find<MatLevel>(std::get<MatLevel>(refs))->first,
+		data.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData());
 }
 
 std::tuple<Material, VertexData, Mobilty> Render::Info(Object obj)
 {
-	if (objs.count(obj))
-	{
-		auto refs = objs.find(obj)->second;
-		return std::make_tuple(
-			renderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
-			renderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData(),
-			Mobilty::Yes);
-	}
-	else if (staticObjs.count(obj))
-	{
-		auto refs = staticObjs.find(obj)->second;
-		return std::make_tuple(
-			staticRenderData.find<MatLevel>(std::get<MatLevel>(refs))->first,
-			staticRenderData.find<VAOLevel>(std::get<VAOLevel>(refs))->first.GetVertexData(),
-			Mobilty::No);
-	}
+	if (mBucket.objs.count(obj))
+		return std::tuple_cat(mBucket.Info(obj), std::make_tuple(Mobilty::Yes));
+	else if (sBucket.objs.count(obj))
+		return std::tuple_cat(sBucket.Info(obj), std::make_tuple(Mobilty::No));
 	throw std::domain_error(to_string(obj) + " is not being rendered");
 }
 
