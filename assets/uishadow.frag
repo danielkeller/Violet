@@ -19,8 +19,7 @@ float shadow2(float zDiff, vec2 coord, float apparentSz)
 	vec2 dist = max(coord - vec2(maxBoxFrag), vec2(minBoxFrag) - coord);
 
 	vec2 dx = dist*apparentSz / zDiff;
-	vec2 theta = acos(dx);
-	vec2 area = theta - dx * sin(theta);
+	vec2 area = acos(dx) + dx * (dx*dx - 1);
 	area = area / PI;
 
 	if (dx.x > 1) area.x = 0;

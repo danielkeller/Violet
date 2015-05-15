@@ -127,7 +127,7 @@ void Render::Unload(Persist& persist)
 
 bool Render::Has(Object obj) const
 {
-	return mBucket.objs.count(obj) || mBucket.objs.count(obj);
+	return mBucket.objs.count(obj) || sBucket.objs.count(obj);
 }
 
 template<GLenum bufferUsage>

@@ -37,7 +37,7 @@ Tex ObjAssets::Thumb(const std::string& path)
 	fbo.CheckStatus();
 
 	auto bound = fbo.Bind(GL_FRAMEBUFFER);
-	fbo.PreDraw({ Eigen::Matrix<GLuint, 4, 1>::Zero() });
+	fbo.PreDraw(Vector4f{ 0, 0, 0, 0 });
 	shader.use();
 	cam.Bind();
 	mat.Bind();

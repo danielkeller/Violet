@@ -48,7 +48,7 @@ bool Assets::Draw(std::string& cur)
 			UI::AlignedBox2i box{ init, init + size };
 			UI::AlignedBox2i textBox{ init, init + Vector2i{ THM_SIZE, UI::LINEH } };
 
-			UI::DrawBox(box);
+			UI::DrawBox(box, button->GetColor(), 0);
 			UI::DrawQuad(it->thumb, box);
 			if (cur == it->name)
 				UI::DrawHlBox(box);
@@ -59,8 +59,6 @@ bool Assets::Draw(std::string& cur)
 				cur = it->name;
 				ret = true;
 			}
-			if (button->hovered)
-				UI::DrawShadow(box);
 		}
 	}
 done:

@@ -88,19 +88,23 @@ bool Button::Draw(AlignedBox2i box)
 	return false;
 }
 
+Color Button::GetColor() const
+{
+	return active ? Colors::secondary :
+		hovered ? Colors::divider : Colors::bg;
+}
+
 bool Button::Draw(AlignedBox2i box, const std::string& text)
 {
-	auto mouse = FrameEvents().MousePosPxl().cast<int>();
+	return Draw(box, text, GetColor());
+}
 
-	DrawBox(box);
-	if (active)
-		;
-	else if (hovered)
-	{
-		DrawText(to_upper(text), box);
-	}
-	else
-		DrawText(text, box);
+bool Button::Draw(AlignedBox2i box, const std::string& text, Color color)
+{
+	auto mouse = FrameEvents().MousePosPxl().cast<int>();
+	DrawText(text, box);
+
+	DrawBox(box, color, 0);
 
 	return Draw(box);
 }
@@ -113,28 +117,4 @@ bool TextButton::Draw()
 {
 	Layout l = CurLayout().PutSpace({ width, LINEH });
 	return button.Draw(l, text);
-}
-
-RadioGroup::RadioGroup(std::vector<TextButton> buttons)
-	: buttons(buttons)
-{}
-
-bool RadioGroup::Draw(int& selected)
-{
-	bool ret = false;
-	int curButton = 0;
-	for (auto& b : buttons)
-	{
-		if (b.button.Draw(CurLayout().PutSpace({ b.width, LINEH }),
-			selected == curButton ? to_upper(b.text) : b.text))
-		{
-			if (selected != curButton)
-			{
-				selected = curButton;
-				ret = true;
-			}
-		}
-		++curButton;
-	}
-	return ret;
 }

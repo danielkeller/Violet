@@ -41,12 +41,12 @@ public:
 	void AttachDepth(RenderBuffer&& rb);
 	Tex& Texture(GLuint num) { return texes[num]; }
 
-    void PreDraw();
-
-	//this is a little dumb
-	using ClearColorsT = std::vector<Eigen::Matrix<GLuint, 4, 1>,
-		Eigen::aligned_allocator<Eigen::Matrix<GLuint, 4, 1>>>;
-	void PreDraw(const ClearColorsT& clearColors);
+	template<typename... Colors>
+	void PreDraw(const Colors&... colors)
+	{
+		PreDraw();
+		Clear(0, colors...);
+	}
 
 	FBOBindObject Bind(GLenum target) const;
     void CheckStatus() const; //throws on error
@@ -63,6 +63,28 @@ public:
 	}
 
 private:
+	void PreDraw();
+
+	template<typename... Colors>
+	void Clear(int n, const Vector4f& color, const Colors&... colors)
+	{
+		glClearBufferfv(GL_COLOR, n, color.data());
+		Clear(n + 1, colors...);
+	}
+
+	template<typename... Colors>
+	void Clear(int n, const Eigen::Matrix<GLuint, 4, 1>& color, const Colors&... colors)
+	{
+		glClearBufferuiv(GL_COLOR, n, color.data());
+		Clear(n + 1, colors...);
+	}
+
+	void Clear(int n)
+	{
+		if (n != texes.size())
+			throw std::domain_error("Wrong number of clear colors");
+	}
+
     GLuint fbo;
     TexDim dim;
     //keep a reference to the textures

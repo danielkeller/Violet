@@ -79,21 +79,8 @@ void FBO::CheckStatus() const
 
 void FBO::PreDraw()
 {
-	PreDraw(ClearColorsT{ texes.size(), { 0, 0, 0, 0 } });
-}
-
-void FBO::PreDraw(const ClearColorsT& clearColors)
-{
-	if (clearColors.size() != texes.size())
-		throw std::domain_error("Wrong number of clear colors");
-
 	auto bound = Bind(GL_DRAW_FRAMEBUFFER);
 	glViewport(0, 0, dim.x(), dim.y());
-
-	GLuint drawbuffer = 0;
-	for (const auto& color : clearColors)
-		glClearBufferuiv(GL_COLOR, drawbuffer++, color.data());
-
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
 

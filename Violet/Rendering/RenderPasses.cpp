@@ -54,7 +54,8 @@ void RenderPasses::Draw(Events e, float alpha)
 
 	{
 		auto bound = fbo.Bind(GL_FRAMEBUFFER);
-		fbo.PreDraw({ Eigen::Matrix<GLuint, 4, 1>::Zero(), { Object::none.Id(), 0, 0, 0 } });
+		fbo.PreDraw(Vector4f{ 0, 0, 0, 0 },
+			Eigen::Matrix<GLuint, 4, 1>{ Object::none.Id(), 0, 0, 0 });
 		r.Draw(alpha);
 	}
 

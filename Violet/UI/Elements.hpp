@@ -32,6 +32,9 @@ namespace UI
 		Button();
 		bool Draw(AlignedBox2i box);
 		bool Draw(AlignedBox2i box, const std::string& text);
+		bool Draw(AlignedBox2i box, const std::string& text, Color color);
+
+		Color GetColor() const;
 
 		bool hovered, active;
 	};
@@ -43,14 +46,6 @@ namespace UI
 		std::string text;
 		Button button;
 		bool Draw();
-	};
-
-	struct RadioGroup
-	{
-		RadioGroup(std::vector<TextButton> buttons);
-		std::vector<TextButton> buttons;
-		//returns true if the selection changed
-		bool Draw(int& selected);
 	};
 
 	struct LineEdit
@@ -102,8 +97,9 @@ namespace UI
 			{
 				auto iteml = l.PutSpace(UI::LINEH);
 
-				if (buttons[idx].Draw(iteml,
-					selected == it->first ? to_upper(it->second) : it->second))
+				if (selected == it->first)
+					buttons[idx].Draw(iteml, it->second, Colors::secondary);
+				else if (buttons[idx].Draw(iteml, it->second))
 					selected = it->first;
 			}
 			l.Pop();

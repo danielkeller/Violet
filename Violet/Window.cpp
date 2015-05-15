@@ -145,22 +145,15 @@ static void error_callback(int error, const char* description)
     getchar();
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void cursor_enter_callback(GLFWwindow* window, int entered)
 {
-	auto& events = getWindow(window)->newEvents;
-	events.keyEvents.emplace_back(
-		KeyEvent{ { key, mods }, action });
-
-	if (action != GLFW_PRESS)
-		return;
-
-	if (mods & GLFW_MOD_ALT && key == GLFW_KEY_F4)
-		glfwSetWindowShouldClose(window, true);
+	getWindow(window)->newEvents.mouseCur.setConstant(-1.f);
 }
 
-void character_callback(GLFWwindow* window, unsigned int codepoint)
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	getWindow(window)->newEvents.charEvents.push_back(codepoint);
+	getWindow(window)->newEvents.mouseCur <<
+		float(xpos), float(getWindow(window)->newEvents.dimVec.y() - ypos);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -172,6 +165,24 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	if (width != 0 && height != 0)
 		getWindow(window)->dim.set(Eigen::Vector2i(width, height));
+}
+
+void character_callback(GLFWwindow* window, unsigned int codepoint)
+{
+	getWindow(window)->newEvents.charEvents.push_back(codepoint);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	auto& events = getWindow(window)->newEvents;
+	events.keyEvents.emplace_back(
+		KeyEvent{ { key, mods }, action });
+
+	if (action != GLFW_PRESS)
+		return;
+
+	if (mods & GLFW_MOD_ALT && key == GLFW_KEY_F4)
+		glfwSetWindowShouldClose(window, true);
 }
 
 Window::Window()
@@ -211,6 +222,8 @@ Window::Window()
 	glfwSetWindowUserPointer(window, this);
 
 	//add our input callbacks
+	glfwSetCursorEnterCallback(window, cursor_enter_callback);
+	glfwSetCursorPosCallback(window, cursor_position_callback);
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCharCallback(window, character_callback);
 	glfwSetScrollCallback(window, scroll_callback);
@@ -255,12 +268,7 @@ Events Window::GetInput()
 	//gather any events that happened that we didn't catch yet.
 	glfwPollEvents();
 
-	//get the mouse position too
-	double x, y;
-	glfwGetCursorPos(window, &x, &y);
-	newEvents.mouseCur << float(x), float(dim.get().y() - y);
-
-	for (int b = 0; b < newEvents.mouseButtonsCur.size(); ++b)
+	for (size_t b = 0; b < newEvents.mouseButtonsCur.size(); ++b)
 		newEvents.mouseButtonsCur[b] = glfwGetMouseButton(window, b) == GLFW_PRESS;
 	
 	newEvents.scrollPopped = newEvents.mousePopped = false;

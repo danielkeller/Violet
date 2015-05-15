@@ -101,6 +101,8 @@ private:
 
 	Events newEvents;
 
+	friend void cursor_enter_callback(GLFWwindow* window, int entered);
+	friend void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 	friend void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	friend void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	friend void character_callback(GLFWwindow* window, unsigned int codepoint);

@@ -89,8 +89,8 @@ try
 			auto p = Profile::Profile("rendering");
 
 			w.PreDraw();
-			UI::EndFrame();
 			passes.Draw(e, alpha);
+			UI::EndFrame();
 		}
         w.PostDraw();
 	};

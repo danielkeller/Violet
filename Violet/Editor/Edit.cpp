@@ -312,6 +312,7 @@ void Edit::PhysTick(Events& e, Object camera)
 	objectSelect.Draw(newSelect);
 
 	UI::DrawBox(l.Current());
+	UI::DrawShadow(l.Current());
 
 	l.Pop();
 

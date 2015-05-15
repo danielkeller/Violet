@@ -143,8 +143,7 @@ void UI::EndFrame()
 
 	{
 		auto bound = GetSettings().fbo.Bind(GL_FRAMEBUFFER);
-		Eigen::Matrix<GLuint, 4, 1> black{ 0, 0, 0, 0 };
-		GetSettings().fbo.PreDraw({ black });
+		GetSettings().fbo.PreDraw(Vector4f{ 1, 1, 1, 1 });
 		boxVAO.Draw();
 	}
 
@@ -187,7 +186,8 @@ void UI::EndFrame()
 	txtVAO.Draw();
 
 	//Draw shadows
-	glBlendFunc(GL_DST_COLOR, GL_ZERO);
+	glBlendFunc(GL_DST_COLOR, GL_ZERO); //multiply
+	glDepthMask(GL_FALSE); //keep shadows from interfering with each other
 
 	static ShaderProgram shadowShdr("assets/uishadow");
 	static VAO shadowVAO(shadowShdr, UnitBox);
@@ -201,6 +201,7 @@ void UI::EndFrame()
 	BindPixelUBO();
 	shadowVAO.Draw();
 
+	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
 
 	glDisable(GL_DEPTH_TEST);
