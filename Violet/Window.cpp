@@ -266,6 +266,8 @@ Window::Window()
     glDebugMessageCallbackARB(glDebugProc, nullptr);
 #endif
 
+	//glClearColor(1.f, 0.f, 1.f, 1.f);
+
 	GetInput();
 }
 
@@ -291,7 +293,7 @@ Events Window::GetInput()
 	glfwPollEvents();
 
 	for (size_t b = 0; b < newEvents.mouseButtonsCur.size(); ++b)
-		newEvents.mouseButtonsCur[b] = glfwGetMouseButton(window, b) == GLFW_PRESS;
+		newEvents.mouseButtonsCur[b] = glfwGetMouseButton(window, int(b)) == GLFW_PRESS;
 	
 	newEvents.scrollPopped = newEvents.mousePopped = false;
 

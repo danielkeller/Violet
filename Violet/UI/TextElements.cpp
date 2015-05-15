@@ -96,9 +96,10 @@ bool LineEdit::Draw(std::string& text)
 
 	Vector2i ulStart = box.corner(AlignedBox2i::BottomLeft) + Vector2i{ TEXT_LEFT_PAD, 0 };
 	if (focus.focused)
-		DrawHlBox({ ulStart, ulStart + Vector2i{ width - 2 * TEXT_LEFT_PAD, 1 } });
+		DrawHlBox({ ulStart - Vector2i{ 0, 1 },
+			ulStart + Vector2i{ width - 2 * TEXT_LEFT_PAD, 0 } });
 	else
-		DrawBox({ ulStart, ulStart + Vector2i{ width - 2 * TEXT_LEFT_PAD, 1 } },
+		DrawBox({ ulStart, ulStart + Vector2i{ width - 2 * TEXT_LEFT_PAD, 0 } },
 		0, UI::Colors::divider);
 
 	lastText = text;
@@ -115,7 +116,7 @@ bool LineEdit::Draw(std::string& text)
 		stb_textedit_find_charpos(&find, &text, state.cursor, true);
 		//leave a pixel of daylight between the cursor and the underline
 		Vector2i cursStart{ ulStart + Vector2i{ find.x, 2 } };
-		DrawBox({ cursStart, cursStart + Vector2i{ 1, LINEH - 2 } }, 0, UI::Colors::secondary);
+		DrawBox({ cursStart, cursStart + Vector2i{ 0, LINEH - 2 } }, 0, UI::Colors::secondary);
 	}
 	UI::PopZ();
 

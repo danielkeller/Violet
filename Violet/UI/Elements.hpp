@@ -30,6 +30,7 @@ namespace UI
 	struct Button
 	{
 		Button();
+		bool Behavior(AlignedBox2i box);
 		bool Draw(AlignedBox2i box);
 		bool Draw(AlignedBox2i box, const std::string& text);
 		bool Draw(AlignedBox2i box, const std::string& text, Color color);

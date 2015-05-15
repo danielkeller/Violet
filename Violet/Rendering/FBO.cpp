@@ -51,8 +51,22 @@ void FBO::AttachTexes(std::vector<Tex> ts)
 	glDrawBuffers(static_cast<GLsizei>(bufs.size()), bufs.data());
 }
 
+void FBO::AttachDepth(Tex tex)
+{
+	depth.reset();
+	if (tex.Dim() != dim)
+		(void)0;
+	dim = tex.Dim(); //TODO: better error checking
+
+	auto bound = Bind(GL_FRAMEBUFFER);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex.Handle(), 0);
+	depthTex = std::make_unique<Tex>(std::move(tex));
+}
+
 void FBO::AttachDepth(RenderBuffer&& rb)
 {
+	depthTex.reset();
+
 	auto bound = Bind(GL_FRAMEBUFFER);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rb.Handle());
 	depth = std::make_unique<RenderBuffer>(std::move(rb));
@@ -77,7 +91,7 @@ void FBO::CheckStatus() const
 	}
 }
 
-void FBO::PreDraw()
+void FBO::PreDrawBase()
 {
 	auto bound = Bind(GL_DRAW_FRAMEBUFFER);
 	glViewport(0, 0, dim.x(), dim.y());

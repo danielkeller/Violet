@@ -53,6 +53,7 @@ try
 		//load the object
 		VertexData capsule{ "assets/capsule.obj" };
 		Material capsuleMat{ "capsule", { "assets/simple" }, { "assets/capsule.png" } };
+		capsuleMat.Save(persist);
 
 		r.Create(teapotObj, capsuleMat, capsule, Mobilty::Yes);
 		r.Create(teapot2Obj, capsuleMat, capsule, Mobilty::No);

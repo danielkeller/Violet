@@ -6,17 +6,24 @@
 #include "UI/Text.hpp"
 #include "File/Filesystem.hpp"
 
+#include "Rendering/VertexData.hpp"
 #include "File/Wavefront.hpp"
+#include "File/Persist.hpp"
 
-Asset::Asset()
+using namespace Asset_detail;
+
+template<typename Key>
+Asset<Key>::Asset()
 	: thumb("assets/cube.png")
 {}
 
-Asset::Asset(std::string name)
-	: thumb("assets/cube.png"), name(name)
+template<typename Key>
+Asset<Key>::Asset(std::string name, Key key)
+	: thumb("assets/cube.png"), name(name), key(key)
 {}
 
-bool Assets::Draw(std::string& cur)
+template<typename Key>
+bool Assets<Key>::Draw(Key& cur)
 {
 	UI::LayoutStack& l = UI::CurLayout();
 	l.PushNext(UI::Layout::Dir::Down);
@@ -48,17 +55,22 @@ bool Assets::Draw(std::string& cur)
 			UI::AlignedBox2i box{ init, init + size };
 			UI::AlignedBox2i textBox{ init, init + Vector2i{ THM_SIZE, UI::LINEH } };
 
-			UI::DrawBox(box, button->GetColor(), 0);
 			UI::DrawQuad(it->thumb, box);
-			if (cur == it->name)
+			if (cur == it->key)
 				UI::DrawHlBox(box);
-			UI::DrawText(it->name.substr(it->name.size() - THM_CHARS, it->name.size()), textBox);
 
-			if (button->Draw(box))
+			UI::PushZ();
+			std::string::size_type strbegin = std::max(0, int(it->name.size()) - THM_CHARS);
+			UI::DrawBox(textBox, button->GetColor(), button->GetColor());
+			UI::DrawText(it->name.substr(strbegin, it->name.size()), textBox);
+
+			//fade out by half
+			if (button->Behavior(box))
 			{
-				cur = it->name;
+				cur = it->key;
 				ret = true;
 			}
+			UI::PopZ();
 		}
 	}
 done:
@@ -75,7 +87,7 @@ ObjAssets::ObjAssets()
 	for (auto path : Browse("assets"))
 		if (IsWavefront(path))
 		{
-			a.assets.emplace_back(path);
+			a.assets.emplace_back(path, path);
 			a.assets.back().thumb = Thumb(path);
 		}
 }
@@ -84,6 +96,25 @@ bool ObjAssets::Draw(VertexData& cur)
 {
 	std::string curName = cur.Name();
 	bool ret = a.Draw(curName);
-	cur = curName;
+	if (ret) cur = curName;
+	return ret;
+}
+
+MaterialAssets::MaterialAssets(Persist& persist)
+{
+	for (auto mat : persist.GetAll<Material>())
+	{
+		a.assets.emplace_back(std::get<1>(mat), std::get<0>(mat));
+		a.assets.back().thumb = Thumb(
+			Material(std::get<0>(mat), std::get<1>(mat), std::get<2>(mat),
+				std::get<3>(mat), std::get<4>(mat)));
+	}
+}
+
+bool MaterialAssets::Draw(Material& cur, Persist& persist)
+{
+	Material::Id curName = cur.id;
+	bool ret = a.Draw(curName);
+	if (ret) cur = Material(curName, persist);
 	return ret;
 }

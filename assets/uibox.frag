@@ -22,6 +22,4 @@ void main()
 
 	if (outputColor.a == 0)
 		discard;
-
-	outputColor.a = zFrag;
 }

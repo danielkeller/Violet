@@ -39,12 +39,13 @@ public:
     
 	void AttachTexes(std::vector<Tex> ts);
 	void AttachDepth(RenderBuffer&& rb);
+	void AttachDepth(Tex tex);
 	Tex& Texture(GLuint num) { return texes[num]; }
 
 	template<typename... Colors>
 	void PreDraw(const Colors&... colors)
 	{
-		PreDraw();
+		PreDrawBase();
 		Clear(0, colors...);
 	}
 
@@ -63,7 +64,7 @@ public:
 	}
 
 private:
-	void PreDraw();
+	void PreDrawBase();
 
 	template<typename... Colors>
 	void Clear(int n, const Vector4f& color, const Colors&... colors)
@@ -89,7 +90,8 @@ private:
     TexDim dim;
     //keep a reference to the textures
     std::vector<Tex> texes;
-    std::unique_ptr<RenderBuffer> depth;
+	std::unique_ptr<RenderBuffer> depth;
+	std::unique_ptr<Tex> depthTex;
 };
 
 #endif

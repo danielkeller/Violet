@@ -62,7 +62,31 @@ Button::Button()
 	: hovered(false), active(false)
 {}
 
+Color Button::GetColor() const
+{
+	return active ? Colors::secondary :
+		hovered ? Colors::divider : Colors::bg;
+}
+
 bool Button::Draw(AlignedBox2i box)
+{
+	return Draw(box, "");
+}
+
+bool Button::Draw(AlignedBox2i box, const std::string& text)
+{
+	return Draw(box, text, GetColor());
+}
+
+bool Button::Draw(AlignedBox2i box, const std::string& text, Color color)
+{
+	DrawText(text, box);
+	DrawBox(box, color, 0);
+
+	return Behavior(box);
+}
+
+bool Button::Behavior(AlignedBox2i box)
 {
 	auto mouse = FrameEvents().MousePosPxl().cast<int>();
 
@@ -86,27 +110,6 @@ bool Button::Draw(AlignedBox2i box)
 	//	FrameEvents().PopMouse();
 
 	return false;
-}
-
-Color Button::GetColor() const
-{
-	return active ? Colors::secondary :
-		hovered ? Colors::divider : Colors::bg;
-}
-
-bool Button::Draw(AlignedBox2i box, const std::string& text)
-{
-	return Draw(box, text, GetColor());
-}
-
-bool Button::Draw(AlignedBox2i box, const std::string& text, Color color)
-{
-	auto mouse = FrameEvents().MousePosPxl().cast<int>();
-	DrawText(text, box);
-
-	DrawBox(box, color, 0);
-
-	return Draw(box);
 }
 
 TextButton::TextButton(std::string text, int width)

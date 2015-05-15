@@ -15,7 +15,9 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position,
 	, tool(r, position)
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
-	, meshesOpen(false)
+
+	, currentPicker(AssetPicker::None)
+	, materials(persist)
 
 	, objectNameEdit(LB_WIDTH)
 
@@ -23,8 +25,6 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position,
 	, xEdit(LB_WIDTH / 3), yEdit(LB_WIDTH / 3), zEdit(LB_WIDTH / 3)
 	, angleEdit({ LB_WIDTH / 3, LB_WIDTH / 3, LB_WIDTH / 3 })
 	, scaleEdit(LB_WIDTH), objectSelect(LB_WIDTH)
-
-	, meshButton("none", LB_WIDTH)
 
 	, newObject("+", MOD_WIDTH), delObject("-", MOD_WIDTH)
 {
@@ -79,6 +79,13 @@ std::tuple<Quaternionf, Quaternionf> TwistSwing(const Quaternionf& rot, const Ve
 	Quaternionf twist{ rot.w(), proj.x(), proj.y(), proj.z() };
 	twist.normalize();
 	return std::make_tuple(twist, twist.conjugate() * rot);
+}
+
+void Edit::Toggle(AssetPicker clicked)
+{
+	if (currentPicker == clicked)
+		currentPicker = AssetPicker::None;
+	else currentPicker = clicked;
 }
 
 template<typename EditTy, typename AddTy, typename RemoveTy>
@@ -147,6 +154,11 @@ void Edit::PhysTick(Events& e, Object camera)
 	if (!e.MouseButton(GLFW_MOUSE_BUTTON_LEFT))
 		focused = selected;
 
+	if (selected != Object::none && position.Has(selected))
+		tool.SetTarget(position[selected]);
+	else
+		tool.SetTarget({});
+
 	tool.Update(e, camera, focused);
 
 	rp.Highlight(picked, RenderPasses::Hovered);
@@ -168,15 +180,17 @@ void Edit::PhysTick(Events& e, Object camera)
 	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Right);
 
 	//asset picker
-	if (meshesOpen)
+	if (currentPicker != AssetPicker::None)
 	{
 		auto tup = r.Info(selected);
-		if (meshes.Draw(std::get<1>(tup)))
+		if (currentPicker == AssetPicker::Meshes
+			? meshes.Draw(std::get<1>(tup))
+			: materials.Draw(std::get<0>(tup), persist))
 		{
 			r.Remove(selected);
 			r.Create(selected, tup);
 			r.Save(selected, persist);
-			meshesOpen = false;
+			currentPicker = AssetPicker::None;
 		}
 	}
 
@@ -245,33 +259,35 @@ void Edit::PhysTick(Events& e, Object camera)
 
 			//track the position
 			if (moved)
-			{
 				position[selected].set(xfrm);
-				tool.SetTarget(position[selected]);
-			}
 
 			//save the object once we stop editing
 			return stopped;
 		},
 			[&]() {
-			tool.SetTarget(position[selected]);
+			position.Set(selected, {});
 		},
-			[&]() {
-			tool.SetTarget({});
-		});
+			[&]() {});
 
 		renderEdit.Draw(persist, r, selected,
 			[&]() {
 
 			auto tup = r.Info(selected);
-			UI::DrawText("material", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-			//UI::DrawText();
-			UI::DrawText(std::get<0>(tup).name, l.PutSpace({ LB_WIDTH, UI::LINEH }));
+			UI::AlignedBox2i title = l.PutSpace({ LB_WIDTH, UI::LINEH });
+			UI::AlignedBox2i name = l.PutSpace({ LB_WIDTH, UI::LINEH });
 
-			UI::DrawText("mesh", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-			meshButton.text = std::get<1>(tup).Name();
-			if (meshButton.Draw())
-				meshesOpen = true;
+			UI::DrawText("material", title);
+			UI::DrawText(std::get<0>(tup).name, name);
+			if (materialButton.Draw(title.extend(name)))
+				Toggle(AssetPicker::Materials);
+
+			title = l.PutSpace({ LB_WIDTH, UI::LINEH });
+			name = l.PutSpace({ LB_WIDTH, UI::LINEH });
+
+			UI::DrawText("mesh", title);
+			UI::DrawText(std::get<1>(tup).Name(), name);
+			if (meshButton.Draw(title.extend(name)))
+				Toggle(AssetPicker::Meshes);
 			
 			if (std::get<2>(tup) == Mobilty::Yes)
 				UI::DrawText("mobile", l.PutSpace({ LB_WIDTH, UI::LINEH }));
@@ -321,16 +337,10 @@ void Edit::PhysTick(Events& e, Object camera)
 	{
 		selected = newSelect;
 
-		meshesOpen = false;
+		currentPicker = AssetPicker::None;
 
 		if (selected != Object::none)
-		{
 			curObjectName = objName[selected];
-			if (position.Has(selected))
-				tool.SetTarget(position[selected]);
-		}
-		else
-			tool.SetTarget({});
 	}
 
 	//fixme

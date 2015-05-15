@@ -40,8 +40,9 @@ struct UI::Settings
 	Settings() : screenTex(TexDim{ 0, 0 }) {}
 	Font font;
 	Vector3f textColor;
-	TypedTex<> screenTex;
+	TypedTex<DepthPx> screenTex;
 	FBO fbo;
+	Vector2i winSize;
 };
 
 Settings& GetSettings()
@@ -126,6 +127,9 @@ LayoutStack& UI::CurLayout()
 
 void UI::EndFrame()
 {
+	//is this stored per-framebuffer?
+	glViewport(0, 0, GetSettings().winSize.x(), GetSettings().winSize.y());
+
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
@@ -141,9 +145,9 @@ void UI::EndFrame()
 	boxShdr.use();
 	BindPixelUBO();
 
-	{
+	{ //get all the depth info
 		auto bound = GetSettings().fbo.Bind(GL_FRAMEBUFFER);
-		GetSettings().fbo.PreDraw(Vector4f{ 1, 1, 1, 1 });
+		GetSettings().fbo.PreDraw();
 		boxVAO.Draw();
 	}
 
@@ -165,8 +169,9 @@ void UI::EndFrame()
 		quadVAO.Draw();
 	}
 
-	//Draw text
 	glEnable(GL_BLEND);
+
+	//Draw text
 	//blend from constant (text) color to dest color by source color
 	glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR);
 	auto textColor = GetSettings().textColor;
@@ -294,10 +299,11 @@ static void WinResize(Vector2i sz)
 	pixelUBO["pixelMat"] = PixelMat(sz);
 
 	auto& s = GetSettings();
-	s.screenTex = TypedTex<>(sz);
-	s.fbo.AttachTexes({ s.screenTex });
-	s.fbo.AttachDepth(RenderBuffer{ GL_DEPTH_COMPONENT, sz });
+	s.screenTex = TypedTex<DepthPx>(sz);
+	s.fbo.AttachDepth(s.screenTex);
 	s.fbo.CheckStatus();
+
+	s.winSize = sz;
 }
 
 void UI::Init(Window& w)

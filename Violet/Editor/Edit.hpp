@@ -60,8 +60,15 @@ private:
 			EditTy edit, AddTy add, RemoveTy remove);
 	};
 
-	bool meshesOpen;
+	enum class AssetPicker
+	{
+		None, Meshes, Materials
+	};
+	AssetPicker currentPicker;
+	void Toggle(AssetPicker clicked);
+
 	ObjAssets meshes;
+	MaterialAssets materials;
 
 	//Name
 	std::string curObjectName;
@@ -76,7 +83,8 @@ private:
 	UI::FloatEdit scaleEdit;
 
 	//Render
-	UI::TextButton meshButton;
+	UI::Button materialButton;
+	UI::Button meshButton;
 
 	//Object
 	UI::TextButton newObject, delObject;

@@ -44,6 +44,11 @@ struct PixelTraits
 
 using RGBA8Px = Eigen::Matrix<unsigned char, 4, 1>;
 
+struct DepthPx
+{
+	float depth;
+};
+
 template<class Pixel = RGBA8Px>
 class TypedTex : public Tex
 {

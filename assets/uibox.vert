@@ -22,8 +22,8 @@ flat out vec4 strokeFrag;
 void main()
 {
 	fillFrag = fill; strokeFrag = stroke;
-	minBoxFrag = minBox; maxBoxFrag = maxBox - 1;
-	fragCoord = vec2(minBox + texCoord*(maxBox-minBox));
+	minBoxFrag = minBox; maxBoxFrag = maxBox;
+	fragCoord = vec2(minBox + texCoord*(maxBox + 1 - minBox));
     gl_Position = pixelMat * vec4(fragCoord, z, 1);
 	zFrag = gl_Position.z;
 }

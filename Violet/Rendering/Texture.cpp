@@ -102,3 +102,10 @@ template<>
 GLenum PixelTraits<RGBA8Px>::format = GL_RGBA;
 template<>
 GLenum PixelTraits<RGBA8Px>::type = GL_UNSIGNED_BYTE;
+
+template<>
+GLenum PixelTraits<DepthPx>::internalFormat = GL_DEPTH_COMPONENT32F;
+template<>
+GLenum PixelTraits<DepthPx>::format = GL_DEPTH_COMPONENT;
+template<>
+GLenum PixelTraits<DepthPx>::type = GL_FLOAT;
