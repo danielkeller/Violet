@@ -185,6 +185,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glfwSetWindowShouldClose(window, true);
 }
 
+#ifdef MAGIC
+#include "Windows.hpp"
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
+#include "GLFW/glfw3native.h"
+#include <dwmapi.h>
+#pragma comment(lib, "Dwmapi.lib")
+#endif
+
 Window::Window()
 {
 	newEvents.dimVec << 1024, 768;
@@ -218,6 +227,19 @@ Window::Window()
 		"Simple example", NULL, NULL);
     if (!window)
 		throw std::runtime_error("Could not create window");
+
+#ifdef MAGIC
+	HWND hWnd = glfwGetWin32Window(window);
+	DWORD style = ::GetWindowLong(hWnd, GWL_STYLE);
+	style &= ~WS_OVERLAPPEDWINDOW;
+	style |= WS_POPUP;
+	::SetWindowLong(hWnd, GWL_STYLE, style);
+	DWM_BLURBEHIND bb = { 0 };
+	bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
+	bb.fEnable = true;
+	bb.hRgnBlur = CreateRectRgn(0, 0, 1, 1);
+	DwmEnableBlurBehindWindow(hWnd, &bb);
+#endif
 
 	glfwSetWindowUserPointer(window, this);
 
