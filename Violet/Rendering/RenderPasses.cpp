@@ -37,14 +37,16 @@ void RenderPasses::Camera(Object c)
 
 void RenderPasses::Draw(Events e, float alpha)
 {
+	//just don't bother
+	if ((e.view.size().array() == Eigen::Array2i::Zero()).any())
+		return;
+
 	WindowResize(e.view.size());
 	view = e.view;
 
 	//Draw the correct sides of things
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
 
 	//for now it's just this
 	InstData cameraMat(camera);
@@ -59,11 +61,7 @@ void RenderPasses::Draw(Events e, float alpha)
 		r.Draw(alpha);
 	}
 
-	auto screenBox = view.screenBox;
-
-	glViewport(screenBox.min().x(), e.dimVec.y() - screenBox.min().y() - screenBox.sizes().y(),
-		screenBox.sizes().x(), screenBox.sizes().y());
-
+	view.GlViewport();
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	

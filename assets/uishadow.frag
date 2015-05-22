@@ -35,7 +35,7 @@ void main()
 	vec2 texCoord = (pixelMat * gl_FragCoord).xy * .5 + .5;
 	float otherZ = texture(boxes, texCoord).a;
 
-	float zScale = 40;
+	float zScale = 200; //FIXME
 	float zDiff = (otherZ - zFrag) * zScale;
 
 	float sh = shadow2(zDiff, gl_FragCoord.xy, 1)*.3

@@ -155,6 +155,7 @@
     <ClInclude Include="Core\Time.hpp" />
     <ClInclude Include="Editor\Assets.hpp" />
     <ClInclude Include="Editor\Edit.hpp" />
+    <ClInclude Include="Editor\MaterialEdit.hpp" />
     <ClInclude Include="Editor\Tool.hpp" />
     <ClInclude Include="File\Filesystem.hpp" />
     <ClInclude Include="File\Persist.hpp" />
@@ -207,6 +208,7 @@
     <ClCompile Include="Core\Time.cpp" />
     <ClCompile Include="Editor\Assets.cpp" />
     <ClCompile Include="Editor\Edit.cpp" />
+    <ClCompile Include="Editor\MaterialEdit.cpp" />
     <ClCompile Include="Editor\Thumbnail.cpp" />
     <ClCompile Include="Editor\Tool.cpp" />
     <ClCompile Include="File\Filesystem.cpp" />
@@ -253,6 +255,7 @@
     <None Include="..\assets\blank.vert" />
     <None Include="..\assets\color.frag" />
     <None Include="..\assets\color.vert" />
+    <None Include="..\assets\edit.svg" />
     <None Include="..\assets\screen.frag" />
     <None Include="..\assets\screen.vert" />
     <None Include="..\assets\shaded.frag" />
@@ -277,6 +280,7 @@
   <ItemGroup>
     <Image Include="..\assets\capsule.png" />
     <Image Include="..\assets\cube.png" />
+    <Image Include="..\assets\edit.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

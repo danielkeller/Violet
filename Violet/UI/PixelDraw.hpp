@@ -19,6 +19,7 @@ namespace UI
 
 	//ortho matrix for pixel drawing
 	Matrix4f PixelMat(Vector2i dim);
+	void SetViewport();
 
 	//go higher
 	void PushZ(int dz = 1);
@@ -36,16 +37,22 @@ namespace UI
 
 	void DrawDivider(AlignedBox2i box);
 
+	void DrawSpecial(std::function<void()> draw);
+
 	void Init(Window& w);
 	void BindPixelUBO();
 
 	void TextStyle(Font font, Color color = Colors::fg);
-
 	Font GetFont();
+
+	//hide events from everyone else
+	void PushModal();
+	void PopModal();
 
 	//fixme: thread safety
 	void BeginFrame(Window& w, Events e);
 	Events& FrameEvents();
+
 	LayoutStack& CurLayout();
 	void EndFrame();
 }

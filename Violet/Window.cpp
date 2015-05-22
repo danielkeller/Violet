@@ -6,6 +6,7 @@
 #include "GLFW/glfw3.h"
 
 #include <iostream>
+#include <iomanip>
 
 #ifndef _WIN32
 #include "posixStackTrace.hpp"
@@ -19,7 +20,10 @@ void CheckGLError()
 {
     GLenum err = glGetError();
     while (err != GL_NO_ERROR) {
-		std::cerr << "GL Error '" << gluErrorString(err) << "'\n";
+		if (gluErrorString(err))
+			std::cerr << "GL Error '" << gluErrorString(err) << "'\n";
+		else
+			std::cerr << "Other GL error: 0x" << std::hex << err << '\n';
         err = glGetError();
     }
 }
@@ -87,7 +91,7 @@ bool Events::MouseRelease(int num) const
 
 void Events::PopMouse()
 {
-	//mouseCur << -1, -1;
+	mouseCur << -1, -1;
 	mouseOld << mouseCur;
 	for (auto& b : mouseButtonsCur) b = false;
 	for (auto& b : mouseButtonsOld) b = false;
@@ -266,7 +270,10 @@ Window::Window()
     glDebugMessageCallbackARB(glDebugProc, nullptr);
 #endif
 
+	//set and forget stuff
 	//glClearColor(1.f, 0.f, 1.f, 1.f);
+	glCullFace(GL_FRONT);
+	glDepthFunc(GL_LESS);
 
 	GetInput();
 }
@@ -307,7 +314,6 @@ Events Window::GetInput()
 
 void Window::PreDraw()
 {
-	glViewport(0, 0, dim.get().x(), dim.get().y());
 	//clear the color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

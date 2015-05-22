@@ -66,7 +66,7 @@ AlignedBox2i FixBox(AlignedBox2i box)
 
 AlignedBox2i Layout::Box() const
 {
-	return FixBox({ pos, Scooch(Scooch(pos, fill, maxFill-1), grow, across-1) });
+	return FixBox({ pos, Scooch(Scooch(pos, fill, maxFill), grow, across) });
 }
 
 Layout Layout::getLast(Dir dir) const
@@ -107,17 +107,24 @@ void LayoutStack::PushLayer(Dir dir /*, int z*/)
 	stack.push_back(Layout::Top(stack[0].Box().sizes(), dir));
 }
 
+void LayoutStack::PopLayer()
+{
+	stack.pop_back();
+}
+
 void LayoutStack::PushNext(Dir dir)
 {
 	Layout l = stack.back().getNext(dir);
 	stack.push_back(l);
 }
 
+/*
 void LayoutStack::PushRest(Dir dir)
 {
 	Layout l = Pop(dir);
 	stack.push_back(l);
 }
+*/
 
 Layout LayoutStack::Pop(Dir dir)
 {
@@ -160,6 +167,19 @@ Layout LayoutStack::PutSpace(int advance)
 void LayoutStack::EnsureWidth(int across)
 {
 	stack.back().across = std::max(stack.back().across, across);
+}
+
+void LayoutStack::Inset(int amount)
+{
+	//assuming it fills down:
+	auto& b = stack.back();
+	b.filledSize += amount; //top
+	Layout outer = b.getLast(b.grow);
+	outer.across -= amount; //bottom
+	outer.filledSize += amount; //right
+	Layout inner = outer.getLast(b.fill);
+	inner.across -= amount;
+	stack.back() = inner;
 }
 
 Layout LayoutStack::Current() const

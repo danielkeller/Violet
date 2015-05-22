@@ -75,7 +75,7 @@ try
 		e = w.GetInput();
 
 		UI::BeginFrame(w, e);
-		edit.PhysTick(e, camera);
+		edit.PhysTick(camera);
 		w.SetView(UI::CurLayout().Pop().Box());
 
         //physics step

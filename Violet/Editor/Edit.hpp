@@ -22,8 +22,7 @@ public:
 
     void Editable(Object o);
 
-	//FIXME: should this actually take e?
-	void PhysTick(Events& e, Object camera);
+	void PhysTick(Object camera);
 
 	void Load(Persist&);
 	void Unload(Persist&);

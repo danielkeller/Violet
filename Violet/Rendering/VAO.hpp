@@ -39,11 +39,11 @@ public:
 
 	template<class T, GLenum usage>
 	void BindInstanceData(const ShaderProgram& program,
-		const BufferObject<T, GL_ARRAY_BUFFER, usage>& buf)
+		const BufferObject<T, GL_ARRAY_BUFFER, usage>& buf, bool warnings = true)
 	{
 		auto bound = Bind();
 		buf.Bind();
-		BindArrayBufToShader(program, AttribTraits<T>::schema, sizeof(T), 0, true);
+		BindArrayBufToShader(program, AttribTraits<T>::schema, sizeof(T), 0, true, warnings);
 		numInstances = static_cast<GLsizei>(buf.Size());
 	}
 
@@ -71,7 +71,7 @@ public:
 
 private:
 	void BindArrayBufToShader(const ShaderProgram& program, const Schema& schema,
-		GLsizei stride, GLsizei offset = 0, bool instanced = false);
+		GLsizei stride, GLsizei offset = 0, bool instanced = false, bool warnings = true);
 
 	//the GL vertex array object assocated with this object
 	GLuint vertexArrayObject;

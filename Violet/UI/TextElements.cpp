@@ -67,6 +67,7 @@ bool LineEdit::Draw(std::string& text)
 
 	if (focus.focused)
 	{
+		//do keyboard events
 		if (FrameEvents().PopKeyEvent({ { GLFW_KEY_ENTER, 0 }, GLFW_PRESS }))
 		{
 			focus.Unfocus();
@@ -94,6 +95,9 @@ bool LineEdit::Draw(std::string& text)
 		FrameEvents().charEvents.clear();
 	}
 
+	//draw decorations
+	UI::PushZ();
+
 	Vector2i ulStart = box.corner(AlignedBox2i::BottomLeft) + Vector2i{ TEXT_LEFT_PAD, 0 };
 	if (focus.focused)
 		DrawHlBox({ ulStart - Vector2i{ 0, 1 },
@@ -107,18 +111,17 @@ bool LineEdit::Draw(std::string& text)
 
 	StbFindState find;
 
+	//blink
 	long timeHalfSec = std::chrono::duration_cast<
 		std::chrono::duration<long, std::ratio<1, 2>>>(FrameEvents().simTime).count();
 
-	UI::PushZ();
-	if (focus.focused && timeHalfSec & 1) //blink
+	if (focus.focused && timeHalfSec & 1)
 	{
 		stb_textedit_find_charpos(&find, &text, state.cursor, true);
 		//leave a pixel of daylight between the cursor and the underline
 		Vector2i cursStart{ ulStart + Vector2i{ find.x, 2 } };
 		DrawBox({ cursStart, cursStart + Vector2i{ 0, LINEH - 2 } }, 0, UI::Colors::secondary);
 	}
-	UI::PopZ();
 
 	if (state.select_start != state.select_end)
 	{
@@ -132,6 +135,8 @@ bool LineEdit::Draw(std::string& text)
 
 		DrawBox({ selStart, selEnd }, UI::Colors::selection, 0);
 	}
+
+	UI::PopZ();
 
 	return ret;
 }

@@ -2,7 +2,8 @@
 #include "Time.hpp"
 
 Time::Time()
-    : currentTime(clock::now()), accumulator(0), simTime(0)
+    : currentTime(clock::now()), accumulator(dt) //simulate one frame before rendering
+	, simTime(0)
 {
 }
 

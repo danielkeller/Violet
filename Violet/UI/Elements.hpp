@@ -106,6 +106,14 @@ namespace UI
 			l.Pop();
 		}
 	};
+
+	struct ModalBoxRAII
+	{
+		ModalBoxRAII(UI::Layout::Dir dir);
+		~ModalBoxRAII();
+		//true if the box was closed
+		bool closed;
+	};
 }
 
 #endif

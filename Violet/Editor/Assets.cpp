@@ -23,7 +23,7 @@ Asset<Key>::Asset(std::string name, Key key)
 {}
 
 template<typename Key>
-bool Assets<Key>::Draw(Key& cur)
+bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&)> edit)
 {
 	UI::LayoutStack& l = UI::CurLayout();
 	l.PushNext(UI::Layout::Dir::Down);
@@ -40,7 +40,9 @@ bool Assets<Key>::Draw(Key& cur)
 
 	auto it = assets.begin();
 	buttons.resize(assets.size());
+	if (edit) editButtons.resize(assets.size());
 	auto button = buttons.begin();
+	auto editButton = editButtons.begin();
 
 	bool ret = false;
 
@@ -57,19 +59,36 @@ bool Assets<Key>::Draw(Key& cur)
 
 			UI::DrawQuad(it->thumb, box);
 			if (cur == it->key)
+			{
+				UI::PushZ();
 				UI::DrawHlBox(box);
+				UI::PopZ();
+			}
 
 			UI::PushZ();
 			std::string::size_type strbegin = std::max(0, int(it->name.size()) - THM_CHARS);
 			UI::DrawBox(textBox, button->GetColor(), button->GetColor());
 			UI::DrawText(it->name.substr(strbegin, it->name.size()), textBox);
 
-			//fade out by half
+			if (edit)
+			{
+				UI::PushZ();
+				UI::AlignedBox2i editBox{ textBox.max() - Vector2i{ UI::LINEH, UI::LINEH }, textBox.max() };
+				static Tex editIcon{ "assets/edit.png" };
+				UI::DrawQuad(editIcon, editBox);
+				UI::DrawBox(editBox, editButton->GetColor(), editButton->GetColor());
+				if (editButton->Behavior(editBox))
+					edit(*it);
+				++editButton;
+				UI::PopZ();
+			}
+
 			if (button->Behavior(box))
 			{
 				cur = it->key;
 				ret = true;
 			}
+
 			UI::PopZ();
 		}
 	}
@@ -95,12 +114,13 @@ ObjAssets::ObjAssets()
 bool ObjAssets::Draw(VertexData& cur)
 {
 	std::string curName = cur.Name();
-	bool ret = a.Draw(curName);
+	bool ret = a.Draw(curName, {});
 	if (ret) cur = curName;
 	return ret;
 }
 
 MaterialAssets::MaterialAssets(Persist& persist)
+	: editorOn(false)
 {
 	for (auto mat : persist.GetAll<Material>())
 	{
@@ -113,8 +133,17 @@ MaterialAssets::MaterialAssets(Persist& persist)
 
 bool MaterialAssets::Draw(Material& cur, Persist& persist)
 {
+	if (editorOn && edit.Draw(persist))
+	{
+		//TODO: replace every object using the material
+		editorOn = false;
+	}
+
 	Material::Id curName = cur.id;
-	bool ret = a.Draw(curName);
+	bool ret = a.Draw(curName, [&](Asset<Material::Id>& mat){
+		editorOn = true;
+		edit.Edit(Material(curName, persist));
+	});
 	if (ret) cur = Material(curName, persist);
 	return ret;
 }

@@ -10,7 +10,7 @@
 
 using namespace UI;
 
-static const float maxZ = 10.f;
+static const float maxZ = 50.f;
 
 Matrix4f UI::PixelMat(Vector2i dim)
 {
@@ -97,6 +97,7 @@ struct UI::Visuals
 	std::vector<UIBox> boxes;
 	std::vector<Box2z> shadows;
 	std::vector<TextureQuad> quads;
+	std::vector<std::function<void()>> specials;
 	std::vector<int> zStack;
 };
 
@@ -106,17 +107,50 @@ Visuals& FrameVisuals()
 	return vis;
 }
 
-void UI::BeginFrame(Window& w, Events e)
+struct UIEvents
 {
-	FrameVisuals() = {};
-	CurLayout() = LayoutStack(*w.dim);
-	FrameEvents() = e;
+	Events events, dummy;
+	bool modalOpen, modalWasOpen, inModal;
+};
+
+UIEvents& GetUIEvents()
+{
+	static UIEvents events;
+	return events;
 }
 
 Events& UI::FrameEvents()
 {
-	static Events events;
-	return events;
+	if (GetUIEvents().modalOpen && !GetUIEvents().inModal)
+		return GetUIEvents().dummy;
+	else
+		return GetUIEvents().events;
+}
+
+void UI::PushModal()
+{
+	GetUIEvents().modalWasOpen = true;
+	GetUIEvents().inModal = true;
+}
+
+void UI::PopModal()
+{
+	GetUIEvents().inModal = false;
+}
+
+void UI::BeginFrame(Window& w, Events e)
+{
+	FrameVisuals() = {};
+	CurLayout() = LayoutStack(*w.dim);
+	GetUIEvents().events = e;
+	//set the stuff that matters in dummy
+	GetUIEvents().dummy.dimVec = e.dimVec;
+	GetUIEvents().dummy.view = e.view;
+	GetUIEvents().dummy.simTime = e.simTime;
+
+	//stay in modal mode until a frame passes without a modal events call
+	GetUIEvents().modalOpen = GetUIEvents().modalWasOpen;
+	GetUIEvents().modalWasOpen = false;
 }
 
 LayoutStack& UI::CurLayout()
@@ -125,11 +159,15 @@ LayoutStack& UI::CurLayout()
 	return layout;
 }
 
-void UI::EndFrame()
+void UI::SetViewport()
 {
 	//is this stored per-framebuffer?
 	glViewport(0, 0, GetSettings().winSize.x(), GetSettings().winSize.y());
+}
 
+void UI::EndFrame()
+{
+	SetViewport();
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
@@ -153,6 +191,9 @@ void UI::EndFrame()
 
 	boxVAO.Draw();
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	//Draw textured quads
 	static ShaderProgram quadShdr{ "assets/textured_uibox" };
 	static VAO quadVAO(quadShdr, UnitBox);
@@ -169,10 +210,8 @@ void UI::EndFrame()
 		quadVAO.Draw();
 	}
 
-	glEnable(GL_BLEND);
-
 	//Draw text
-	//blend from constant (text) color to dest color by source color
+	//blend from constant (text) color to dest color by source color (ie, subpixel alpha)
 	glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR);
 	auto textColor = GetSettings().textColor;
 	glBlendColor(textColor.x(), textColor.y(), textColor.z(), 1.f);
@@ -189,6 +228,11 @@ void UI::EndFrame()
 	BindPixelUBO();
 
 	txtVAO.Draw();
+
+	//Draw specials
+	glDisable(GL_BLEND);
+	for (auto& fn : FrameVisuals().specials) fn();
+	glEnable(GL_BLEND);
 
 	//Draw shadows
 	glBlendFunc(GL_DST_COLOR, GL_ZERO); //multiply
@@ -265,6 +309,11 @@ void UI::DrawDivider(AlignedBox2i box)
 	DrawBox({ box.corner(AlignedBox2i::TopLeft),
 		box.corner(AlignedBox2i::TopRight) + Vector2i{ 0, 1 } },
 		0, Colors::divider);
+}
+
+void UI::DrawSpecial(std::function<void()> draw)
+{
+	FrameVisuals().specials.push_back(draw);
 }
 
 template<>

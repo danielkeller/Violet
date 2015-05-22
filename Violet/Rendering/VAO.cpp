@@ -4,7 +4,7 @@
 #include <iostream>
 
 void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schema,
-	GLsizei stride, GLsizei offset, bool instanced)
+	GLsizei stride, GLsizei offset, bool instanced, bool warnings)
 {
 	auto bound = Bind();
 	for (const auto& props : schema)
@@ -13,8 +13,9 @@ void VAO::BindArrayBufToShader(const ShaderProgram& program, const Schema& schem
 		GLint vertAttrib = program.GetAttribLocation(props.name);
 		if (vertAttrib == -1)
 		{
-			std::cerr << "Warning: Vertex attribute '" << props.name << "' is not defined or active in '"
-				<< program.Name() << "'\n";
+			if (warnings)
+				std::cerr << "Warning: Vertex attribute '" << props.name
+					<< "' is not defined or active in '" << program.Name() << "'\n";
 			continue;
 		}
 

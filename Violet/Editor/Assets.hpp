@@ -4,6 +4,7 @@
 #include "Rendering/Texture.hpp"
 #include "Rendering/Material.hpp"
 #include "UI/Elements.hpp"
+#include "MaterialEdit.hpp"
 
 class Material;
 class VertexData;
@@ -23,11 +24,12 @@ class Assets
 {
 public:
 	//true if selection changed
-	bool Draw(Key& cur);
+	bool Draw(Key& cur, std::function<void(Asset<Key>&)> edit);
 	std::vector<Asset<Key>> assets;
 
 private:
 	std::vector<UI::Button> buttons;
+	std::vector<UI::Button> editButtons;
 };
 
 //FIXME: Both of these should rescan when sensible
@@ -45,6 +47,8 @@ public:
 class MaterialAssets
 {
 	Assets<Material::Id> a;
+	bool editorOn;
+	MaterialEdit edit;
 public:
 	static Tex Thumb(const Material& mat);
 	MaterialAssets(Persist&);

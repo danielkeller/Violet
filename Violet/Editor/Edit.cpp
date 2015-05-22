@@ -122,8 +122,11 @@ void Edit::ComponentEditor::Draw(Persist& persist, Component& c, Object selected
 	}
 }
 
-void Edit::PhysTick(Events& e, Object camera)
+void Edit::PhysTick(Object camera)
 {
+	Events& e = UI::FrameEvents();
+
+	//fixme: can't close if a modal thing is open
 	if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_RELEASE }))
 		enabled = !enabled;
 
@@ -229,6 +232,7 @@ void Edit::PhysTick(Events& e, Object camera)
 			//the angles displayed here are how much the object appears to be rotated when
 			//looking down the given axis at it. The twist-swing decomposition allows us
 			//to separate out the rest of the rotation and edit just the apparent rotation
+			//TODO: radian/degree
 			for (int axis = 0; axis < 3; ++axis)
 			{
 				stopped |= angleEdit[axis].Draw(curAngle[axis]);

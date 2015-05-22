@@ -47,10 +47,12 @@ namespace UI
 		using Dir = Layout::Dir;
 		LayoutStack(Vector2i box, Dir dir = Dir::Right);
 		void PushLayer(Dir dir = Dir::Right /*, int z*/);
+		void PopLayer();
 		//pushes a new layout, filling in direction dir
 		void PushNext(Dir dir = Dir::Right);
 		//pops the current layout, and pushes the remaining space
-		void PushRest(Dir dir = Dir::Right);
+		//I think this function is bad because it breaks the stack
+		//void PushRest(Dir dir = Dir::Right);
 		//pops the current layout, and returns the remaining space
 		Layout Pop(Dir dir = Dir::Right);
 		//adds a box and returns the space it's in
@@ -59,6 +61,8 @@ namespace UI
 		Layout PutSpace(int advance);
 		//makes sure the current layout can fit at least width across
 		void EnsureWidth(int across);
+		//Insets the current layout by amount pixels
+		void Inset(int amount);
 		//look at the current layout
 		Layout Current() const;
 

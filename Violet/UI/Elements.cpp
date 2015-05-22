@@ -7,12 +7,6 @@
 
 using namespace UI;
 
-std::string to_upper(std::string str)
-{
-	std::transform(str.begin(), str.end(), str.begin(), ::toupper);
-	return str;
-}
-
 Focusable::Focusable()
 	: focused(false)
 {}
@@ -37,14 +31,14 @@ bool Focusable::Draw(AlignedBox2i box)
 	}
 
 	//throw focus (leave the event for the catching control)
-	if (focused && events.HasKeyEvent({ { GLFW_KEY_TAB, 0 }, GLFW_PRESS }))
+	if (focused && events.HasKeyEvent({ { GLFW_KEY_TAB, 0 }, RELEASE_OR_REPEAT }))
 	{
 		focused = false;
 		ret = true;
 	}
 
 	//catch focus
-	if (!anyFocused && events.PopKeyEvent({ { GLFW_KEY_TAB, 0 }, GLFW_PRESS }))
+	if (!anyFocused && events.PopKeyEvent({ { GLFW_KEY_TAB, 0 }, RELEASE_OR_REPEAT }))
 		focused = true;
 
 	anyFocused |= focused;
@@ -105,9 +99,9 @@ bool Button::Behavior(AlignedBox2i box)
 	//the button is active if it's clicked and hovered
 	active = hovered && box.contains(mouse) && FrameEvents().MouseButton(GLFW_MOUSE_BUTTON_LEFT);
 
-	//while active we handle mouse events
-	//if (active)
-	//	FrameEvents().PopMouse();
+	//while hovered we handle mouse events
+	if (hovered)
+		FrameEvents().PopMouse();
 
 	return false;
 }
@@ -120,4 +114,29 @@ bool TextButton::Draw()
 {
 	Layout l = CurLayout().PutSpace({ width, LINEH });
 	return button.Draw(l, text);
+}
+
+ModalBoxRAII::ModalBoxRAII(UI::Layout::Dir dir)
+	: closed(false)
+{
+	UI::PushModal();
+	Events& e = UI::FrameEvents();
+	if (e.PopKey({ GLFW_KEY_ESCAPE, 0 }))
+		closed = true;
+
+	UI::LayoutStack& l = UI::CurLayout();
+	l.PushLayer(dir);
+	UI::PushZ(10); //I don't like this
+
+	l.Inset(30);
+	UI::DrawBox(l.Current());
+	UI::DrawShadow(l.Current());
+	l.Inset(20);
+}
+
+ModalBoxRAII::~ModalBoxRAII()
+{
+	UI::PopZ();
+	UI::CurLayout().PopLayer();
+	UI::PopModal();
 }

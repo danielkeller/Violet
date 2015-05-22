@@ -21,5 +21,5 @@ vec2 pickVec(vec2 minbox, vec2 maxbox)
 void main()
 {
 	gl_Position = pixelMat*vec4(pickVec(minBox, maxBox), z + 0.2, 1);
-	texCoordFrag = pickVec(minBoxTex, maxBoxTex);
+	texCoordFrag = vec2(0, 1) + vec2(1, -1)*pickVec(minBoxTex, maxBoxTex);
 }

@@ -12,6 +12,9 @@ struct ResourcePersistTag;
 struct EmbeddedResourcePersistTag;
 class Persist;
 
+//FIXME: static instances of this class can cause crashes at exit if the
+//destructor happens to be called after the gl module is unloaded and
+//glDeleteProgram hasn't been called (ie, loaded) yet
 class ShaderProgram
 {
 	struct ShaderResource;
@@ -169,6 +172,7 @@ private:
 
 MEMBER_HASH(UBO, resource)
 
+//NOOOOOOOOP
 MAKE_PERSIST_TRAITS(UBO, std::string, ShaderProgram, std::string, std::vector<char>)
 
 #endif

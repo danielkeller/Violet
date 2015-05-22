@@ -59,7 +59,9 @@ struct Events
 
 	Viewport View() { return view; }
 
+	//viewport we're drawing into
 	Viewport view;
+	//size of the actual window
 	Vector2i dimVec;
 
 	using MouseButtons = std::array<bool, 5>;

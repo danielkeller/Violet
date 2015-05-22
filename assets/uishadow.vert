@@ -17,6 +17,6 @@ out float zFrag;
 void main()
 {
 	minBoxFrag = minBox; maxBoxFrag = maxBox;
-	zFrag = .999 - z / 10.f;
+	zFrag = .999 - z / 50.f; //FIXME
 	gl_Position = vec4(position.xy, zFrag, 1);
 }
