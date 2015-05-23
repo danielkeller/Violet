@@ -6,7 +6,55 @@
 
 #include <cstdint>
 
-class UBO;
+struct Uniform
+{
+	std::string name;
+	MEMBER_EQUALITY(std::string, name)
+	GLenum type;
+	GLuint size, offset;
+	GLint stride, location;
+};
+
+//Uniform Buffer Object
+class UBO
+{
+	struct Proxy;
+	friend struct Proxy;
+	friend class ShaderProgram;
+	enum Type
+	{
+		Common,
+		Material
+	};
+
+	//typename std::aligned_storage<sizeof(char), alignof(Matrix4f)>::type;
+	using BufferElemTy = char;
+
+public:
+	//It should be possible to call Bind with no ill effects
+	UBO();
+
+	BASIC_EQUALITY(UBO, bindProxy)
+
+	Proxy operator[](const std::string& name);
+
+	//Associates this UBO with its binding point.
+	void Bind() const;
+
+	using BufferTy = std::vector<BufferElemTy>;
+	const BufferTy& Data() const;
+
+private:
+	using BufferObjTy = BufferObject<BufferElemTy, GL_UNIFORM_BUFFER, GL_STREAM_DRAW>;
+	struct Impl;
+	BufferObjTy::IndexedBindProxy bindProxy;
+	std::shared_ptr<Impl> impl;
+
+	UBO(std::shared_ptr<Impl>);
+
+	void Sync();
+	HAS_HASH
+};
 
 struct ResourcePersistTag;
 struct EmbeddedResourcePersistTag;
@@ -34,8 +82,8 @@ public:
 	BASIC_EQUALITY(ShaderProgram, program)
 
 	std::string Name() const;
-	//make a new UBO, or find an existing one
-	UBO MakeUBO(const std::string& block, const std::string& name) const;
+	UBO MakeUBO(const std::string& block) const;
+	UBO MakeUBO(const std::string& block, UBO::BufferTy data) const;
 	//Set the order of textures in the associated material
 	void TextureOrder(const std::vector<std::string>& order);
 
@@ -51,128 +99,49 @@ private:
 
 MEMBER_HASH(ShaderProgram, program)
 
-struct Uniform
+struct UBO::Proxy
 {
-	std::string name;
-	MEMBER_EQUALITY(std::string, name)
-	GLenum type;
+	Proxy(UBO& ubo, Uniform unif) : ubo(ubo), unif(unif) {}
 
-	//The sizes returned are in units of the type returned by a query of
-	//GL_UNIFORM_TYPE. For active uniforms that are arrays, the size is
-	//the number of active elements in the array; for all other uniforms,
-	//the size is one.
-	GLuint size;
-
-	//For uniforms in a named uniform block, the returned value will be
-	//its offset, in basic machine units, relative to the beginning of
-	//the uniform block in the buffer object data store. For atomic
-	//counter uniforms, the returned value will be its offset relative
-	//to the beginning of its active atomic counter buffer. For all other
-	//uniforms, -1 will be returned.
-	GLuint offset;
-
-	//For uniforms in named uniform blocks and for uniforms declared as
-	//atomic counters, the stride is the difference, in basic machine
-	//units, of consecutive elements in an array, or zero for uniforms
-	//not declared as an array. For all other uniforms, a stride of
-	//-1 will be returned.
-	GLint stride;
-	GLint location;
-};
-
-//Uniform Buffer Object
-class UBO
-{
-	struct Proxy;
-	enum Type
+	template<typename Scalar, int Rows, int Cols>
+	operator Eigen::Matrix<Scalar, Rows, Cols>() const
 	{
-		Common,
-		Material
-	};
+		Scalar dummy{};
+		CheckType(dummy, Rows, Cols);
+		return Eigen::Map<Eigen::Matrix<Scalar, Rows, Cols>>(Ptr(dummy));
+	}
 
-public:
-	//It should be possible to call Bind with no ill effects
-	UBO();
+	template<typename Derived>
+	Proxy& operator=(const Eigen::MatrixBase<Derived>& data)
+	{
+		Derived::Scalar dummy{};
+		CheckType(dummy, data.rows(), data.cols());
+		Eigen::Map<Eigen::MatrixBase<Derived>::PlainObject>(
+			Ptr(dummy), data.rows(), data.cols()) = data;
+		ubo.Sync();
+		return *this;
+	}
 
-	UBO(std::string name, ShaderProgram shader, std::string block, std::vector<char> data);
+	operator std::uint32_t() const;
+	Proxy& operator=(const std::uint32_t&);
 
-	BASIC_EQUALITY(UBO, bindProxy)
-
-	Proxy operator[](const std::string& name);
-
-	//Associates this UBO with its binding point.
-	void Bind() const;
-
-	std::string Key() const;
-	void Save(Persist&) const;
-
-	friend struct Proxy;
-	friend class ShaderProgram;
-
-	using PersistCategory = EmbeddedResourcePersistTag;
+	Proxy operator[](GLuint offset);
 
 private:
-	using BufferTy = char; //typename std::aligned_storage<sizeof(char), alignof(Matrix4f)>::type;
-	using BufferObjTy = BufferObject<BufferTy, GL_UNIFORM_BUFFER, GL_STREAM_DRAW>;
+	UBO& ubo;
+	const Uniform unif;
 
-	struct UBOResource;
+	void CheckType(GLenum type) const;
+	void CheckType(float dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
+	void CheckType(int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
+	void CheckType(unsigned int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
 
-	UBO(std::shared_ptr<UBOResource>);
-
-	BufferObjTy::IndexedBindProxy bindProxy;
-	std::shared_ptr<UBOResource> resource;
-
-	void Sync();
-
-	struct Proxy
-	{
-		Proxy(UBO& ubo, Uniform unif)
-			: ubo(ubo), unif(unif) {}
-
-		template<typename Scalar, int Rows, int Cols>
-		operator Eigen::Matrix<Scalar, Rows, Cols>() const
-		{
-			Scalar dummy{};
-			CheckType(dummy, Rows, Cols);
-			return Eigen::Map<Eigen::Matrix<Scalar, Rows, Cols>>(Ptr(dummy));
-		}
-
-		template<typename Derived>
-		Proxy& operator=(const Eigen::MatrixBase<Derived>& data)
-		{
-			Derived::Scalar dummy{};
-			CheckType(dummy, data.rows(), data.cols());
-			Eigen::Map<Eigen::MatrixBase<Derived>::PlainObject>(
-				Ptr(dummy), data.rows(), data.cols()) = data;
-			ubo.Sync();
-			return *this;
-		}
-
-		operator std::uint32_t() const;
-		Proxy& operator=(const std::uint32_t&);
-
-		Proxy operator[](GLuint offset);
-
-	private:
-		UBO& ubo;
-		const Uniform unif;
-
-		void CheckType(GLenum type) const;
-		void CheckType(float dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
-		void CheckType(int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
-		void CheckType(unsigned int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
-
-		//Warning: these violate const correctness
-		unsigned int* Ptr(unsigned int) const;
-		int* Ptr(int) const;
-		float* Ptr(float) const;
-	};
-    HAS_HASH
+	//Warning: these violate const correctness
+	unsigned int* Ptr(unsigned int) const;
+	int* Ptr(int) const;
+	float* Ptr(float) const;
 };
 
-MEMBER_HASH(UBO, resource)
-
-//NOOOOOOOOP
-MAKE_PERSIST_TRAITS(UBO, std::string, ShaderProgram, std::string, std::vector<char>)
+MEMBER_HASH(UBO, impl)
 
 #endif

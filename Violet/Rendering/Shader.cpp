@@ -6,6 +6,8 @@
 #include "File/Filesystem.hpp"
 #include "RenderPasses.hpp"
 
+#include <iostream>
+
 struct Uniforms
 {
 	Uniforms() = default;
@@ -68,24 +70,12 @@ std::map<std::string, GLint> standardAttribs = {
     {"object",    15}
 };
 
-struct UBO::UBOResource : public Resource<UBOResource>
-{
-    std::vector<BufferTy> data;
-	BufferObjTy bufferObject;
-	//Type allows us to distinguish between UBOs that are shared (ie, camera)
-	//with those that are not (ie, material).
-	Type type;
-	Uniforms::Block block;
-	ShaderProgram shader;
-	const Uniforms::Block& Block() { return block; }
-	UBOResource(const std::string& name, ShaderProgram shader, const Uniforms::Block& block);
-};
-
 ShaderProgram::ShaderResource::ShaderResource(std::string path)
 	: ResourceTy(path)
 {
     MappedFile vert(path + ".vert");
 	MappedFile frag(path + ".frag");
+	//TODO: null terminated?
     init(vert.Data<char>(), frag.Data<char>(), path + ".vert", path + ".frag");
 }
 
@@ -140,18 +130,6 @@ GLint ShaderProgram::GetAttribLocation(const std::string& name) const
     return glGetAttribLocation(program, name.c_str());
 }
 
-UBO ShaderProgram::MakeUBO(const std::string& block, const std::string& name) const
-{
-	if (std::count(resource->uniforms.blocks.begin(),
-		resource->uniforms.blocks.end(), block) == 0)
-		return UBO{};
-
-	auto res = UBO::UBOResource::FindResource(name);
-	if (res)
-		return res;
-	return UBO::UBOResource::MakeShared(name, *this, resource->uniforms[block]);
-}
-
 //These should stay the same for much of the shader's lifetime
 void ShaderProgram::TextureOrder(const std::vector<std::string>& order)
 {
@@ -180,7 +158,7 @@ GLuint CreateShader(GLenum eShaderType, const char* t, const std::string& name)
 
 	std::string buffer = versionString + '"' + name + "\"\n" + t;
 
-    //create the shader Render
+    //create the shader object
     GLuint shader = glCreateShader(eShaderType);
 
     //attach and compile the source
@@ -243,6 +221,7 @@ void ShaderProgram::ShaderResource::init(const char* vert, const char* frag,
 	
     uniforms = Uniforms(program);
     
+	//block binding is done by convention
     for(GLuint uniformBlockIndex = 0; uniformBlockIndex < uniforms.blocks.size(); ++uniformBlockIndex)
         if (uniforms.blocks[uniformBlockIndex].name != "")
             glUniformBlockBinding(program, uniformBlockIndex,
@@ -331,73 +310,82 @@ const Uniforms::Block& Uniforms::operator[](const std::string& n) const
 	return *it;
 }
 
-UBO::UBOResource::UBOResource(const std::string& name, ShaderProgram shader,
-	const Uniforms::Block& block)
-	: Resource(name), data(block.byte_size)
+struct UBO::Impl
+{
+	BufferTy data;
+	BufferObjTy bufferObject;
+	//Type allows us to distinguish between UBOs that are shared (ie, camera)
+	//with those that are not (ie, material).
+	Type type;
+
+	Uniforms::Block block;
+	Impl(ShaderProgram shader, const Uniforms::Block& block);
+};
+
+UBO ShaderProgram::MakeUBO(const std::string& block) const
+{
+	if (std::count(resource->uniforms.blocks.begin(),
+		resource->uniforms.blocks.end(), block) == 0)
+		return UBO{};
+
+	return std::make_shared<UBO::Impl>(*this, resource->uniforms[block]);
+}
+
+UBO ShaderProgram::MakeUBO(const std::string& block, UBO::BufferTy data) const
+{
+	UBO ret = MakeUBO(block);
+
+	if (ret.impl->data.size() != data.size())
+		std::cerr << "Warning: Shader '" << Name() << "' wants " <<
+		ret.impl->data.size() << " bytes for '" << block << "' but there are "
+			<< data.size() << '\n';
+
+	swap(ret.impl->data, data);
+	return ret;
+}
+
+UBO::Impl::Impl(ShaderProgram shader, const Uniforms::Block& block)
+	: data(block.byte_size)
     , bufferObject(block.byte_size)
 	, type(block.name == "Common" ? UBO::Common : UBO::Material), block(block)
-	, shader(shader)
 {}
 
 UBO::UBO()
 	: bindProxy(Material)
 {
-	static auto nullUbo = UBOResource::MakeShared(
-		"null", ShaderProgram(), Uniforms::Block());
-	resource = nullUbo;
+	static auto nullUbo = std::make_shared<Impl>(ShaderProgram(), Uniforms::Block());
+	impl = nullUbo;
 }
 
-UBO::UBO(std::shared_ptr<UBOResource> r)
+UBO::UBO(std::shared_ptr<Impl> r)
 	: bindProxy(r->bufferObject.GetIndexedBindProxy(r->type))
-	, resource(r)
+	, impl(r)
 {}
-
-UBO::UBO(std::string name, ShaderProgram shader, std::string block, std::vector<char> data)
-	: UBO(shader.MakeUBO(block, name))
-{
-	if (resource->data.size() != data.size())
-		throw std::runtime_error("Wrong amount of saved data for " + shader.Name() + "." + block);
-
-	resource->data = data;
-	resource->bufferObject.Data(data);
-}
 
 void UBO::Bind() const
 {
 	bindProxy.Bind();
 }
 
-std::string UBO::Key() const
+const UBO::BufferTy& UBO::Data() const
 {
-	return resource->Key();
-}
-
-void UBO::Save(Persist& persist) const
-{
-	if (resource)
-		persist.Set<UBO>(resource->Key(), resource->shader,
-			resource->block.name, resource->data);
+	return impl->data;
 }
 
 UBO::Proxy UBO::operator[](const std::string& name)
 {
-	return Proxy(*this, resource->Block()[name]);
+	return Proxy(*this, impl->block[name]);
 }
 
 void UBO::Sync()
 {
-	resource->bufferObject.Data(resource->data);
+	impl->bufferObject.Data(impl->data);
 }
-
-template<>
-const char* PersistSchema<UBO>::name = "ubo";
-template<>
-Columns PersistSchema<UBO>::cols = {"name", "shader", "block", "data"};
 
 void UBO::Proxy::CheckType(GLenum type) const
 {
-	if (unif.type != type) throw std::runtime_error("Wrong type for uniform '" + unif.name
-		+ "' in shader " + ubo.resource->shader.Name());
+	if (unif.type != type) throw std::runtime_error("Wrong type for uniform '"
+		+ ubo.impl->block.name + '.' + unif.name);
 }
 
 void UBO::Proxy::CheckType(float dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const
@@ -436,7 +424,7 @@ void UBO::Proxy::CheckType(unsigned int dummy, std::ptrdiff_t Rows, std::ptrdiff
 #define PROXY_PTR(Type) \
 	Type* UBO::Proxy::Ptr(Type) const \
 	{\
-		return reinterpret_cast<Type*>(ubo.resource->data.data() + unif.offset);\
+		return reinterpret_cast<Type*>(ubo.impl->data.data() + unif.offset);\
 	}
 
 PROXY_PTR(float)

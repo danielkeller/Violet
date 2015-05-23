@@ -8,10 +8,13 @@ Material::Material()
 	: id(std::rand())
 {}
 
+
 Material::Material(Id id, Persist& persist)
 	: id(id)
 {
-	std::tie(std::ignore, name, shader, ubo, textures) = persist.Get<Material>(id);
+	UBO::BufferTy buf;
+	std::tie(std::ignore, name, shader, buf, textures) = persist.Get<Material>(id);
+	ubo = shader.MakeUBO("Material", buf);
 }
 
 Material::Material(const std::string& name, ShaderProgram shader)
@@ -23,18 +26,19 @@ Material::Material(const std::string& name, ShaderProgram shader, Tex tex)
 {}
 
 Material::Material(const std::string& name, ShaderProgram shader, std::vector<Tex> texes)
-	: Material(std::rand(), name, shader, shader.MakeUBO("Material", name), texes)
+	: id(std::rand()), name(name), shader(shader)
+	, ubo(shader.MakeUBO("Material")), textures(texes)
 {}
 
-Material::Material(std::int64_t id, const std::string& name, ShaderProgram shader, UBO ubo,
-	std::vector<Tex> texes)
+Material::Material(std::int64_t id, const std::string& name, ShaderProgram shader,
+	UBO::BufferTy uboBuffer, std::vector<Tex> texes)
 	: id(id), name(name), shader(shader)
-	, ubo(shader.MakeUBO("Material", name)), textures(texes)
+	, ubo(shader.MakeUBO("Material", uboBuffer)), textures(texes)
 {}
 
 void Material::Save(Persist& persist) const
 {
-	persist.Set<Material>(id, name, shader, ubo, textures);
+	persist.Set<Material>(id, name, shader, ubo.Data(), textures);
 }
 
 Material::Id Material::Key() const

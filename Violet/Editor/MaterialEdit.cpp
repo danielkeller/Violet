@@ -8,7 +8,7 @@ MaterialEdit::MaterialEdit()
 	: mat(), instances(1), vao({ "assets/blank" }, UnitBox)
 	, matName(WIDTH)
 {
-	cam = ShaderProgram{ "assets/simple" }.MakeUBO("Common", "PreviewCamera");
+	cam = ShaderProgram{ "assets/simple" }.MakeUBO("Common");
 
 	//TODO: not so many Eigen::
 	InstData object{ Object::invalid,

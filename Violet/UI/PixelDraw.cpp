@@ -37,11 +37,15 @@ std::uint32_t ColorSwizzle(UI::Color color)
 
 struct UI::Settings
 {
-	Settings() : screenTex(TexDim{ 0, 0 }) {}
+	Settings()
+		: screenTex(TexDim{ 0, 0 })
+		, pixelUBO(ShaderProgram{ "assets/uibox" }.MakeUBO("Common"))
+	{}
 	Font font;
 	Vector3f textColor;
 	TypedTex<DepthPx> screenTex;
 	FBO fbo;
+	UBO pixelUBO;
 	Vector2i winSize;
 };
 
@@ -343,14 +347,12 @@ const Schema AttribTraits<TextQuad>::schema = {
 
 static void WinResize(Vector2i sz)
 {
-	static ShaderProgram txtShdr{ "assets/uibox" };
-	static UBO pixelUBO = txtShdr.MakeUBO("Common", "PixelCommon");
-	pixelUBO["pixelMat"] = PixelMat(sz);
-
 	auto& s = GetSettings();
 	s.screenTex = TypedTex<DepthPx>(sz);
 	s.fbo.AttachDepth(s.screenTex);
 	s.fbo.CheckStatus();
+
+	s.pixelUBO["pixelMat"] = PixelMat(sz);
 
 	s.winSize = sz;
 }
@@ -366,7 +368,5 @@ void UI::Init(Window& w)
 
 void UI::BindPixelUBO()
 {
-	static ShaderProgram pxlShdr{ "assets/uibox" };
-	static UBO pixelUBO = pxlShdr.MakeUBO("Common", "PixelCommon");
-	pixelUBO.Bind();
+	GetSettings().pixelUBO.Bind();
 }

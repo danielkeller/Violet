@@ -13,6 +13,7 @@ public:
 	using Id = std::int64_t;
 
 	Material();
+	Material(const Material&) = default;
 	Material(Id, Persist&);
 	Material(const std::string& name, ShaderProgram);
 	Material(const std::string& name, ShaderProgram, Tex);
@@ -32,9 +33,10 @@ public:
 	void Save(Persist& persist) const;
 	Id Key() const;
 	using PersistCategory = EmbeddedResourcePersistTag;
-	Material(std::int64_t, const std::string&, ShaderProgram, UBO, std::vector<Tex>);
+	Material(std::int64_t, const std::string&, ShaderProgram, UBO::BufferTy, std::vector<Tex>);
 };
 
-MAKE_PERSIST_TRAITS(Material, Material::Id, std::string, ShaderProgram, UBO, std::vector<Tex>)
+MAKE_PERSIST_TRAITS(Material, Material::Id, std::string,
+	ShaderProgram, UBO::BufferTy, std::vector<Tex>)
 
 #endif

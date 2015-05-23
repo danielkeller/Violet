@@ -8,6 +8,8 @@ uniform Common
 };
 
 out vec2 texCoordFrag;
+out vec3 normalFrag;
+out vec3 posFrag;
 
 flat out uint objectFrag;
 
@@ -17,6 +19,8 @@ in uint object;
 void main()
 {
     gl_Position = camera * transform * vec4(position, 1);
+	posFrag = (transform * vec4(position, 1)).xyz;
 	texCoordFrag = texCoord;
+	normalFrag = normal;
     objectFrag = object;
 }

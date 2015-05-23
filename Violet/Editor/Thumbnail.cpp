@@ -11,8 +11,8 @@ Tex ObjAssets::Thumb(const std::string& path)
 	static Viewport view({ Vector2i::Zero(), dim });
 
 	static ShaderProgram shader{ "assets/shaded" };
-	static UBO mat = shader.MakeUBO("Material", "ShadedLight");
-	static UBO cam = shader.MakeUBO("Common", "ThumbCamera");
+	static UBO mat = shader.MakeUBO("Material");
+	static UBO cam = shader.MakeUBO("Common");
 	STATIC
 	{
 		mat["light"] = Vector3f{ -1, 1, 1 }.normalized();
@@ -46,9 +46,7 @@ Tex ObjAssets::Thumb(const std::string& path)
 
 	//Draw the correct sides of things
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
 	vao.Draw();
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -61,7 +59,7 @@ Tex MaterialAssets::Thumb(const Material& mat)
 	static const TexDim dim{ THM_SIZE, THM_SIZE };
 	static Viewport view({ Vector2i::Zero(), dim });
 
-	static UBO cam = mat.shader.MakeUBO("Common", "ThumbCamera");
+	static UBO cam = mat.shader.MakeUBO("Common");
 	STATIC
 		cam["camera"] = Matrix4f::Identity();
 

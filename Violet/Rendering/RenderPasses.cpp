@@ -7,7 +7,7 @@
 RenderPasses::RenderPasses(Position& p, Window& w, Render& r)
 	: r(r), w(w), mobile(p), camera(Object::invalid)
 	, simpleShader("assets/simple")
-	, commonUBO(simpleShader.MakeUBO("Common", "Common"))
+	, commonUBO(simpleShader.MakeUBO("Common"))
 	, screenMat("screenMat", { "assets/screen" })
 	, screenQuad(screenMat.shader, UnitBox)
 	, view({ Vector2i::Zero(), Vector2i{-1,-1} })
