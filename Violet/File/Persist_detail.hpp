@@ -10,6 +10,9 @@ namespace Persist_detail
 {
 	using namespace std::placeholders;
 
+	template<typename... Types> class DataIterator;
+	class Database;
+
 	template<class Other>
 	struct PersistCategory
 	{
@@ -25,29 +28,67 @@ namespace Persist_detail
 	template<class Other>
 	using cat_t = typename PersistCategory<Other>::Category;
 
-	struct PreparedStmtImpl
+	class PreparedStmt
 	{
-		PreparedStmtImpl();
-		PreparedStmtImpl(PreparedStmtImpl&) = delete;
-		PreparedStmtImpl(PreparedStmtImpl&&);
-		PreparedStmtImpl& operator=(PreparedStmtImpl other);
+	public:
+		PreparedStmt(PreparedStmt&) = delete;
+		PreparedStmt(PreparedStmt&&);
+		PreparedStmt& operator=(PreparedStmt other);
 #ifndef NDEBUG
-		~PreparedStmtImpl();
+		~PreparedStmt();
 #endif
 
+		template<typename... Values>
+		PreparedStmt& Bind(const Values&... vs)
+		{
+			//bind indices are 1 based and get indices are 0 based
+			BindImpl(GenSeq<sizeof...(vs)+1>(), vs...);
+			return *this;
+		}
+
+		PreparedStmt& Step();
+
+		template<typename... Values>
+		std::tuple<Values...> Get()
+		{
+			//get indices are 0 based and bind indices are 1 based
+			return GetImpl<Values...>(GenSeq<sizeof...(Values)>());
+		}
+
+		PreparedStmt& Reset();
+
+		//helper function for one row queries
+		template<typename... Return, typename... Params>
+		std::tuple<Return...> Eval(const Params&... vs)
+		{
+			Reset(); Bind(vs...); Step(); return Get<Return...>();
+		}
+
+		//helper for one row one column queries
+		template<typename Return, typename... Params>
+		Return Eval1(const Params&... vs)
+		{
+			return std::get<0>(Eval<Return>(vs...));
+		}
+
+		explicit operator bool();
+
+		template<typename Tuple>
+		static range<DataIterator<Tuple>> StmtData(PreparedStmt&& stmt)
+		{
+			return{ ++DataIterator<Tuple>{ std::move(stmt) }, {} };
+		}
+
+	private:
 		std::unique_ptr<sqlite3_stmt, decltype(&::sqlite3_finalize)> stmt;
 		int lastResult;
 		Persist* persist;
 
-		template<typename... Values>
-		void BindImpl(const Values&... vs)
-		{
-			//bind indices are 1 based and get indices are 0 based
-			BindAll(GenSeq<sizeof...(vs)+1>(), vs...);
-		}
+		friend class Database;
+		PreparedStmt(Persist* persist, sqlite3* db, const std::string& sql);
 
 		template<typename... Values, unsigned... Inds>
-		void BindAll(seq<0, Inds...>, const Values&... vs)
+		void BindImpl(seq<0, Inds...>, const Values&... vs)
 		{
 			std::make_tuple((Bind1(Inds, vs), 0)...);
 		}
@@ -95,15 +136,8 @@ namespace Persist_detail
 			return val.Key();
 		}
 
-		template<typename... Values>
-		std::tuple<Values...> GetImpl()
-		{
-			//get indices are 0 based and bind indices are 1 based
-			return GetAll<Values...>(GenSeq<sizeof...(Values)>());
-		}
-
 		template<typename... Values, unsigned... Inds>
-		std::tuple<Values...> GetAll(seq<Inds...>)
+		std::tuple<Values...> GetImpl(seq<Inds...>)
 		{
 			return std::make_tuple(Get1<Values>(Inds)...);
 		}
@@ -165,90 +199,17 @@ namespace Persist_detail
 	};
 
 	template<>
-	std::int64_t PreparedStmtImpl::Get1<std::int64_t>(int num);
+	std::int64_t PreparedStmt::Get1<std::int64_t>(int num);
 	template<>
-	Object PreparedStmtImpl::Get1<Object>(int num);
+	Object PreparedStmt::Get1<Object>(int num);
 	template<>
-	bool PreparedStmtImpl::Get1<bool>(int num);
+	bool PreparedStmt::Get1<bool>(int num);
 	template<>
-	std::string PreparedStmtImpl::Get1<std::string>(int num);
+	std::string PreparedStmt::Get1<std::string>(int num);
 	template<>
-	std::vector<char> PreparedStmtImpl::Get1<std::vector<char>>(int num);
+	std::vector<char> PreparedStmt::Get1<std::vector<char>>(int num);
 	template<>
-	std::vector<std::string> PreparedStmtImpl::Get1<std::vector<std::string>>(int num);
-
-	template<typename... Types>
-	class DataIterator;
-
-	template<typename... Types>
-	class DataIteratorRange;
-
-	class PreparedStmt : private PreparedStmtImpl
-	{
-	public:
-		PreparedStmt();
-		PreparedStmt(PreparedStmt&) = delete;
-		PreparedStmt(PreparedStmt&&);
-		PreparedStmt& operator=(PreparedStmt other);
-
-		BASIC_EQUALITY(PreparedStmt, stmt);
-
-		template<typename... Values>
-		PreparedStmt& Bind(const Values&... vs) { BindImpl(vs...); return *this; }
-
-		PreparedStmt& Step();
-
-		template<typename... Values>
-		std::tuple<Values...> Get() { return GetImpl<Values...>(); }
-
-		PreparedStmt& Reset();
-
-		//helper function for one row queries
-		template<typename... Return, typename... Params>
-		std::tuple<Return...> Eval(const Params&... vs)
-		{
-			Reset(); Bind(vs...); Step(); return Get<Return...>();
-		}
-
-		//helper for one row one column queries
-		template<typename Return, typename... Params>
-		Return Eval1(const Params&... vs)
-		{
-			return std::get<0>(Eval<Return>(vs...));
-		}
-
-		explicit operator bool();
-
-		template<typename Tuple>
-		static DataIteratorRange<Tuple> StmtData(PreparedStmt&& stmt)
-		{
-			return{ std::move(stmt) };
-		}
-
-	private:
-		PreparedStmt(Persist* persist, sqlite3* db, const std::string& sql);
-
-		using Impl = PreparedStmtImpl;
-		friend class Database;
-	};
-
-	template<typename... Types>
-	class DataIteratorRange<std::tuple<Types...>>
-	{
-	public:
-		using iterator = DataIterator<std::tuple<Types...>>;
-		iterator begin()
-		{
-			stmt.Reset();
-			//starts before the beginning
-			return ++iterator(&stmt);
-		}
-		iterator end() { return{}; }
-
-		DataIteratorRange(PreparedStmt&& stmt) : stmt(std::move(stmt)) {}
-	private:
-		PreparedStmt stmt;
-	};
+	std::vector<std::string> PreparedStmt::Get1<std::vector<std::string>>(int num);
 
 	template<typename... Types>
 	class DataIterator<std::tuple<Types...>>
@@ -256,16 +217,17 @@ namespace Persist_detail
 	{
 		using Base = std::iterator<std::input_iterator_tag, std::tuple<Types...>>;
 		using value_type = std::tuple<Types...>;
-		struct arrow_helper
+		struct ArrowHelper
 		{
 			value_type temp;
 			value_type* operator->() { return &temp; }
 		};
 	public:
-		DataIterator() : stmt(nullptr) {}
+		DataIterator() = default;
 		DataIterator(DataIterator&) = default;
-		DataIterator(DataIterator&& other) : stmt(other.stmt) {}
-		DataIterator(PreparedStmt* stmt) : stmt(stmt) {}
+		DataIterator(PreparedStmt&& stmt)
+			: stmt(std::make_shared<PreparedStmt>(std::move(stmt)))
+		{}
 
 		BASIC_EQUALITY(DataIterator, stmt);
 
@@ -275,22 +237,22 @@ namespace Persist_detail
 			return stmt->Get<Types...>();
 		}
 
-		arrow_helper operator->() { return{ operator*() }; }
+		ArrowHelper operator->() { return{ operator*() }; }
 
 		DataIterator& operator++()
 		{
 			stmt->Step();
 			if (!*stmt) //release it at the end to be equal to the end iterator
-				stmt = nullptr;
+				stmt.reset();
 			return *this;
 		}
 
 		void operator++(int) { operator++(); }
 
-		explicit operator bool() { return stmt != nullptr; }
+		explicit operator bool() { return bool(stmt); }
 
 	private:
-		PreparedStmt* stmt;
+		std::shared_ptr<PreparedStmt> stmt;
 	};
 
 	class Transaction

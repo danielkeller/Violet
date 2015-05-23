@@ -15,12 +15,8 @@
 
 using namespace Persist_detail;
 
-PreparedStmtImpl::PreparedStmtImpl()
-	: stmt(nullptr, &sqlite3_finalize), lastResult(-1), persist(nullptr)
-{}
-
 #ifndef NDEBUG
-PreparedStmtImpl::~PreparedStmtImpl()
+PreparedStmt::~PreparedStmt()
 {
 	//catch stupid errors
 	if (stmt && lastResult == -1)
@@ -29,11 +25,10 @@ PreparedStmtImpl::~PreparedStmtImpl()
 }
 #endif
 
-PreparedStmt::PreparedStmt(Persist* persist_, sqlite3* db, const std::string& sql)
+PreparedStmt::PreparedStmt(Persist* persist, sqlite3* db, const std::string& sql)
+	: stmt(nullptr, &sqlite3_finalize), lastResult(-1), persist(persist)
 {
 	auto p = Profile::Profile("sql compilation");
-
-	persist = persist_;
 
 	sqlite3_stmt *stmtPtr;
 	int result = sqlite3_prepare_v2(db, sql.c_str(), static_cast<int>(sql.size()), &stmtPtr, nullptr);
@@ -45,25 +40,15 @@ PreparedStmt::PreparedStmt(Persist* persist_, sqlite3* db, const std::string& sq
 	stmt.reset(stmtPtr);
 }
 
-PreparedStmtImpl::PreparedStmtImpl(PreparedStmtImpl&& other)
+PreparedStmt::PreparedStmt(PreparedStmt&& other)
 	: stmt(std::move(other.stmt)), lastResult(other.lastResult), persist(other.persist)
 {}
-
-PreparedStmt::PreparedStmt(PreparedStmt&& other)
-	: Impl(std::move(other))
-{}
-
-PreparedStmtImpl& PreparedStmtImpl::operator=(PreparedStmtImpl other)
-{
-	swap(stmt, other.stmt);
-	swap(lastResult, other.lastResult);
-	swap(persist, other.persist);
-	return *this;
-}
 
 PreparedStmt& PreparedStmt::operator=(PreparedStmt other)
 {
 	swap(stmt, other.stmt);
+	swap(lastResult, other.lastResult);
+	swap(persist, other.persist);
 	return *this;
 }
 
@@ -91,33 +76,33 @@ PreparedStmt::operator bool()
 	return lastResult == SQLITE_ROW;
 }
 
-void PreparedStmtImpl::Bind1(int num, std::int64_t val)
+void PreparedStmt::Bind1(int num, std::int64_t val)
 {
 	SQLITE_CHECK_OK(sqlite3_bind_int64(stmt.get(), num, val));
 }
 
-void PreparedStmtImpl::Bind1(int num, bool val)
+void PreparedStmt::Bind1(int num, bool val)
 {
 	Bind1(num, val ? 1ll : 0ll);
 }
 
-void PreparedStmtImpl::Bind1(int num, Object val)
+void PreparedStmt::Bind1(int num, Object val)
 {
 	SQLITE_CHECK_OK(sqlite3_bind_int(stmt.get(), num, val.Id()));
 }
 
-void PreparedStmtImpl::Bind1(int num, std::string val)
+void PreparedStmt::Bind1(int num, std::string val)
 {
 	SQLITE_CHECK_OK(sqlite3_bind_text64(stmt.get(), num,
 		val.data(), val.size(), SQLITE_TRANSIENT, SQLITE_UTF8));
 }
 
-void PreparedStmtImpl::Bind1(int num, std::vector<char> val)
+void PreparedStmt::Bind1(int num, std::vector<char> val)
 {
 	Bind1(num, range<const char*>{ &*val.begin(), &*val.end() });
 }
 
-void PreparedStmtImpl::Bind1(int num, std::vector<std::string> val)
+void PreparedStmt::Bind1(int num, std::vector<std::string> val)
 {
 	std::string concat;
 	for (const auto& str : val)
@@ -129,39 +114,39 @@ void PreparedStmtImpl::Bind1(int num, std::vector<std::string> val)
 	Bind1(num, concat);
 }
 
-void PreparedStmtImpl::Bind1(int num, range<const char*> val)
+void PreparedStmt::Bind1(int num, range<const char*> val)
 {
 	SQLITE_CHECK_OK(sqlite3_bind_blob64(stmt.get(), num,
 		val.begin(), val.size(), SQLITE_TRANSIENT));
 }
 
 template<>
-std::int64_t PreparedStmtImpl::Get1<std::int64_t>(int num)
+std::int64_t PreparedStmt::Get1<std::int64_t>(int num)
 {
 	return sqlite3_column_int64(stmt.get(), num);
 }
 
 template<>
-Object PreparedStmtImpl::Get1<Object>(int num)
+Object PreparedStmt::Get1<Object>(int num)
 {
 	return Object(sqlite3_column_int(stmt.get(), num));
 }
 
 template<>
-bool PreparedStmtImpl::Get1<bool>(int num)
+bool PreparedStmt::Get1<bool>(int num)
 {
 	return sqlite3_column_int(stmt.get(), num) == 1;
 }
 
 template<>
-std::vector<char> PreparedStmtImpl::Get1<std::vector<char>>(int num)
+std::vector<char> PreparedStmt::Get1<std::vector<char>>(int num)
 {
 	auto r = GetBlob(num);
 	return{ r.begin(), r.end() };
 }
 
 template<>
-std::vector<std::string> PreparedStmtImpl::Get1<std::vector<std::string>>(int num)
+std::vector<std::string> PreparedStmt::Get1<std::vector<std::string>>(int num)
 {
 	auto str = Get1<std::string>(num);
 	std::vector<std::string> ret;
@@ -175,14 +160,14 @@ std::vector<std::string> PreparedStmtImpl::Get1<std::vector<std::string>>(int nu
 }
 
 template<>
-std::string PreparedStmtImpl::Get1<std::string>(int num)
+std::string PreparedStmt::Get1<std::string>(int num)
 {
 	const unsigned char* text = sqlite3_column_text(stmt.get(), num);
 	int len = sqlite3_column_bytes(stmt.get(), num);
 	return{ text, text + len };
 }
 
-range<const char*> PreparedStmtImpl::GetBlob(int num)
+range<const char*> PreparedStmt::GetBlob(int num)
 {
 	const char* blob = static_cast<const char*>(sqlite3_column_blob(stmt.get(), num));
 	int len = sqlite3_column_bytes(stmt.get(), num);

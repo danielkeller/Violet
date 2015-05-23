@@ -13,7 +13,12 @@
 #include <cstdlib>
 #include <ctime>
 
+//#ifdef _WIN32
+//#include "Windows.hpp"
+//int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+//#else
 int main(void)
+//#endif
 try
 {
 	std::srand(static_cast<unsigned int>(std::time(nullptr)));

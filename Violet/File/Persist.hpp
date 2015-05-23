@@ -2,7 +2,8 @@
 #define PERSIST_HPP
 
 #include <unordered_map>
-#include <thread>
+//#include <thread>
+#include <utility>
 
 #include "Core/Object.hpp"
 #include "Containers/WrappedIterator.hpp"
@@ -42,7 +43,7 @@ class Persist
 
 	using PreparedStmt = Persist_detail::PreparedStmt;
 	template<typename... Types>
-	using DataIteratorRange = Persist_detail::DataIteratorRange<Types...>;
+	using DataIterator = Persist_detail::DataIterator<Types...>;
 
 public:
 	Persist();
@@ -62,7 +63,7 @@ public:
 	}
 
 	template<class Subsystem>
-	DataIteratorRange<data_t<Subsystem>> GetAll()
+	range<DataIterator<data_t<Subsystem>>> GetAll()
 	{
 		Track<Subsystem>();
 		return PreparedStmt::StmtData<data_t<Subsystem>>(
@@ -71,7 +72,7 @@ public:
 
 	//get matching rows
 	template<class Subsystem, class Key>
-	DataIteratorRange<data_t<Subsystem>> GetSome(const char* col, Key k)
+	range<DataIterator<data_t<Subsystem>>> GetSome(const char* col, Key k)
 	{
 		Track<Subsystem>();
 		return PreparedStmt::StmtData<data_t<Subsystem>>(
