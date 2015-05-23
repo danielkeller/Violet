@@ -14,7 +14,7 @@ public:
 
 	Material();
 	Material(const Material&) = default;
-	Material(Id, Persist&);
+	Material(Id, const Persist&);
 	Material(const std::string& name, ShaderProgram);
 	Material(const std::string& name, ShaderProgram, Tex);
 	Material(const std::string& name, ShaderProgram, std::vector<Tex>);

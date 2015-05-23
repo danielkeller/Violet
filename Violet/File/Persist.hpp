@@ -33,7 +33,6 @@ struct PersistSchema
 
 template<class Subsystem> struct PersistTraits;
 
-//FIXME: const correctness
 class Persist
 {
 	template<class Subsystem>
@@ -49,21 +48,21 @@ public:
 	Persist();
 
 	template<class Subsystem>
-	data_t<Subsystem> Get(key_t<Subsystem> k)
+	data_t<Subsystem> Get(key_t<Subsystem> k) const
 	{
 		Track<Subsystem>();
 		return *GetSome<Subsystem>(*PersistSchema<Subsystem>::cols.begin(), k).begin();
 	}
 
 	template<class Subsystem>
-	bool Exists(key_t<Subsystem> k)
+	bool Exists(key_t<Subsystem> k) const
 	{
 		Track<Subsystem>();
 		return database.MakeExistsStmt(PersistSchema<Subsystem>::name).Eval1<bool>(k);
 	}
 
 	template<class Subsystem>
-	range<DataIterator<data_t<Subsystem>>> GetAll()
+	range<DataIterator<data_t<Subsystem>>> GetAll() const
 	{
 		Track<Subsystem>();
 		return PreparedStmt::StmtData<data_t<Subsystem>>(
@@ -72,7 +71,7 @@ public:
 
 	//get matching rows
 	template<class Subsystem, class Key>
-	range<DataIterator<data_t<Subsystem>>> GetSome(const char* col, Key k)
+	range<DataIterator<data_t<Subsystem>>> GetSome(const char* col, Key k) const
 	{
 		Track<Subsystem>();
 		return PreparedStmt::StmtData<data_t<Subsystem>>(
@@ -108,8 +107,9 @@ public:
 private:
 	Persist_detail::Database database;
 
+	//Warning: violates const correctness
 	template<class Subsystem>
-	void Track()
+	void Track() const
 	{
 		using schema = PersistSchema<Subsystem>;
 		database.Track(schema::name, schema::cols);

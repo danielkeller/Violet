@@ -112,14 +112,14 @@ const Schema AttribTraits<InstData>::schema = {
     { "object", GL_UNSIGNED_INT, true, 16 * sizeof(float), {1, 1}, 0 },
 };
 
-void Render::Load(Persist& persist)
+void Render::Load(const Persist& persist)
 {
 	for (const auto& row : persist.GetAll<Render>())
 		Create(std::get<0>(row), std::get<2>(row), std::get<3>(row),
 			std::get<1>(row) ? Mobilty::Yes : Mobilty::No);
 }
 
-void Render::Unload(Persist& persist)
+void Render::Unload(const Persist& persist)
 {
 	for (const auto& row : persist.GetAll<Render>())
 		Remove(std::get<0>(row));

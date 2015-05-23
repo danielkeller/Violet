@@ -6,10 +6,10 @@
 struct Component
 {
 	//loads all objects from persist
-	virtual void Load(Persist&) = 0;
+	virtual void Load(const Persist&) = 0;
 
 	//unloads all objects in persist
-	virtual void Unload(Persist&) = 0;
+	virtual void Unload(const Persist&) = 0;
 
 	//true if this object uses this component
 	virtual bool Has(Object) const = 0;
@@ -25,8 +25,8 @@ class ComponentManager
 {
 public:
 	void Register(Component* c);
-	void Load(Persist&);
-	void Unload(Persist&);
+	void Load(const Persist&);
+	void Unload(const Persist&);
 	void Delete(Object);
 	void Save(Object, Persist&);
 private:

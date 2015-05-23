@@ -41,13 +41,13 @@ void Edit::Editable(Object o)
 	objectSelect.items.try_emplace(it, o, name);
 }
 
-void Edit::Load(Persist& persist)
+void Edit::Load(const Persist& persist)
 {
 	for (auto o : persist.GetAll<Edit>())
 		Editable(std::get<0>(o));
 }
 
-void Edit::Unload(Persist& persist)
+void Edit::Unload(const Persist& persist)
 {
 	for (auto o : persist.GetAll<Edit>())
 		Remove(std::get<0>(o));

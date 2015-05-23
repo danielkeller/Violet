@@ -24,8 +24,8 @@ public:
 
 	void PhysTick(Object camera);
 
-	void Load(Persist&);
-	void Unload(Persist&);
+	void Load(const Persist&);
+	void Unload(const Persist&);
 	bool Has(Object) const;
 	void Save(Object, Persist&) const;
 	void Remove(Object);

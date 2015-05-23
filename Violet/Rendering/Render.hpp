@@ -55,8 +55,8 @@ public:
 	void Create(Object obj, Material mat, VertexData vertData, Mobilty mobile = Mobilty::No);
 	void Create(Object obj, std::tuple<Material, VertexData, Mobilty>);
 
-	void Load(Persist&);
-	void Unload(Persist&);
+	void Load(const Persist&);
+	void Unload(const Persist&);
 	bool Has(Object obj) const;
 	void Save(Object obj, Persist&) const;
 	void Remove(Object obj);

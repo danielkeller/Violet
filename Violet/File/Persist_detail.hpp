@@ -270,21 +270,23 @@ namespace Persist_detail
 	public:
 		Database(Persist* persist, std::string file);
 
-		void Track(const char* name, std::initializer_list<const char*> cols);
-
 		PreparedStmt MakeStmt(const std::string& sql);
+		void Track(const char* name, std::initializer_list<const char*> cols) const;
 
+		PreparedStmt MakeSelectAllStmt(const char* subsystem) const;
+		PreparedStmt MakeSelectSomeStmt(const char* subsystem, const char* col) const;
+		PreparedStmt MakeExistsStmt(const char* subsystem) const;
 		PreparedStmt MakeInsertStmt(const char* subsystem);
-		PreparedStmt MakeSelectAllStmt(const char* subsystem);
-		PreparedStmt MakeSelectSomeStmt(const char* subsystem, const char* col);
-		PreparedStmt MakeExistsStmt(const char* subsystem);
 		PreparedStmt MakeDeleteStmt(const char* subsystem);
 
 		Transaction Begin();
 
 	private:
+		//Warning: violates const correctness
+		PreparedStmt MakeStmt(const std::string& sql) const;
+
 		std::unique_ptr<sqlite3, decltype(&::sqlite3_close)> db;
-		std::unordered_map<const char*, std::initializer_list<const char*>> schema;
+		mutable std::unordered_map<const char*, std::initializer_list<const char*>> schema;
 		Persist* persist;
 		int transactDepth; //safely nest transactions
 		friend class Transaction;

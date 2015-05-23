@@ -45,8 +45,8 @@ public:
 	void Watch(Object obj, magic_ptr<Transform> w);
 
 	//void Add(Object obj);
-	void Load(Persist&);
-	void Unload(Persist&);
+	void Load(const Persist&);
+	void Unload(const Persist&);
 	bool Has(Object obj) const;
 	void Save(Object obj, Persist&) const;
 	void Remove(Object obj);

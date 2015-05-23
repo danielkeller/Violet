@@ -9,7 +9,7 @@ Material::Material()
 {}
 
 
-Material::Material(Id id, Persist& persist)
+Material::Material(Id id, const Persist& persist)
 	: id(id)
 {
 	UBO::BufferTy buf;

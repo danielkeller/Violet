@@ -57,13 +57,13 @@ void Position::Watch(Object obj, magic_ptr<Transform> w)
 	data[obj].target += w;
 }
 
-void Position::Load(Persist& persist)
+void Position::Load(const Persist& persist)
 {
 	for (const auto& row : persist.GetAll<Position>())
 		Set(std::get<0>(row), std::get<1>(row));
 }
 
-void Position::Unload(Persist& persist)
+void Position::Unload(const Persist& persist)
 {
 	for (const auto& row : persist.GetAll<Position>())
 		Remove(std::get<0>(row));

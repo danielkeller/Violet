@@ -7,12 +7,12 @@ void ComponentManager::Register(Component* c)
 	components.push_back(c);
 }
 
-void ComponentManager::Load(Persist& persist)
+void ComponentManager::Load(const Persist& persist)
 {
 	for (auto comp : components) comp->Load(persist);
 }
 
-void ComponentManager::Unload(Persist& persist)
+void ComponentManager::Unload(const Persist& persist)
 {
 	for (auto comp : components) comp->Unload(persist);
 }

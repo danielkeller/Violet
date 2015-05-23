@@ -193,12 +193,17 @@ Database::Database(Persist* persist, std::string file)
 	EXCEPT_INFO_END(file)
 }
 
-PreparedStmt Database::MakeStmt(const std::string& sql)
+PreparedStmt Database::MakeStmt(const std::string& sql) const
 {
 	return{ persist, db.get(), sql };
 }
 
-void Database::Track(const char* name, Columns cols)
+PreparedStmt Database::MakeStmt(const std::string& sql)
+{
+	return static_cast<const Database*>(this)->MakeStmt(sql);
+}
+
+void Database::Track(const char* name, Columns cols) const
 {
 	if (schema.count(name))
 		return;
@@ -243,7 +248,7 @@ void Database::Track(const char* name, Columns cols)
 }
 
 
-PreparedStmt Database::MakeSelectAllStmt(const char* subsystem)
+PreparedStmt Database::MakeSelectAllStmt(const char* subsystem) const
 {
 	Columns cols = schema[subsystem];
 	auto rest = make_range(cols.begin() + 1, cols.end());
@@ -257,7 +262,7 @@ PreparedStmt Database::MakeSelectAllStmt(const char* subsystem)
 	return MakeStmt(command.str());
 }
 
-PreparedStmt Database::MakeSelectSomeStmt(const char* subsystem, const char* col)
+PreparedStmt Database::MakeSelectSomeStmt(const char* subsystem, const char* col) const
 {
 	Columns cols = schema[subsystem];
 	const char * const key = *schema[subsystem].begin();
@@ -293,7 +298,7 @@ PreparedStmt Database::MakeInsertStmt(const char* subsystem)
 	return MakeStmt(command.str());
 }
 
-PreparedStmt Database::MakeExistsStmt(const char* subsystem)
+PreparedStmt Database::MakeExistsStmt(const char* subsystem) const
 {
 	const char* const key = *schema[subsystem].begin();
 
