@@ -135,8 +135,14 @@ bool MaterialAssets::Draw(Material& cur, Persist& persist)
 {
 	if (editorOn && edit.Draw(persist))
 	{
-		//TODO: replace every object using the material
+		//update the thumbnail
+		Material& edited = edit.Current();
+		auto editedAsset = std::find(a.assets.begin(), a.assets.end(), edited.id);
+		editedAsset->thumb = Thumb(edited);
+		editedAsset->name = edited.name;
+
 		editorOn = false;
+		//TODO: replace every object using the material
 	}
 
 	Material::Id curName = cur.id;

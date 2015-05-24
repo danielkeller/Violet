@@ -126,12 +126,12 @@ void Edit::PhysTick(Object camera)
 {
 	Events& e = UI::FrameEvents();
 
-	//fixme: can't close if a modal thing is open
-	if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_RELEASE }))
-		enabled = !enabled;
-
 	if (!enabled)
+	{
+		if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
+			enabled = true;
 		return;
+	}
 
 	Object picked = rp.Pick(e.MousePosPxl());
 	Object newSelect = selected;
@@ -346,6 +346,9 @@ void Edit::PhysTick(Object camera)
 		if (selected != Object::none)
 			curObjectName = objName[selected];
 	}
+
+	if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
+		enabled = false;
 
 	//fixme
 	e.PopMouse();

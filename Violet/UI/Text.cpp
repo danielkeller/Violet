@@ -72,11 +72,13 @@ Vector2i UI::TextDim(std::string::const_iterator begin, std::string::const_itera
 	return posf.cast<int>();
 }
 
-void UI::DrawText(const std::string& text, AlignedBox2i container)
+void UI::DrawText(const std::string& text, AlignedBox2i container, TextAlign align)
 {
 	Vector2i dim{ TextDim(text).x(), LINEH }; //doesn't give useful y dimension
 	Vector2i space = (container.sizes() - dim) / 2;
 	space.y() += BASELINE_HEIGHT; //start at the correct point
+	if (align == TextAlign::Left) space.x() = TEXT_PADDING;
+	if (align == TextAlign::Right) space.x() = container.sizes().x() - dim.x() - TEXT_PADDING;
 	//UI::DrawBox(container);
 	DrawText(text, container.corner(AlignedBox2i::BottomLeft) + space);
 }

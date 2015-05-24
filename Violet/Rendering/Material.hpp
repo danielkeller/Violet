@@ -25,6 +25,7 @@ public:
 	std::string name;
 
 	ShaderProgram shader;
+	//FIXME: this creates a new UBO every time the same material is loaded!
 	UBO ubo;
 	std::vector<Tex> textures;
 

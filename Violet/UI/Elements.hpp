@@ -20,7 +20,7 @@ namespace UI
 	struct Focusable
 	{
 		Focusable();
-		bool focused;
+		bool focused, tabbedIn;
 		static bool anyFocused;
 		//returns true if focus was just lost
 		bool Draw(AlignedBox2i box);

@@ -49,16 +49,24 @@ bool LineEdit::Draw(std::string& text)
 	auto box = l.Box();
 	//as far as stb_textedit is concerned
 	Vector2i origin = box.corner(AlignedBox2i::BottomLeft)
-		+ Vector2i{ TEXT_LEFT_PAD, BASELINE_HEIGHT };
+		+ Vector2i{ TEXT_PADDING, BASELINE_HEIGHT };
 
 	auto mouse = FrameEvents().MousePosPxl().cast<int>();
 	Vector2f mouseOffs = (mouse - origin).cast<float>();
-	mouseOffs.y() *= -1;
-
-	if (text != lastText)
-		stb_textedit_clear_state(&state, true);
+	//for a multi-line control we would flip y into stb's coordinates, but since
+	//this is one line, just stick it inside the line
+	mouseOffs.y() = -3;// *= -1;
 
 	bool ret = focus.Draw(box);
+
+	if (ret || text != lastText)
+		stb_textedit_clear_state(&state, true);
+
+	if (focus.tabbedIn) //auto select all
+	{
+		state.select_start = 0;
+		state.select_end = text.size();
+	}
 
 	if (FrameEvents().MouseClick(GLFW_MOUSE_BUTTON_LEFT) && box.contains(mouse))
 		stb_textedit_click(&text, &state, mouseOffs.x(), mouseOffs.y());
@@ -68,7 +76,8 @@ bool LineEdit::Draw(std::string& text)
 	if (focus.focused)
 	{
 		//do keyboard events
-		if (FrameEvents().PopKeyEvent({ { GLFW_KEY_ENTER, 0 }, GLFW_PRESS }))
+		if (FrameEvents().PopKeyEvent({ { GLFW_KEY_ENTER, 0 }, GLFW_PRESS })
+			|| FrameEvents().PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
 		{
 			focus.Unfocus();
 			ret = true;
@@ -95,46 +104,48 @@ bool LineEdit::Draw(std::string& text)
 		FrameEvents().charEvents.clear();
 	}
 
-	//draw decorations
 	UI::PushZ();
-
-	Vector2i ulStart = box.corner(AlignedBox2i::BottomLeft) + Vector2i{ TEXT_LEFT_PAD, 0 };
-	if (focus.focused)
-		DrawHlBox({ ulStart - Vector2i{ 0, 1 },
-			ulStart + Vector2i{ width - 2 * TEXT_LEFT_PAD, 0 } });
-	else
-		DrawBox({ ulStart, ulStart + Vector2i{ width - 2 * TEXT_LEFT_PAD, 0 } },
-		0, UI::Colors::divider);
-
 	lastText = text;
 	DrawText(text, origin);
 
-	StbFindState find;
+	//draw decorations
 
-	//blink
-	long timeHalfSec = std::chrono::duration_cast<
-		std::chrono::duration<long, std::ratio<1, 2>>>(FrameEvents().simTime).count();
-
-	if (focus.focused && timeHalfSec & 1)
+	Vector2i ulStart = box.corner(AlignedBox2i::BottomLeft) + Vector2i{ TEXT_PADDING, 0 };
+	if (focus.focused)
 	{
-		stb_textedit_find_charpos(&find, &text, state.cursor, true);
-		//leave a pixel of daylight between the cursor and the underline
-		Vector2i cursStart{ ulStart + Vector2i{ find.x, 2 } };
-		DrawBox({ cursStart, cursStart + Vector2i{ 0, LINEH - 2 } }, 0, UI::Colors::secondary);
+		DrawHlBox({ ulStart - Vector2i{ 0, 1 },
+			ulStart + Vector2i{ width - 2 * TEXT_PADDING, 0 } });
+
+		StbFindState find;
+
+		//blink
+		long timeHalfSec = std::chrono::duration_cast<
+			std::chrono::duration<long, std::ratio<1, 2>>>(FrameEvents().simTime).count();
+
+		if (timeHalfSec & 1)
+		{
+			stb_textedit_find_charpos(&find, &text, state.cursor, true);
+			//leave a pixel of daylight between the cursor and the underline
+			Vector2i cursStart{ ulStart + Vector2i{ find.x, 2 } };
+			DrawBox({ cursStart, cursStart + Vector2i{ 0, LINEH - 2 } }, 0, UI::Colors::secondary);
+		}
+
+		if (state.select_start != state.select_end)
+		{
+			int start = std::min(state.select_start, state.select_end);
+			stb_textedit_find_charpos(&find, &text, start, true);
+			Vector2i selStart{ ulStart + Vector2i{ find.x - 1, 2 } };
+
+			int end = std::max(state.select_start, state.select_end);
+			stb_textedit_find_charpos(&find, &text, end, true);
+			Vector2i selEnd{ ulStart + Vector2i{ find.x + 1, LINEH } };
+
+			DrawBox({ selStart, selEnd }, UI::Colors::selection, 0);
+		}
 	}
-
-	if (state.select_start != state.select_end)
-	{
-		int start = std::min(state.select_start, state.select_end);
-		stb_textedit_find_charpos(&find, &text, start, true);
-		Vector2i selStart{ ulStart + Vector2i{ find.x - 1, 2 } };
-
-		int end = std::max(state.select_start, state.select_end);
-		stb_textedit_find_charpos(&find, &text, end, true);
-		Vector2i selEnd{ ulStart + Vector2i{ find.x + 1, LINEH } };
-
-		DrawBox({ selStart, selEnd }, UI::Colors::selection, 0);
-	}
+	else
+		DrawBox({ ulStart, ulStart + Vector2i{ width - 2 * TEXT_PADDING, 0 } },
+		0, UI::Colors::divider);
 
 	UI::PopZ();
 

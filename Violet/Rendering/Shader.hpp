@@ -6,13 +6,27 @@
 
 #include <cstdint>
 
+struct UniformType
+{
+	UniformType() = default;
+	UniformType(GLenum type);
+	GLenum scalar;
+	GLuint rows, cols;
+};
+
+inline GLenum UniformScalar(float) { return GL_FLOAT; }
+inline GLenum UniformScalar(int) { return GL_INT; }
+inline GLenum UniformScalar(unsigned int) { return GL_UNSIGNED_INT; }
+
 struct Uniform
 {
 	std::string name;
-	MEMBER_EQUALITY(std::string, name)
-	GLenum type;
-	GLuint size, offset;
+	UniformType type;
+	GLuint size;
+	GLuint offset;
 	GLint stride, location;
+
+	MEMBER_EQUALITY(std::string, name)
 };
 
 //Uniform Buffer Object
@@ -43,6 +57,10 @@ public:
 
 	using BufferTy = std::vector<BufferElemTy>;
 	const BufferTy& Data() const;
+	std::vector<Uniform> Uniforms() const;
+
+	//Only needed when editing the data through []::Map()
+	void Sync();
 
 private:
 	using BufferObjTy = BufferObject<BufferElemTy, GL_UNIFORM_BUFFER, GL_STREAM_DRAW>;
@@ -51,8 +69,6 @@ private:
 	std::shared_ptr<Impl> impl;
 
 	UBO(std::shared_ptr<Impl>);
-
-	void Sync();
 	HAS_HASH
 };
 
@@ -62,15 +78,17 @@ class Persist;
 
 //FIXME: static instances of this class can cause crashes at exit if the
 //destructor happens to be called after the gl module is unloaded and
-//glDeleteProgram hasn't been called (ie, loaded) yet
+//glDeleteProgram hasn't been called (ie, loaded) yet. I think this only
+//happens in the case of unusual termination though
 class ShaderProgram
 {
 	struct ShaderResource;
 
 public:
     ShaderProgram() : ShaderProgram("assets/blank") {}
-
 	ShaderProgram(std::string path);
+	std::string Name() const;
+	BASIC_EQUALITY(ShaderProgram, program)
 
 	//Enable this program for rendering
 	void use() const;
@@ -79,11 +97,9 @@ public:
 	GLint GetAttribLocation(const std::string& name) const;
 	GLenum GetAttribType(GLint loc) const;
 
-	BASIC_EQUALITY(ShaderProgram, program)
-
-	std::string Name() const;
 	UBO MakeUBO(const std::string& block) const;
 	UBO MakeUBO(const std::string& block, UBO::BufferTy data) const;
+
 	//Set the order of textures in the associated material
 	void TextureOrder(const std::vector<std::string>& order);
 
@@ -102,22 +118,17 @@ MEMBER_HASH(ShaderProgram, program)
 struct UBO::Proxy
 {
 	Proxy(UBO& ubo, Uniform unif) : ubo(ubo), unif(unif) {}
-
+	
 	template<typename Scalar, int Rows, int Cols>
 	operator Eigen::Matrix<Scalar, Rows, Cols>() const
 	{
-		Scalar dummy{};
-		CheckType(dummy, Rows, Cols);
-		return Eigen::Map<Eigen::Matrix<Scalar, Rows, Cols>>(Ptr(dummy));
+		return const_cast<Proxy*>(this)->Map<Scalar>(Rows, Cols);
 	}
 
 	template<typename Derived>
 	Proxy& operator=(const Eigen::MatrixBase<Derived>& data)
 	{
-		Derived::Scalar dummy{};
-		CheckType(dummy, data.rows(), data.cols());
-		Eigen::Map<Eigen::MatrixBase<Derived>::PlainObject>(
-			Ptr(dummy), data.rows(), data.cols()) = data;
+		Map<Derived::Scalar>(data.rows(), data.cols()) = data;
 		ubo.Sync();
 		return *this;
 	}
@@ -127,14 +138,19 @@ struct UBO::Proxy
 
 	Proxy operator[](GLuint offset);
 
+	template<typename Scalar>
+	Eigen::Map<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>>
+	Map(std::ptrdiff_t Rows, std::ptrdiff_t Cols)
+	{
+		CheckType(UniformScalar(Scalar{}), Rows, Cols);
+		return{ Ptr(Scalar{}), Rows, Cols };
+	}
+
 private:
 	UBO& ubo;
 	const Uniform unif;
 
-	void CheckType(GLenum type) const;
-	void CheckType(float dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
-	void CheckType(int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
-	void CheckType(unsigned int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
+	void CheckType(GLenum scalar, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const;
 
 	//Warning: these violate const correctness
 	unsigned int* Ptr(unsigned int) const;

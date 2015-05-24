@@ -15,6 +15,7 @@ uniform Material
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+	float specExp;
 };
 
 void main()
@@ -22,7 +23,13 @@ void main()
    vec3 lightDir = normalize(lightPos - posFrag);
    float lambert = max(dot(lightDir, normalFrag), 0.0);
 
-   color = texture(tex, texCoordFrag) * 
-      1;//vec4(ambient + lambert * diffuse, 1);
+   //FIXME
+   vec3 camera = vec3(0, 3, 0);
+   vec3 view = normalize(camera - posFrag);
+   vec3 refl = 2*lambert*normalFrag - lightDir;
+   float spec = lambert == 0.0 ? 0.0 : pow(max(dot(refl, view), 0.0), specExp);
+
+   color = texture(tex, texCoordFrag) *
+      vec4(ambient + lambert * diffuse + spec*specular, 1);
    picker = objectFrag;
 }

@@ -63,13 +63,14 @@ Tex MaterialAssets::Thumb(const Material& mat)
 	STATIC
 		cam["camera"] = Matrix4f::Identity();
 
-	static InstData object{ Object::invalid, Matrix4f::Identity() };
+	//look down the end of it
+	static InstData object{ Object::invalid, Eigen::Affine3f{
+		Eigen::Translation3f(0, 0, -2) * Eigen::Scaling(2.f) }.matrix() };
 	static BufferObject<InstData, GL_ARRAY_BUFFER, GL_STATIC_DRAW> instances(1);
 	STATIC
 		instances.Assign(0, object);
 
-	static VertexData box{ UnitBox };
-	VAO vao{ mat.shader,  box};
+	VAO vao{ mat.shader, { "assets/capsule.obj" } };
 	vao.BindInstanceData(mat.shader, instances);
 
 	static FBO fbo;

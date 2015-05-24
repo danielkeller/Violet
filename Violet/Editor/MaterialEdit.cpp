@@ -2,6 +2,7 @@
 #include "MaterialEdit.hpp"
 #include "UI/Layout.hpp"
 #include "UI/PixelDraw.hpp"
+#include "UI/Text.hpp"
 #include "Window.hpp"
 
 MaterialEdit::MaterialEdit()
@@ -25,6 +26,11 @@ void MaterialEdit::Edit(Material newMat)
 	vao.BindInstanceData(mat.shader, instances);
 }
 
+Material MaterialEdit::Current() const
+{
+	return mat;
+}
+
 bool MaterialEdit::Draw(Persist& persist)
 {
 	UI::ModalBoxRAII modalBox(UI::Layout::Dir::Right);
@@ -34,7 +40,7 @@ bool MaterialEdit::Draw(Persist& persist)
 	UI::LayoutStack& l = UI::CurLayout();
 
 	//render the preview
-	Viewport view(l.PutSpace(300));
+	Viewport view(l.PutSpace(WIDTH));
 	cam["camera"] = view.OrthoMat();
 	UI::DrawSpecial([=]()
 	{
@@ -52,12 +58,44 @@ bool MaterialEdit::Draw(Persist& persist)
 	l.PutSpace(20);
 
 	l.PushNext(UI::Layout::Dir::Down);
+	l.EnsureWidth(WIDTH);
 	
 	if (matName.Draw(mat.name))
 		mat.Save(persist);
 
-	l.PutSpace(UI::LINEH);
+	size_t nFloatUnifs = 0;
+	for (const auto& unif : mat.ubo.Uniforms())
+	{
+		l.PutSpace(UI::LINEH);
+		UI::DrawText(unif.name, l.PutSpace(UI::LINEH), UI::TextAlign::Left);
 
+		//TODO: arrays
+		if (unif.type.scalar == GL_FLOAT)
+		{
+			size_t curUnif = nFloatUnifs;
+			nFloatUnifs += unif.type.rows*unif.type.cols;
+			//grow to fit
+			floatUnifs.resize(std::max(floatUnifs.size(), nFloatUnifs), UI::FloatEdit(WIDTH/4));
+			
+			auto map = mat.ubo[unif.name].Map<float>(unif.type.rows, unif.type.cols);
+			auto dispMap = unif.type.cols == 1 //display column vectors as rows
+				? map.transpose() : map;
+			
+			for (int row = 0; row < dispMap.rows(); ++row)
+			{
+				l.PushNext(UI::Layout::Dir::Right);
+				for (int col = 0; col < dispMap.cols(); ++col, ++curUnif)
+				{
+					if (floatUnifs[curUnif].Draw(dispMap(row, col)))
+						mat.Save(persist);
+					//live editing
+					if (floatUnifs[curUnif].editing)
+						mat.ubo.Sync();
+				}
+				l.Pop();
+			}
+		}
+	}
 
 	l.Pop();
 

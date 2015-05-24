@@ -8,8 +8,8 @@ namespace UI
 	static const int LINEH = 16;
 	//distance from bottom of line to text baseline
 	static const int BASELINE_HEIGHT = 4;
-	//distance from left of container to start of text
-	static const int TEXT_LEFT_PAD = 4;
+	//distance from side of container to edge of text
+	static const int TEXT_PADDING = 4;
 
 	struct Layout
 	{

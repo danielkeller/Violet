@@ -4,10 +4,11 @@
 
 #include <cstdlib>
 
+#include <iostream>
+
 Material::Material()
 	: id(std::rand())
 {}
-
 
 Material::Material(Id id, const Persist& persist)
 	: id(id)

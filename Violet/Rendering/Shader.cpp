@@ -8,6 +8,38 @@
 
 #include <iostream>
 
+UniformType::UniformType(GLenum type)
+{
+	switch (type)
+	{
+#define INTEGRAL(SCALAR) \
+	case SCALAR: case SCALAR##_VEC2: case SCALAR##_VEC3: case SCALAR##_VEC4:\
+		scalar = SCALAR; break
+
+	INTEGRAL(GL_INT); INTEGRAL(GL_UNSIGNED_INT); INTEGRAL(GL_BOOL); INTEGRAL(GL_FLOAT);
+
+	case GL_FLOAT_MAT2: case GL_FLOAT_MAT3: case GL_FLOAT_MAT4: 
+		scalar = GL_FLOAT; break;
+
+	default: scalar = type;
+	}
+
+	switch (type)
+	{	
+#define VEC(TYPE, DIM) case TYPE##_VEC##DIM:
+#define VECS(DIM) \
+VEC(GL_INT, DIM) VEC(GL_UNSIGNED_INT, DIM) VEC(GL_BOOL, DIM) VEC(GL_FLOAT, DIM)\
+rows = DIM; cols = 1; break
+
+	VECS(2); VECS(3); VECS(4);
+
+	case GL_FLOAT_MAT2: rows = cols = 2; break;
+	case GL_FLOAT_MAT3: rows = cols = 3; break;
+	case GL_FLOAT_MAT4: rows = cols = 4; break;
+	default: rows = cols = 1;
+	}
+}
+
 struct Uniforms
 {
 	Uniforms() = default;
@@ -341,6 +373,7 @@ UBO ShaderProgram::MakeUBO(const std::string& block, UBO::BufferTy data) const
 			<< data.size() << '\n';
 
 	swap(ret.impl->data, data);
+	ret.Sync();
 	return ret;
 }
 
@@ -372,6 +405,11 @@ const UBO::BufferTy& UBO::Data() const
 	return impl->data;
 }
 
+std::vector<Uniform> UBO::Uniforms() const
+{
+	return impl->block.uniforms;
+}
+
 UBO::Proxy UBO::operator[](const std::string& name)
 {
 	return Proxy(*this, impl->block[name]);
@@ -382,43 +420,14 @@ void UBO::Sync()
 	impl->bufferObject.Data(impl->data);
 }
 
-void UBO::Proxy::CheckType(GLenum type) const
+void UBO::Proxy::CheckType(GLenum scalar, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const
 {
-	if (unif.type != type) throw std::runtime_error("Wrong type for uniform '"
-		+ ubo.impl->block.name + '.' + unif.name);
-}
-
-void UBO::Proxy::CheckType(float dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const
-{
-	     if (Cols == 1 && Rows == 1) CheckType(GL_FLOAT);
-	else if (Cols == 1 && Rows == 2) CheckType(GL_FLOAT_VEC2);
-	else if (Cols == 1 && Rows == 3) CheckType(GL_FLOAT_VEC3);
-	else if (Cols == 1 && Rows == 4) CheckType(GL_FLOAT_VEC4);
-	else if (Cols == 2 && Rows == 2) CheckType(GL_FLOAT_MAT2);
-	else if (Cols == 3 && Rows == 3) CheckType(GL_FLOAT_MAT3);
-	else if (Cols == 4 && Rows == 4) CheckType(GL_FLOAT_MAT4);
-	else throw std::domain_error(
-		"Unsupported matrix type float " + to_string(Rows) + "x" + to_string(Cols));
-}
-
-void UBO::Proxy::CheckType(int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const
-{
-	     if (Cols == 1 && Rows == 1) CheckType(GL_INT);
-	else if (Cols == 1 && Rows == 2) CheckType(GL_INT_VEC2);
-	else if (Cols == 1 && Rows == 3) CheckType(GL_INT_VEC3);
-	else if (Cols == 1 && Rows == 4) CheckType(GL_INT_VEC4);
-	else throw std::domain_error(
-		"Unsupported matrix type int " + to_string(Rows) + "x" + to_string(Cols));
-}
-
-void UBO::Proxy::CheckType(unsigned int dummy, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const
-{	
-	     if (Cols == 1 && Rows == 1) CheckType(GL_UNSIGNED_INT);
-	else if (Cols == 1 && Rows == 2) CheckType(GL_UNSIGNED_INT_VEC2);
-	else if (Cols == 1 && Rows == 3) CheckType(GL_UNSIGNED_INT_VEC3);
-	else if (Cols == 1 && Rows == 4) CheckType(GL_UNSIGNED_INT_VEC4);
-	else throw std::domain_error(
-		"Unsupported matrix type uint " + to_string(Rows) + "x" + to_string(Cols));
+	if (unif.type.scalar != scalar)
+		throw std::domain_error("Wrong type for uniform '" + ubo.impl->block.name
+			+ '.' + unif.name);
+	if (unif.type.rows != Rows || unif.type.cols != Cols)
+		throw std::runtime_error("Wrong dims for uniform '" + ubo.impl->block.name
+			+ '.' + unif.name);
 }
 
 #define PROXY_PTR(Type) \

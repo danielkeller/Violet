@@ -8,7 +8,7 @@
 using namespace UI;
 
 Focusable::Focusable()
-	: focused(false)
+	: focused(false), tabbedIn(false)
 {}
 
 bool Focusable::anyFocused = false;
@@ -18,6 +18,7 @@ bool Focusable::Draw(AlignedBox2i box)
 	auto& events = FrameEvents();
 	auto mouse = events.MousePosPxl().cast<int>();
 	bool ret = false;
+	tabbedIn = false;
 
 	if (events.MouseClick(GLFW_MOUSE_BUTTON_LEFT))
 	{
@@ -39,7 +40,10 @@ bool Focusable::Draw(AlignedBox2i box)
 
 	//catch focus
 	if (!anyFocused && events.PopKeyEvent({ { GLFW_KEY_TAB, 0 }, RELEASE_OR_REPEAT }))
+	{
 		focused = true;
+		tabbedIn = true;
+	}
 
 	anyFocused |= focused;
 	anyFocused &= !ret;
@@ -121,7 +125,8 @@ ModalBoxRAII::ModalBoxRAII(UI::Layout::Dir dir)
 {
 	UI::PushModal();
 	Events& e = UI::FrameEvents();
-	if (e.PopKey({ GLFW_KEY_ESCAPE, 0 }))
+	//FIXME: this steals the event
+	if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
 		closed = true;
 
 	UI::LayoutStack& l = UI::CurLayout();

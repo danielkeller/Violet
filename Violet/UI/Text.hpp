@@ -10,6 +10,17 @@ namespace UI
 {
 	using AlignedBox2i = Eigen::AlignedBox2i;
 
+	enum class TextAlign
+	{
+		Left, Right, Center
+	};
+
+	Vector2i TextDim(const std::string& text);
+	Vector2i TextDim(std::string::const_iterator begin, std::string::const_iterator end);
+	void DrawText(const std::string& text, Vector2i pos);
+	void DrawText(const std::string& text, AlignedBox2i container,
+		TextAlign align = TextAlign::Center);
+
 	class Font
 	{
 		struct FontResource;
@@ -22,15 +33,11 @@ namespace UI
 		void Bind();
 
 		BASIC_EQUALITY(Font, resource);
-
-		friend Vector2i TextDim(const std::string& text);
-		friend Vector2i TextDim(std::string::const_iterator begin, std::string::const_iterator end);
-		friend void DrawText(const std::string& text, Vector2i pos);
-		//centers the text in the box
-		friend void DrawText(const std::string& text, AlignedBox2i container);
 	private:
 		std::shared_ptr<FontResource> resource;
 
+		friend void DrawText(const std::string& text, Vector2i pos);
+		friend Vector2i TextDim(std::string::const_iterator begin, std::string::const_iterator end);
 		friend float ::STB_TEXTEDIT_GETWIDTH(std::string* str, int n, int i);
 		friend void ::STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::string* str, int n);
 	};

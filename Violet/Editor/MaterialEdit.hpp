@@ -14,9 +14,10 @@ public:
 	//returns true to dismiss
 	bool Draw(Persist&);
 	void Edit(Material mat);
+	Material Current() const;
 
 private:
-	static const int WIDTH = 400;
+	static const int WIDTH = 300;
 
 	Material mat;
 
@@ -25,6 +26,7 @@ private:
 	VAO vao;
 
 	UI::LineEdit matName;
+	std::vector<UI::FloatEdit> floatUnifs;
 };
 
 #endif

@@ -20,7 +20,7 @@ void main()
 {
     gl_Position = camera * transform * vec4(position, 1);
 	posFrag = (transform * vec4(position, 1)).xyz;
+	normalFrag =  (transform * vec4(normal, 0)).xyz;
 	texCoordFrag = texCoord;
-	normalFrag = normal;
     objectFrag = object;
 }

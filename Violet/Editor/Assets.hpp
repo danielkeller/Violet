@@ -17,6 +17,7 @@ struct Asset
 	Tex thumb;
 	std::string name;
 	Key key;
+	MEMBER_EQUALITY(Key, key)
 };
 
 template<typename Key>
