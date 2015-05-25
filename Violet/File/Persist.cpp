@@ -99,7 +99,7 @@ void PreparedStmt::Bind1(int num, std::string val)
 
 void PreparedStmt::Bind1(int num, std::vector<char> val)
 {
-	Bind1(num, range<const char*>{ &*val.begin(), &*val.end() });
+	Bind1(num, range<const char*>{ val.data(), val.data() + val.size() });
 }
 
 void PreparedStmt::Bind1(int num, std::vector<std::string> val)

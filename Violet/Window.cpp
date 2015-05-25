@@ -3,8 +3,6 @@
 
 #include "Utils/Profiling.hpp"
 
-#include "GLFW/glfw3.h"
-
 #include <iostream>
 #include <iomanip>
 

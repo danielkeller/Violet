@@ -3,6 +3,10 @@
 
 #include <chrono>
 
+using namespace std::chrono_literals;
+
+using millifloat = std::chrono::duration<float, std::milli>;
+
 class Time
 {
 public:
@@ -54,7 +58,6 @@ public:
     }
     
 private:
-    using millifloat = std::chrono::duration<float, std::milli>;
     
     //maximum amount of physics time to simulate before drawing a frame
     static const clock::duration frameLimit;

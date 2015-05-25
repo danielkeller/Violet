@@ -182,6 +182,8 @@ void Edit::PhysTick(Object camera)
 	
 	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Right);
 
+	l.PutSpace(anim.Run(-LB_WIDTH, 0, UI::Ease::In));
+
 	//asset picker
 	if (currentPicker != AssetPicker::None)
 	{

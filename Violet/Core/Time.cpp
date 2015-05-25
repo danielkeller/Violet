@@ -17,5 +17,5 @@ float Time::SimTimeMs()
     return std::chrono::duration_cast<millifloat>(simTime).count();
 }
 
-const Time::clock::duration Time::dt = std::chrono::milliseconds(30);
-const Time::clock::duration Time::frameLimit = std::chrono::milliseconds(250);
+const Time::clock::duration Time::dt = 30ms;
+const Time::clock::duration Time::frameLimit = 250ms;

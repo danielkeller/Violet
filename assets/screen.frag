@@ -20,7 +20,7 @@ void main()
 	outputColor = texture(color, texCoordFrag);
 
     if (texture(picker, texCoordFrag).r == uint(-2)) //"none" index
-        discard;
+        ;//discard;
     else if (texture(picker, texCoordFrag).r == selected[0])
         outputColor = halfBlend(outputColor, vec4(1, 1, 1, 1));
     else if (texture(picker, texCoordFrag).r == selected[1])

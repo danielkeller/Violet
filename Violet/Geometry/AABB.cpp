@@ -66,8 +66,8 @@ struct AABBVert
 
 template<>
 const Schema AttribTraits<AABBVert>::schema = {
-    { "position", GL_FLOAT, false, 0,                 {3, 1}},
-    { "color",    GL_FLOAT, false, 3 * sizeof(float), {3, 1}},
+	AttribProperties{ "position", GL_FLOAT, false, 0,                 {3, 1}},
+	AttribProperties{ "color",    GL_FLOAT, false, 3 * sizeof(float), {3, 1}},
 };
 
 ShowAABB::ShowAABB(const AABB& aabb)

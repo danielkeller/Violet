@@ -26,6 +26,9 @@ template<typename Key>
 bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&)> edit)
 {
 	UI::LayoutStack& l = UI::CurLayout();
+
+	l.PutSpace(anim.Run(-WIDTH, 0, UI::Ease::In, 200ms));
+
 	l.PushNext(UI::Layout::Dir::Down);
 	l.EnsureWidth(WIDTH);
 	UI::PushZ(3);

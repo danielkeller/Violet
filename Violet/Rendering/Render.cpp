@@ -108,8 +108,8 @@ void Render::Draw(float alpha)
 
 template<>
 const Schema AttribTraits<InstData>::schema = {
-    { "transform", GL_FLOAT, false, 0, {4, 4}, 4 * sizeof(float) },
-    { "object", GL_UNSIGNED_INT, true, 16 * sizeof(float), {1, 1}, 0 },
+	AttribProperties{ "transform", GL_FLOAT, false, 0, {4, 4}, 4 * sizeof(float) },
+	AttribProperties{ "object", GL_UNSIGNED_INT, true, 16 * sizeof(float), {1, 1}, 0 },
 };
 
 void Render::Load(const Persist& persist)

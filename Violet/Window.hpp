@@ -9,7 +9,7 @@
 #include <array>
 
 //for event stuff
-#include "GLFW/glfw3.h"
+#include "GLFW/include/GLFW/glfw3.h"
 
 class Window;
 

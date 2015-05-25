@@ -322,27 +322,27 @@ void UI::DrawSpecial(std::function<void()> draw)
 
 template<>
 const Schema AttribTraits<Box2z>::schema = {
-	{ "minBox", GL_INT, true, 0,               { 2, 1 } },
-	{ "maxBox", GL_INT, true, 2 * sizeof(int), { 2, 1 } },
-	{ "z",      GL_INT, true, 4 * sizeof(int), { 1, 1 } }
+	AttribProperties{ "minBox", GL_INT, true, 0,               { 2, 1 } },
+	AttribProperties{ "maxBox", GL_INT, true, 2 * sizeof(int), { 2, 1 } },
+	AttribProperties{ "z",      GL_INT, true, 4 * sizeof(int), { 1, 1 } }
 };
 
 template<>
 const Schema AttribTraits<UIBox>::schema = {
-	{ "minBox", GL_INT,           true,  0,               { 2, 1 } },
-	{ "maxBox", GL_INT,           true,  2 * sizeof(int), { 2, 1 } },
-	{ "fill",   GL_UNSIGNED_BYTE, false, 4 * sizeof(int), { 4, 1 } },
-	{ "stroke", GL_UNSIGNED_BYTE, false, 5 * sizeof(int), { 4, 1 } },
-	{ "z",      GL_INT,           true,  6 * sizeof(int), { 1, 1 } }
+	AttribProperties{ "minBox", GL_INT,           true,  0,               { 2, 1 } },
+	AttribProperties{ "maxBox", GL_INT,           true,  2 * sizeof(int), { 2, 1 } },
+	AttribProperties{ "fill",   GL_UNSIGNED_BYTE, false, 4 * sizeof(int), { 4, 1 } },
+	AttribProperties{ "stroke", GL_UNSIGNED_BYTE, false, 5 * sizeof(int), { 4, 1 } },
+	AttribProperties{ "z",      GL_INT,           true,  6 * sizeof(int), { 1, 1 } }
 };
 
 template<>
 const Schema AttribTraits<TextQuad>::schema = {
-	{ "minBox",    GL_FLOAT, false, 0,                 { 2, 1 } },
-	{ "maxBox",    GL_FLOAT, false, 2 * sizeof(float), { 2, 1 } },
-	{ "minBoxTex", GL_FLOAT, false, 4 * sizeof(float), { 2, 1 } },
-	{ "maxBoxTex", GL_FLOAT, false, 6 * sizeof(float), { 2, 1 } },
-	{ "z",         GL_INT,   true,  8 * sizeof(float), { 1, 1 } }
+	AttribProperties{ "minBox",    GL_FLOAT, false, 0,                 { 2, 1 } },
+	AttribProperties{ "maxBox",    GL_FLOAT, false, 2 * sizeof(float), { 2, 1 } },
+	AttribProperties{ "minBoxTex", GL_FLOAT, false, 4 * sizeof(float), { 2, 1 } },
+	AttribProperties{ "maxBoxTex", GL_FLOAT, false, 6 * sizeof(float), { 2, 1 } },
+	AttribProperties{ "z",         GL_INT,   true,  8 * sizeof(float), { 1, 1 } }
 };
 
 static void WinResize(Vector2i sz)

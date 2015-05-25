@@ -59,6 +59,8 @@ private:
 			EditTy edit, AddTy add, RemoveTy remove);
 	};
 
+	UI::Animation anim;
+
 	enum class AssetPicker
 	{
 		None, Meshes, Materials

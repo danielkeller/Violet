@@ -21,11 +21,12 @@ struct WavefrontVert
 	Eigen::Vector2f uv;
 };
 
+//MSVC crashes if AttribProperties is missing here
 template<>
 const Schema AttribTraits<WavefrontVert>::schema = {
-    {"position", GL_FLOAT, false, 0,                 {3, 1}},
-    {"normal",   GL_FLOAT, false, 3 * sizeof(float), {3, 1}},
-    {"texCoord", GL_FLOAT, false, 6 * sizeof(float), {2, 1}},
+	AttribProperties{"position", GL_FLOAT, false, 0,                 {3, 1}},
+	AttribProperties{"normal",   GL_FLOAT, false, 3 * sizeof(float), {3, 1}},
+	AttribProperties{"texCoord", GL_FLOAT, false, 6 * sizeof(float), {2, 1}},
 };
 
 struct Wavefront

@@ -58,6 +58,7 @@ namespace UI
 		//adds a box and returns the space it's in
 		Layout PutSpace(Vector2i size);
 		//adds spacing in the current layout direction and returns the space it's in
+		//advance may be negative
 		Layout PutSpace(int advance);
 		//makes sure the current layout can fit at least width across
 		void EnsureWidth(int across);

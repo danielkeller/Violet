@@ -41,7 +41,7 @@ public:
             resource = VertexDataResource::MakeShared(name, verts, inds);
 	}
 
-	BASIC_EQUALITY(VertexData, resource);
+	BASIC_EQUALITY(VertexData, resource)
 
 	std::string Name() const;
 

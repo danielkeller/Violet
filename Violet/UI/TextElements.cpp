@@ -65,7 +65,7 @@ bool LineEdit::Draw(std::string& text)
 	if (focus.tabbedIn) //auto select all
 	{
 		state.select_start = 0;
-		state.select_end = text.size();
+		state.select_end = int(text.size());
 	}
 
 	if (FrameEvents().MouseClick(GLFW_MOUSE_BUTTON_LEFT) && box.contains(mouse))

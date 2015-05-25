@@ -31,6 +31,7 @@ public:
 private:
 	std::vector<UI::Button> buttons;
 	std::vector<UI::Button> editButtons;
+	UI::Animation anim;
 };
 
 //FIXME: Both of these should rescan when sensible

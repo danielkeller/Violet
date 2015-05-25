@@ -5,6 +5,7 @@
 
 #include "PixelDraw.hpp"
 #include "Layout.hpp"
+#include "Core/Time.hpp"
 
 #define STB_TEXTEDIT_CHARTYPE unsigned int
 #include "stb/stb_textedit.h"
@@ -113,6 +114,19 @@ namespace UI
 		~ModalBoxRAII();
 		//true if the box was closed
 		bool closed;
+	};
+
+	enum class Ease
+	{
+		In, Out, InOut
+	};
+
+	struct Animation
+	{
+		Animation();
+		int Run(int initial, int final, Ease ease, Time::clock::duration time = 100ms);
+		Time::clock::duration start, last;
+		bool Running() const;
 	};
 }
 

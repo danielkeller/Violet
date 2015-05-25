@@ -6,7 +6,7 @@ class perma_ref
 {
 public:
 	perma_ref(const perma_ref& other) = default;
-	perma_ref(const perma_ref&& other) : it(other.it) {}
+	perma_ref(perma_ref&& other) = default;
 	perma_ref& operator=(const perma_ref& other) = default;
 	BASIC_EQUALITY(perma_ref, it)
 

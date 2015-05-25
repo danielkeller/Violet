@@ -2,6 +2,7 @@
 #define WRAPPED_ITERATOR_HPP
 
 #include <cstddef>
+#include <iterator>
 
 //Make the creation of custom iterators easier
 //implementers just override whatever they want

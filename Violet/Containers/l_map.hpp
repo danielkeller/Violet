@@ -12,13 +12,12 @@ class l_map
 public:
     using key_type = Key;
     using mapped_type = T;
-	//const causes iterator issues with MSVC
-	using value_type = std::pair</*const*/ Key, T>;
+	using value_type = std::pair<Key, T>;
 	using size_type = typename std::vector<value_type, Alloc>::size_type;
 	using difference_type = typename std::vector<value_type, Alloc>::difference_type;
 private:
 	using storety = std::vector<value_type, Alloc>;
-	using indty = const std::pair<Key, difference_type>;
+	using indty = std::pair<Key, difference_type>;
     using indsty = std::vector<indty>;
 public:
 

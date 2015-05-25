@@ -145,3 +145,41 @@ ModalBoxRAII::~ModalBoxRAII()
 	UI::CurLayout().PopLayer();
 	UI::PopModal();
 }
+
+Animation::Animation()
+	: start(Time::clock::duration::zero())
+	, last(Time::clock::duration::zero())
+{}
+
+bool UI::Animation::Running() const
+{
+	return UI::FrameEvents().simTime == last + Time::dt
+		|| UI::FrameEvents().simTime == last;
+}
+
+int Animation::Run(int initial, int final, Ease ease, Time::clock::duration time)
+{
+	auto simTime = UI::FrameEvents().simTime;
+
+	//restart
+	if (!Running())
+		last = start = simTime;
+	else
+		last = simTime;
+	
+	//must be float since it's fractional
+	auto alpha = std::chrono::duration_cast<millifloat>(simTime - start)
+		/ std::chrono::duration_cast<millifloat>(time);
+	if (alpha >= 1.f)
+		return final;
+
+	//1d cubic bezier control points (the curve is from 0 to 1)
+	float x1, x2;
+	if (ease == Ease::In) std::tie(x1, x2) = std::make_tuple(.4f, 1.f);
+	if (ease == Ease::Out) std::tie(x1, x2) = std::make_tuple(0.f, .6f);
+	if (ease == Ease::InOut) std::tie(x1, x2) = std::make_tuple(.4f, .6f);
+
+	float x = 3 * (1-alpha) * alpha * ((1-alpha) * x1 + alpha*x2) + alpha*alpha*alpha;
+
+	return initial + int((final - initial)*x);
+}
