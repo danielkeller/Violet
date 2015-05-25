@@ -26,9 +26,7 @@ template<typename Key>
 bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&)> edit)
 {
 	UI::LayoutStack& l = UI::CurLayout();
-
-	l.PutSpace(anim.Run(-WIDTH, 0, UI::Ease::In, 200ms));
-
+	bool ret = slide.Draw(WIDTH, 200ms);
 	l.PushNext(UI::Layout::Dir::Down);
 	l.EnsureWidth(WIDTH);
 	UI::PushZ(3);
@@ -46,8 +44,6 @@ bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&)> edit)
 	if (edit) editButtons.resize(assets.size());
 	auto button = buttons.begin();
 	auto editButton = editButtons.begin();
-
-	bool ret = false;
 
 	UI::PushZ();
 	for (int y = THM_SPACE; y < height; y += THM_SIZE + THM_SPACE)
@@ -89,7 +85,7 @@ bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&)> edit)
 			if (button->Behavior(box))
 			{
 				cur = it->key;
-				ret = true;
+				slide.Close();
 			}
 
 			UI::PopZ();

@@ -59,7 +59,7 @@ private:
 			EditTy edit, AddTy add, RemoveTy remove);
 	};
 
-	UI::Animation anim;
+	UI::SlideInOut slide;
 
 	enum class AssetPicker
 	{

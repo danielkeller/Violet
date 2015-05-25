@@ -121,12 +121,29 @@ namespace UI
 		In, Out, InOut
 	};
 
-	struct Animation
+	class Animation
 	{
+	public:
 		Animation();
+		void Start();
+		int Continue(int initial, int final, Ease ease, Time::clock::duration time = 100ms);
 		int Run(int initial, int final, Ease ease, Time::clock::duration time = 100ms);
-		Time::clock::duration start, last;
 		bool Running() const;
+
+	private:
+		Time::clock::duration start, last;
+	};
+
+	class SlideInOut
+	{
+	public:
+		//return true on close. This backs up the layout and so should be
+		//called before drawing anything
+		bool Draw(int size, Time::clock::duration time = 100ms);
+		void Close();
+
+	private:
+		Animation open, close;
 	};
 }
 

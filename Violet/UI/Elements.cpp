@@ -147,8 +147,8 @@ ModalBoxRAII::~ModalBoxRAII()
 }
 
 Animation::Animation()
-	: start(Time::clock::duration::zero())
-	, last(Time::clock::duration::zero())
+	: start(-1s)
+	, last(-1s)
 {}
 
 bool UI::Animation::Running() const
@@ -157,16 +157,20 @@ bool UI::Animation::Running() const
 		|| UI::FrameEvents().simTime == last;
 }
 
-int Animation::Run(int initial, int final, Ease ease, Time::clock::duration time)
+void UI::Animation::Start()
 {
-	auto simTime = UI::FrameEvents().simTime;
-
-	//restart
 	if (!Running())
-		last = start = simTime;
-	else
-		last = simTime;
-	
+		last = start = UI::FrameEvents().simTime;
+}
+
+int UI::Animation::Continue(int initial, int final, Ease ease, Time::clock::duration time)
+{
+	if (!Running())
+		return initial;
+
+	auto simTime = UI::FrameEvents().simTime;
+	last = simTime;
+
 	//must be float since it's fractional
 	auto alpha = std::chrono::duration_cast<millifloat>(simTime - start)
 		/ std::chrono::duration_cast<millifloat>(time);
@@ -179,7 +183,27 @@ int Animation::Run(int initial, int final, Ease ease, Time::clock::duration time
 	if (ease == Ease::Out) std::tie(x1, x2) = std::make_tuple(0.f, .6f);
 	if (ease == Ease::InOut) std::tie(x1, x2) = std::make_tuple(.4f, .6f);
 
-	float x = 3 * (1-alpha) * alpha * ((1-alpha) * x1 + alpha*x2) + alpha*alpha*alpha;
+	float x = 3 * (1 - alpha) * alpha * ((1 - alpha) * x1 + alpha*x2) + alpha*alpha*alpha;
 
 	return initial + int((final - initial)*x);
+}
+
+int Animation::Run(int initial, int final, Ease ease, Time::clock::duration time)
+{
+	Start();
+	return Continue(initial, final, ease, time);
+}
+
+bool UI::SlideInOut::Draw(int size, Time::clock::duration time)
+{
+	UI::LayoutStack& l = UI::CurLayout();
+	l.PutSpace(open.Run(-size, 0, UI::Ease::In, time));
+	int closing = close.Continue(0, -size, UI::Ease::Out, time);
+	l.PutSpace(closing);
+	return closing == -size;
+}
+
+void UI::SlideInOut::Close()
+{
+	close.Start();
 }

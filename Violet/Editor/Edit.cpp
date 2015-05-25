@@ -182,7 +182,7 @@ void Edit::PhysTick(Object camera)
 	
 	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Right);
 
-	l.PutSpace(anim.Run(-LB_WIDTH, 0, UI::Ease::In));
+	enabled = !slide.Draw(LB_WIDTH);
 
 	//asset picker
 	if (currentPicker != AssetPicker::None)
@@ -350,7 +350,7 @@ void Edit::PhysTick(Object camera)
 	}
 
 	if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
-		enabled = false;
+		slide.Close();
 
 	//fixme
 	e.PopMouse();
