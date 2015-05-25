@@ -6,11 +6,10 @@
 #include "Window.hpp"
 
 MaterialEdit::MaterialEdit()
-	: mat(), instances(1), vao({ "assets/blank" }, UnitBox)
+	: mat("default", "assets/blank"), cam("assets/simple", "Common")
+	, instances(1), vao("assets/blank", UnitBox)
 	, matName(WIDTH)
 {
-	cam = ShaderProgram{ "assets/simple" }.MakeUBO("Common");
-
 	//TODO: not so many Eigen::
 	InstData object{ Object::invalid,
 		Eigen::Affine3f{ Eigen::Translation3f{ 0, 1, 0 } }.matrix() };
@@ -22,8 +21,8 @@ void MaterialEdit::Edit(Material newMat)
 	mat = newMat;
 
 	static VertexData sample{ "assets/capsule.obj" };
-	vao = { mat.shader, sample };
-	vao.BindInstanceData(mat.shader, instances);
+	vao = { mat.Shader(), sample };
+	vao.BindInstanceData(mat.Shader(), instances);
 }
 
 Material MaterialEdit::Current() const
@@ -60,16 +59,16 @@ bool MaterialEdit::Draw(Persist& persist)
 	l.PushNext(UI::Layout::Dir::Down);
 	l.EnsureWidth(WIDTH);
 	
-	if (matName.Draw(mat.name))
+	if (matName.Draw(mat.Name()))
 		mat.Save(persist);
 
 	size_t nFloatUnifs = 0;
-	for (const auto& unif : mat.ubo.Uniforms())
+	for (const auto& unif : mat.GetUBO().Uniforms())
 	{
 		l.PutSpace(UI::LINEH);
 		UI::DrawText(unif.name, l.PutSpace(UI::LINEH), UI::TextAlign::Left);
 
-		//TODO: arrays
+		//TODO: arrays, ints
 		if (unif.type.scalar == GL_FLOAT)
 		{
 			size_t curUnif = nFloatUnifs;
@@ -77,7 +76,7 @@ bool MaterialEdit::Draw(Persist& persist)
 			//grow to fit
 			floatUnifs.resize(std::max(floatUnifs.size(), nFloatUnifs), UI::FloatEdit(WIDTH/4));
 			
-			auto map = mat.ubo[unif.name].Map<float>(unif.type.rows, unif.type.cols);
+			auto map = mat.GetUBO()[unif.name].Map<float>(unif.type.rows, unif.type.cols);
 			auto dispMap = unif.type.cols == 1 //display column vectors as rows
 				? map.transpose() : map;
 			
@@ -90,7 +89,7 @@ bool MaterialEdit::Draw(Persist& persist)
 						mat.Save(persist);
 					//live editing
 					if (floatUnifs[curUnif].editing)
-						mat.ubo.Sync();
+						mat.GetUBO().Sync();
 				}
 				l.Pop();
 			}

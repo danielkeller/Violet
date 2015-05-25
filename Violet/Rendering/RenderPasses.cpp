@@ -7,12 +7,12 @@
 RenderPasses::RenderPasses(Position& p, Window& w, Render& r)
 	: r(r), w(w), mobile(p), camera(Object::invalid)
 	, simpleShader("assets/simple")
-	, commonUBO(simpleShader.MakeUBO("Common"))
+	, commonUBO(simpleShader, "Common")
 	, screenMat("screenMat", { "assets/screen" })
-	, screenQuad(screenMat.shader, UnitBox)
+	, screenQuad(screenMat.Shader(), UnitBox)
 	, view({ Vector2i::Zero(), Vector2i{-1,-1} })
 {
-	screenMat.shader.TextureOrder({ "color", "picker" });
+	screenMat.Shader().TextureOrder({ "color", "picker" });
 }
 
 void RenderPasses::WindowResize(Eigen::Vector2i size)
@@ -27,7 +27,7 @@ void RenderPasses::WindowResize(Eigen::Vector2i size)
 	fbo.AttachDepth(RenderBuffer{ GL_DEPTH_COMPONENT, size });
 	fbo.CheckStatus();
 
-	screenMat.textures = { mainTex, pickerTex };
+	screenMat.Textures() = { mainTex, pickerTex };
 }
 
 void RenderPasses::Camera(Object c)
@@ -71,7 +71,7 @@ void RenderPasses::Draw(Events e, float alpha)
 
 void RenderPasses::Highlight(Object o, Highlights type)
 {
-	screenMat.ubo["selected"][type] = o.Id();
+	screenMat.GetUBO()["selected"][type] = o.Id();
 }
 
 Object RenderPasses::Pick(Vector2f posPixel) const

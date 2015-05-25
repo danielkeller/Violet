@@ -15,12 +15,10 @@ struct BinaryPersistTag {};
 struct ResourcePersistTag {};
 
 //requirements: PersistTraits<Foo>::key Key() const, Save(Persist&) const,
-//Foo::Foo(PersistTraits<Foo>::data...)
+//Foo::Foo(PersistTraits<Foo>::key, Persist&)
 struct EmbeddedResourcePersistTag {};
 
 struct VectorPersistTag {};
-
-#include "Persist_detail.hpp"
 
 using Columns = const std::initializer_list<const char*>;
 
@@ -32,6 +30,8 @@ struct PersistSchema
 };
 
 template<class Subsystem> struct PersistTraits;
+
+#include "Persist_detail.hpp"
 
 class Persist
 {

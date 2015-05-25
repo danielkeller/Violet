@@ -45,28 +45,12 @@ struct Uniforms
 	Uniforms() = default;
 	Uniforms(GLuint program);
 
-	struct Block
+	std::vector<UniformBlock> blocks;
+
+	UniformBlock& operator[](const std::string& name);
+	const UniformBlock& operator[](const std::string& name) const
 	{
-		Block() : byte_size(0) {}
-
-		std::string name;
-		MEMBER_EQUALITY(std::string, name)
-
-		size_t byte_size;
-		std::vector<Uniform> uniforms;
-
-		const Uniform& operator[](const std::string& name) const;
-		Uniform& operator[](const std::string& name)
-		{
-			return const_cast<Uniform&>(const_cast<const Block&>(*this)[name]);
-		}
-	};
-	std::vector<Block> blocks;
-
-	const Block& operator[](const std::string& name) const;
-	Block& operator[](const std::string& name)
-	{
-		return const_cast<Block&>(const_cast<const Uniforms&>(*this)[name]);
+		return static_cast<UniformBlock&>(const_cast<Uniforms&>(*this)[name]);
 	}
 };
 
@@ -268,14 +252,14 @@ void ShaderProgram::ShaderResource::init(const char* vert, const char* frag,
 #endif
 }
 
-std::vector<Uniforms::Block> DoQuery(GLuint program)
+std::vector<UniformBlock> DoQuery(GLuint program)
 {
 	GLint activeUniforms;
 	glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &activeUniforms);
 
 	GLint activeUniformBlocks;
 	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &activeUniformBlocks);
-	std::vector<Uniforms::Block> ret(activeUniformBlocks + 1);
+	std::vector<UniformBlock> ret(activeUniformBlocks + 1);
 	GLint outParam;
 
 	for (GLuint uniformBlockIndex = 0; uniformBlockIndex < (GLuint)activeUniformBlocks; ++uniformBlockIndex)
@@ -326,7 +310,7 @@ Uniforms::Uniforms(GLuint program)
 	: blocks(DoQuery(program))
 {}
 
-const Uniform& Uniforms::Block::operator[](const std::string& n) const
+const Uniform& UniformBlock::operator[](const std::string& n) const
 {
 	auto it = std::find(uniforms.begin(), uniforms.end(), n);
 	if (it == uniforms.end())
@@ -334,106 +318,91 @@ const Uniform& Uniforms::Block::operator[](const std::string& n) const
 	return *it;
 }
 
-const Uniforms::Block& Uniforms::operator[](const std::string& n) const
+UniformBlock& Uniforms::operator[](const std::string& n)
 {
 	auto it = std::find(blocks.begin(), blocks.end(), n);
 	if (it == blocks.end())
-        throw std::runtime_error("No block '" + n + "'");
+	{
+		//?
+		blocks.emplace_back();
+		blocks.back().name = n;
+		return blocks.back();
+	}
 	return *it;
 }
 
-struct UBO::Impl
-{
-	BufferTy data;
-	BufferObjTy bufferObject;
-	//Type allows us to distinguish between UBOs that are shared (ie, camera)
-	//with those that are not (ie, material).
-	Type type;
-
-	Uniforms::Block block;
-	Impl(ShaderProgram shader, const Uniforms::Block& block);
-};
-
-UBO ShaderProgram::MakeUBO(const std::string& block) const
-{
-	if (std::count(resource->uniforms.blocks.begin(),
-		resource->uniforms.blocks.end(), block) == 0)
-		return UBO{};
-
-	return std::make_shared<UBO::Impl>(*this, resource->uniforms[block]);
-}
-
-UBO ShaderProgram::MakeUBO(const std::string& block, UBO::BufferTy data) const
-{
-	UBO ret = MakeUBO(block);
-
-	if (ret.impl->data.size() != data.size())
-		std::cerr << "Warning: Shader '" << Name() << "' wants " <<
-		ret.impl->data.size() << " bytes for '" << block << "' but there are "
-			<< data.size() << '\n';
-
-	swap(ret.impl->data, data);
-	ret.Sync();
-	return ret;
-}
-
-UBO::Impl::Impl(ShaderProgram shader, const Uniforms::Block& block)
-	: data(block.byte_size)
-    , bufferObject(block.byte_size)
-	, type(block.name == "Common" ? UBO::Common : UBO::Material), block(block)
+UBO::UBO(ShaderProgram shader, const std::string& block)
+	: UBO(shader.resource->uniforms[block], BufferTy(shader.resource->uniforms[block].byte_size))
 {}
 
-UBO::UBO()
-	: bindProxy(Material)
+UBO::UBO(ShaderProgram shader, const std::string& block, UBO::BufferTy data)
+	: UBO(shader.resource->uniforms[block], data)
+{}
+
+UBO::UBO(UniformBlock block, BufferTy data_)
+	: data(std::move(data_))
+	, bufferObject(this->data.size())
+	, type(block.name == "Common" ? UBO::Common : UBO::Material)
+	, block(block)
 {
-	static auto nullUbo = std::make_shared<Impl>(ShaderProgram(), Uniforms::Block());
-	impl = nullUbo;
+	if (block.byte_size != data.size())
+		std::cerr << "Warning: Shader wants " << block.byte_size << " bytes for '"
+			<< block.name << "' but there are " << data.size() << '\n';
+
+	Sync();
 }
 
-UBO::UBO(std::shared_ptr<Impl> r)
-	: bindProxy(r->bufferObject.GetIndexedBindProxy(r->type))
-	, impl(r)
+UBO::UBO(UBO&& other)
+	: data(std::move(other.data))
+	, bufferObject(std::move(other.bufferObject))
+	, type(other.type)
+	, block(other.block)
 {}
 
 void UBO::Bind() const
 {
-	bindProxy.Bind();
+	bufferObject.Bind(type);
+}
+
+UBO::BindProxy UBO::GetBindProxy() const
+{
+	return bufferObject.GetIndexedBindProxy(type);
 }
 
 const UBO::BufferTy& UBO::Data() const
 {
-	return impl->data;
+	return data;
 }
 
 std::vector<Uniform> UBO::Uniforms() const
 {
-	return impl->block.uniforms;
+	return block.uniforms;
 }
 
 UBO::Proxy UBO::operator[](const std::string& name)
 {
-	return Proxy(*this, impl->block[name]);
+	return Proxy(*this, block[name]);
 }
 
 void UBO::Sync()
 {
-	impl->bufferObject.Data(impl->data);
+	bufferObject.Data(data);
 }
 
 void UBO::Proxy::CheckType(GLenum scalar, std::ptrdiff_t Rows, std::ptrdiff_t Cols) const
 {
 	if (unif.type.scalar != scalar)
-		throw std::domain_error("Wrong type for uniform '" + ubo.impl->block.name
+		throw std::domain_error("Wrong type for uniform '" + ubo.block.name
 			+ '.' + unif.name);
 	if (unif.type.rows != Rows || unif.type.cols != Cols)
-		throw std::runtime_error("Wrong dims for uniform '" + ubo.impl->block.name
+		throw std::runtime_error("Wrong dims for uniform '" + ubo.block.name
 			+ '.' + unif.name);
 }
 
 #define PROXY_PTR(Type) \
 	Type* UBO::Proxy::Ptr(Type) const \
 	{\
-		return reinterpret_cast<Type*>(ubo.impl->data.data() + unif.offset);\
+		return reinterpret_cast<Type*>(ubo.data.data() + unif.offset);\
 	}
 
 PROXY_PTR(float)

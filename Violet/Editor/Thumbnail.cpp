@@ -11,8 +11,8 @@ Tex ObjAssets::Thumb(const std::string& path)
 	static Viewport view({ Vector2i::Zero(), dim });
 
 	static ShaderProgram shader{ "assets/shaded" };
-	static UBO mat = shader.MakeUBO("Material");
-	static UBO cam = shader.MakeUBO("Common");
+	static UBO mat{ shader, "Material" };
+	static UBO cam{ shader, "Common" };
 	STATIC
 	{
 		mat["light"] = Vector3f{ -1, 1, 1 }.normalized();
@@ -59,7 +59,7 @@ Tex MaterialAssets::Thumb(const Material& mat)
 	static const TexDim dim{ THM_SIZE, THM_SIZE };
 	static Viewport view({ Vector2i::Zero(), dim });
 
-	static UBO cam = mat.shader.MakeUBO("Common");
+	static UBO cam{ mat.Shader(), "Common" };
 	STATIC
 		cam["camera"] = Matrix4f::Identity();
 
@@ -70,8 +70,8 @@ Tex MaterialAssets::Thumb(const Material& mat)
 	STATIC
 		instances.Assign(0, object);
 
-	VAO vao{ mat.shader, { "assets/capsule.obj" } };
-	vao.BindInstanceData(mat.shader, instances);
+	VAO vao{ mat.Shader(), { "assets/capsule.obj" } };
+	vao.BindInstanceData(mat.Shader(), instances);
 
 	static FBO fbo;
 

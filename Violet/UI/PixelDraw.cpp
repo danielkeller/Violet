@@ -39,7 +39,7 @@ struct UI::Settings
 {
 	Settings()
 		: screenTex(TexDim{ 0, 0 })
-		, pixelUBO(ShaderProgram{ "assets/uibox" }.MakeUBO("Common"))
+		, pixelUBO({ "assets/uibox" }, "Common")
 	{}
 	Font font;
 	Vector3f textColor;

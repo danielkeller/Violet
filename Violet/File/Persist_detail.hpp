@@ -130,7 +130,7 @@ namespace Persist_detail
 
 		template<typename Other>
 		typename PersistTraits<Other>::key
-		Prepare(const Other& val, EmbeddedResourcePersistTag)
+			Prepare(const Other& val, EmbeddedResourcePersistTag)
 		{
 			val.Save(*persist);
 			return val.Key();
@@ -177,9 +177,7 @@ namespace Persist_detail
 		Other Get1(int num, EmbeddedResourcePersistTag)
 		{
 			auto key = Get1<typename PersistTraits<Other>::key>(num);
-			//this is the only way I can think of to construct an object from a tuple
-			return std::pair<Other, int>(std::piecewise_construct,
-				persist->Get<Other>(key), std::make_tuple(0)).first;
+			return Other(key, *persist);
 		}
 
 		template<typename Other, typename OtherTag>
@@ -215,16 +213,20 @@ namespace Persist_detail
 	class DataIterator<std::tuple<Types...>>
 		: public std::iterator<std::input_iterator_tag, std::tuple<Types...>>
 	{
-		using Base = std::iterator<std::input_iterator_tag, std::tuple<Types...>>;
+	public:
 		using value_type = std::tuple<Types...>;
+	private:
+		using Base = std::iterator<std::input_iterator_tag, std::tuple<Types...>>;
 		struct ArrowHelper
 		{
 			value_type temp;
 			value_type* operator->() { return &temp; }
 		};
 	public:
+		using value_type = std::tuple<Types...>;
+
 		DataIterator() = default;
-		DataIterator(DataIterator&) = default;
+		DataIterator(const DataIterator&) = default;
 		DataIterator(PreparedStmt&& stmt)
 			: stmt(std::make_shared<PreparedStmt>(std::move(stmt)))
 		{}

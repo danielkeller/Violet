@@ -125,7 +125,13 @@ public:
     void Bind() const
     {
         glBindBuffer(target, buffer);
-    }
+	}
+
+	void Bind(GLuint index) const
+	{
+		static_assert(target == GL_UNIFORM_BUFFER, "Only uniform buffers can be bound to an index");
+		glBindBufferBase(target, index, buffer);
+	}
 
     size_t Size() const
     {
@@ -152,7 +158,7 @@ public:
         friend class BufferObject;
     };
 
-    IndexedBindProxy GetIndexedBindProxy(GLuint index)
+    IndexedBindProxy GetIndexedBindProxy(GLuint index) const
     {
         static_assert(target == GL_UNIFORM_BUFFER, "Only uniform buffers can be bound to an index");
         return {index, buffer};

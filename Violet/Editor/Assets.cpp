@@ -122,12 +122,12 @@ bool ObjAssets::Draw(VertexData& cur)
 MaterialAssets::MaterialAssets(Persist& persist)
 	: editorOn(false)
 {
-	for (auto mat : persist.GetAll<Material>())
+	//TODO: ListAll?
+	for (auto matTup : persist.GetAll<Material>())
 	{
-		a.assets.emplace_back(std::get<1>(mat), std::get<0>(mat));
-		a.assets.back().thumb = Thumb(
-			Material(std::get<0>(mat), std::get<1>(mat), std::get<2>(mat),
-				std::get<3>(mat), std::get<4>(mat)));
+		Material mat{ std::get<0>(matTup), persist };
+		a.assets.emplace_back(mat.Name(), mat.Key());
+		a.assets.back().thumb = Thumb(mat);
 	}
 }
 
@@ -137,19 +137,18 @@ bool MaterialAssets::Draw(Material& cur, Persist& persist)
 	{
 		//update the thumbnail
 		Material& edited = edit.Current();
-		auto editedAsset = std::find(a.assets.begin(), a.assets.end(), edited.id);
+		auto editedAsset = std::find(a.assets.begin(), a.assets.end(), edited.GetId());
 		editedAsset->thumb = Thumb(edited);
-		editedAsset->name = edited.name;
+		editedAsset->name = edited.Name();
 
 		editorOn = false;
-		//TODO: replace every object using the material
 	}
 
-	Material::Id curName = cur.id;
+	Material::Id curName = cur.GetId();
 	bool ret = a.Draw(curName, [&](Asset<Material::Id>& mat){
 		editorOn = true;
-		edit.Edit(Material(curName, persist));
+		edit.Edit(Material{ curName, persist });
 	});
-	if (ret) cur = Material(curName, persist);
+	if (ret) cur = Material{ curName, persist };
 	return ret;
 }

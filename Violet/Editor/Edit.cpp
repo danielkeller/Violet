@@ -281,7 +281,7 @@ void Edit::PhysTick(Object camera)
 			UI::AlignedBox2i name = l.PutSpace({ LB_WIDTH, UI::LINEH });
 
 			UI::DrawText("material", title);
-			UI::DrawText(std::get<0>(tup).name, name);
+			UI::DrawText(std::get<0>(tup).Name(), name);
 			if (materialButton.Draw(title.extend(name)))
 				Toggle(AssetPicker::Materials);
 

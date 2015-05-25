@@ -84,6 +84,7 @@ class range
 {
 public:
 	using iterator = Iter;
+	range(const range&) = default;
 	range(iterator b, iterator e) : begin_(b), end_(e) {}
 	range(iterator e) : begin_(e), end_(e) {} //empty range
 	iterator begin() { return begin_; }

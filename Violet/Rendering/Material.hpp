@@ -9,32 +9,35 @@ struct EmbeddedResourcePersistTag;
 
 class Material
 {
+	struct Resource;
+	std::shared_ptr<Resource> resource;
+	Material(std::shared_ptr<Resource>);
 public:
 	using Id = std::int64_t;
 
-	Material();
+	Material(Id, Persist&);
 	Material(const Material&) = default;
-	Material(Id, const Persist&);
 	Material(const std::string& name, ShaderProgram);
 	Material(const std::string& name, ShaderProgram, Tex);
 	Material(const std::string& name, ShaderProgram, std::vector<Tex>);
 
-	BASIC_EQUALITY(Material, id);
+	BASIC_EQUALITY(Material, resource);
 
-	Id id;
-	std::string name;
+	Id GetId() const;
+	std::string& Name();
+	const std::string& Name() const;
+	ShaderProgram& Shader();
+	const ShaderProgram& Shader() const;
+	UBO& GetUBO();
+	std::vector<Tex>& Textures();
+	const std::vector<Tex>& Textures() const;
 
-	ShaderProgram shader;
-	//FIXME: this creates a new UBO every time the same material is loaded!
-	UBO ubo;
-	std::vector<Tex> textures;
-
+	//Todo: cache friendly
 	void use() const;
 
 	void Save(Persist& persist) const;
 	Id Key() const;
 	using PersistCategory = EmbeddedResourcePersistTag;
-	Material(std::int64_t, const std::string&, ShaderProgram, UBO::BufferTy, std::vector<Tex>);
 };
 
 MAKE_PERSIST_TRAITS(Material, Material::Id, std::string,

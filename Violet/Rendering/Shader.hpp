@@ -29,6 +29,23 @@ struct Uniform
 	MEMBER_EQUALITY(std::string, name)
 };
 
+struct UniformBlock
+{
+	UniformBlock() : byte_size(0) {}
+
+	std::string name;
+	size_t byte_size;
+	std::vector<Uniform> uniforms;
+
+	MEMBER_EQUALITY(std::string, name)
+
+	const Uniform& operator[](const std::string& name) const;
+	Uniform& operator[](const std::string& name)
+	{
+		return const_cast<Uniform&>(const_cast<const UniformBlock&>(*this)[name]);
+	}
+};
+
 //Uniform Buffer Object
 class UBO
 {
@@ -43,19 +60,23 @@ class UBO
 
 	//typename std::aligned_storage<sizeof(char), alignof(Matrix4f)>::type;
 	using BufferElemTy = char;
+	using BufferObjTy = BufferObject<BufferElemTy, GL_UNIFORM_BUFFER, GL_STREAM_DRAW>;
 
 public:
-	//It should be possible to call Bind with no ill effects
-	UBO();
+	using BufferTy = std::vector<BufferElemTy>;
+	using BindProxy = BufferObjTy::IndexedBindProxy;
 
-	BASIC_EQUALITY(UBO, bindProxy)
+	UBO(ShaderProgram, const std::string& block);
+	UBO(ShaderProgram, const std::string& block, BufferTy data);
+	UBO(const UBO&) = delete;
+	UBO(UBO&&);
 
 	Proxy operator[](const std::string& name);
 
 	//Associates this UBO with its binding point.
 	void Bind() const;
+	BindProxy GetBindProxy() const;
 
-	using BufferTy = std::vector<BufferElemTy>;
 	const BufferTy& Data() const;
 	std::vector<Uniform> Uniforms() const;
 
@@ -63,17 +84,17 @@ public:
 	void Sync();
 
 private:
-	using BufferObjTy = BufferObject<BufferElemTy, GL_UNIFORM_BUFFER, GL_STREAM_DRAW>;
-	struct Impl;
-	BufferObjTy::IndexedBindProxy bindProxy;
-	std::shared_ptr<Impl> impl;
+	UBO(UniformBlock block, BufferTy data);
 
-	UBO(std::shared_ptr<Impl>);
-	HAS_HASH
+	BufferTy data;
+	BufferObjTy bufferObject;
+	//Type allows us to distinguish between UBOs that are shared (ie, camera)
+	//with those that are not (ie, material).
+	Type type;
+	UniformBlock block;
 };
 
 struct ResourcePersistTag;
-struct EmbeddedResourcePersistTag;
 class Persist;
 
 //FIXME: static instances of this class can cause crashes at exit if the
@@ -87,6 +108,7 @@ class ShaderProgram
 public:
     ShaderProgram() : ShaderProgram("assets/blank") {}
 	ShaderProgram(std::string path);
+	ShaderProgram(const char* path) : ShaderProgram(std::string(path)) {}
 	std::string Name() const;
 	BASIC_EQUALITY(ShaderProgram, program)
 
@@ -96,9 +118,6 @@ public:
 	//get an attribute
 	GLint GetAttribLocation(const std::string& name) const;
 	GLenum GetAttribType(GLint loc) const;
-
-	UBO MakeUBO(const std::string& block) const;
-	UBO MakeUBO(const std::string& block, UBO::BufferTy data) const;
 
 	//Set the order of textures in the associated material
 	void TextureOrder(const std::vector<std::string>& order);
@@ -110,6 +129,7 @@ private:
 
 	GLuint program;
 	std::shared_ptr<ShaderResource> resource;
+	friend class UBO;
     HAS_HASH
 };
 
@@ -157,7 +177,5 @@ private:
 	int* Ptr(int) const;
 	float* Ptr(float) const;
 };
-
-MEMBER_HASH(UBO, impl)
 
 #endif

@@ -33,7 +33,7 @@ Render::Bucket<bufferUsage>::Create(
 	Object obj, Material mat,
 	VertexData vertData, const InstData& inst)
 {
-	auto refs = data.emplace(mat.shader, mat, std::tie(mat.shader, vertData), inst);
+	auto refs = data.emplace(mat.Shader(), mat, std::tie(mat.Shader(), vertData), inst);
 	objs.insert(std::make_pair(obj, refs));
 	FixInstances();
 	return refs;

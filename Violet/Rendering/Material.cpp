@@ -6,17 +6,30 @@
 
 #include <iostream>
 
-Material::Material()
-	: id(std::rand())
+struct Material::Resource : public ::Resource<Resource, Id>
+{
+	Resource(Id id, std::string name, ShaderProgram shader, UBO ubo, std::vector<Tex> textures)
+	: ResourceTy(id), name(name), shader(shader), ubo(std::move(ubo)), textures(textures)
+	{}
+
+	Resource(Id id, std::string name, ShaderProgram shader,
+		UBO::BufferTy uboData, std::vector<Tex> textures)
+		: Resource(id, name, shader, UBO(shader, "Material", uboData), textures)
+	{}
+
+	std::string name;
+	ShaderProgram shader;
+	UBO ubo;
+	std::vector<Tex> textures;
+};
+
+Material::Material(Id id, Persist& persist)
+	: Material(Resource::FindResource(id) ? Resource::FindResource(id)
+		: invoke(Resource::MakeShared<Material::Id, std::string,
+			ShaderProgram, UBO::BufferTy, std::vector<Tex>>,
+			persist.Get<Material>(id)))
 {}
 
-Material::Material(Id id, const Persist& persist)
-	: id(id)
-{
-	UBO::BufferTy buf;
-	std::tie(std::ignore, name, shader, buf, textures) = persist.Get<Material>(id);
-	ubo = shader.MakeUBO("Material", buf);
-}
 
 Material::Material(const std::string& name, ShaderProgram shader)
 	: Material(name, shader, {})
@@ -27,32 +40,40 @@ Material::Material(const std::string& name, ShaderProgram shader, Tex tex)
 {}
 
 Material::Material(const std::string& name, ShaderProgram shader, std::vector<Tex> texes)
-	: id(std::rand()), name(name), shader(shader)
-	, ubo(shader.MakeUBO("Material")), textures(texes)
+	: resource(Resource::MakeShared(
+		std::rand(), name, shader, UBO{ shader, "Material" }, texes))
 {}
 
-Material::Material(std::int64_t id, const std::string& name, ShaderProgram shader,
-	UBO::BufferTy uboBuffer, std::vector<Tex> texes)
-	: id(id), name(name), shader(shader)
-	, ubo(shader.MakeUBO("Material", uboBuffer)), textures(texes)
+Material::Material(std::shared_ptr<Resource> resource)
+	: resource(resource)
 {}
 
 void Material::Save(Persist& persist) const
 {
-	persist.Set<Material>(id, name, shader, ubo.Data(), textures);
+	persist.Set<Material>(resource->Key(), resource->name, resource->shader,
+		resource->ubo.Data(), resource->textures);
 }
 
 Material::Id Material::Key() const
 {
-	return id;
+	return resource->Key();
 }
+
+Material::Id Material::GetId() const { return resource->Key(); }
+std::string& Material::Name() { return resource->name; }
+const std::string& Material::Name() const { return resource->name; }
+ShaderProgram& Material::Shader() { return resource->shader; }
+const ShaderProgram& Material::Shader() const { return resource->shader; }
+UBO& Material::GetUBO() { return resource->ubo; }
+std::vector<Tex>& Material::Textures() { return resource->textures; }
+const std::vector<Tex>& Material::Textures() const { return resource->textures; }
 
 void Material::use() const
 {
-	shader.use();
-	for (GLuint i = 0; i < textures.size(); ++i)
-		textures[i].Bind(i);
-	ubo.Bind();
+	resource->shader.use();
+	for (GLuint i = 0; i < resource->textures.size(); ++i)
+		resource->textures[i].Bind(i);
+	resource->ubo.Bind();
 }
 
 template<>

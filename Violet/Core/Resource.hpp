@@ -32,7 +32,7 @@ protected:
 		Cache().erase(key);
 	}
 
-	typedef Resource<T> ResourceTy;
+	typedef Resource<T, K> ResourceTy;
 
 public:
 	template<class... Args>
