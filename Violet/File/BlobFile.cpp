@@ -5,12 +5,10 @@ static const std::uint16_t endianTest = 0xFFAA;
 
 BlobOutFile::BlobOutFile(const std::string& path
 	, const BlobMagicType& magic, std::uint32_t version)
-	: str(path, std::ofstream::binary | std::ofstream::trunc | std::ofstream::out)
+	: zip(&file)
 {
-	if (str.fail())
+	if (!file.open(path, std::ofstream::binary | std::ofstream::trunc | std::ofstream::out))
 		throw std::runtime_error("Could not open file '" + path + '\'');
-
-	str.exceptions(std::ofstream::badbit | std::ofstream::failbit);
 
 	Write(endianTest);
 	Write(magic);
@@ -20,7 +18,7 @@ BlobOutFile::BlobOutFile(const std::string& path
 void BlobOutFile::Write(const std::string& val)
 {
 	Write<BlobSizeType>(val.size());
-	str.write(val.data(), val.size());
+	zip.sputn(val.data(), val.size());
 }
 
 void BlobOutFile::Write(bool val)
@@ -29,9 +27,9 @@ void BlobOutFile::Write(bool val)
 }
 
 BlobInFile::BlobInFile(const std::string& path, const BlobMagicType& magic, std::uint32_t version)
-	: str(path, std::ofstream::binary | std::ofstream::in)
+	: zip(&file)
 {
-	if (str.fail())
+	if (!file.open(path, std::ofstream::binary | std::ofstream::in))
 		throw BlobFileException("Could not open file '" + path + '\'');
 
 	if (endianTest != Read<std::uint16_t>())
@@ -42,8 +40,6 @@ BlobInFile::BlobInFile(const std::string& path, const BlobMagicType& magic, std:
 
 	if (version != Read<std::uint32_t>())
 		throw BlobFileException("Incorrect version of file '" + path + '\'');
-
-	str.exceptions(std::ofstream::badbit | std::ofstream::failbit);
 }
 
 bool BlobInFile::ReadBool()
@@ -57,8 +53,7 @@ std::string BlobInFile::ReadString()
 	return{ vec.begin(), vec.end() };
 }
 
-void BlobInFile::CheckAndThrow() const
+void BlobInFile::ThrowEOF() const
 {
-	if (str.eof())
-		throw BlobFileException("Insufficient data in blob file");
+	throw BlobFileException("Insufficient data in blob file");
 }

@@ -5,6 +5,8 @@
 #include <array>
 #include "Containers/WrappedIterator.hpp"
 
+#include "Utils/ZipBuf.hpp"
+
 struct BlobFileException : public std::runtime_error
 {
 	using std::runtime_error::runtime_error;
@@ -22,7 +24,7 @@ public:
 	template<typename T>
 	void Write(const T& val)
 	{
-		str.write(reinterpret_cast<const char*>(&val), sizeof(val));
+		zip.sputn(reinterpret_cast<const char*>(&val), sizeof(val));
 	}
 
 	void Write(bool val);
@@ -31,20 +33,21 @@ public:
 	void Write(const std::vector<T>& val)
 	{
 		Write<BlobSizeType>(val.size());
-		str.write(reinterpret_cast<const char*>(val.data()), sizeof(T)*val.size());
+		zip.sputn(reinterpret_cast<const char*>(val.data()), sizeof(T)*val.size());
 	}
 
 	template<typename T>
 	void Write(range<const T*>& val)
 	{
 		Write<BlobSizeType>(val.size());
-		str.write(reinterpret_cast<const char*>(val.begin()), sizeof(T)*val.size());
+		zip.sputn(reinterpret_cast<const char*>(val.begin()), sizeof(T)*val.size());
 	}
 
 	void Write(const std::string& val);
 
 private:
-	std::ofstream str;
+	std::filebuf file;
+	zip_buf zip;
 };
 
 class BlobInFile
@@ -56,18 +59,15 @@ public:
 	T Read()
 	{
 		T ret;
-		str.read(reinterpret_cast<char*>(&ret), sizeof(ret));
-		CheckAndThrow();
+		if (zip.sgetn(reinterpret_cast<char*>(&ret), sizeof(ret)) != sizeof(ret))
+			ThrowEOF();
 		return ret;
 	}
 
 	template<typename T, typename U>
 	T Read()
 	{
-		U ret;
-		str.read(reinterpret_cast<char*>(&ret), sizeof(ret));
-		CheckAndThrow();
-		return static_cast<T>(ret);
+		return static_cast<T>(Read<U>());
 	}
 
 	bool ReadBool();
@@ -77,17 +77,18 @@ public:
 	{
 		auto size = static_cast<std::vector<T>::size_type>(Read<BlobSizeType>());
 		std::vector<T> ret(size);
-		str.read(reinterpret_cast<char*>(ret.data()), sizeof(T)*size);
-		CheckAndThrow();
+		if (zip.sgetn(reinterpret_cast<char*>(ret.data()), sizeof(T)*size) != sizeof(T)*size)
+			ThrowEOF();
 		return ret;
 	}
 
 	std::string ReadString();
 
 private:
-	std::ifstream str;
+	std::filebuf file;
+	zip_buf zip;
 
-	void CheckAndThrow() const;
+	void ThrowEOF() const;
 };
 
 #endif

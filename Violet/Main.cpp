@@ -9,6 +9,9 @@
 #include "File/Persist.hpp"
 #include "UI/PixelDraw.hpp"
 
+#include "Utils/ZipBuf.hpp"
+#include <fstream>
+
 #include <iostream>
 #include <cstdlib>
 #include <ctime>

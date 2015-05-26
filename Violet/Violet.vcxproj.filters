@@ -180,6 +180,9 @@
     <ClInclude Include="File\BlobFile.hpp">
       <Filter>Source Files\File</Filter>
     </ClInclude>
+    <ClInclude Include="Utils\ZipBuf.hpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -292,6 +295,15 @@
     </ClCompile>
     <ClCompile Include="File\BlobFile.cpp">
       <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lzf\lzf_d.c">
+      <Filter>Libs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lzf\lzf_c.c">
+      <Filter>Libs</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ZipBuf.cpp">
+      <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
