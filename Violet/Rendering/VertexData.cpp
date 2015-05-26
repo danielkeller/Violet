@@ -80,11 +80,7 @@ void VertexData::VertexDataResource::WriteCache(range<const char*> verts, range<
 {
 	auto prof = Profile("vert cache");
 
-	std::string cacheName = Key() + ".cache";
-	if (CacheIsFresh(Key(), cacheName))
-		return;
-
-	BlobOutFile cache(cacheName, { 'v','e','r','t' }, 1);
+	BlobOutFile cache(Key() + ".cache", { 'v','e','r','t' }, 1);
 
 	cache.Write<std::int32_t>(vertexBufferStride);
 	cache.Write<std::uint32_t>(mode);
@@ -124,7 +120,7 @@ VertexData::VertexDataResource::VertexDataResource(const std::string& name)
 	{
 		AttribProperties props;
 
-		props.name = cache.ReadString();
+		props.name          = cache.ReadString();
 		props.glType		= cache.Read<std::uint32_t>();
 		props.offset		= cache.Read<size_t, BlobSizeType>();
 		props.integer       = cache.ReadBool();
