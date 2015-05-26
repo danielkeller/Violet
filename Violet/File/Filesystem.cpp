@@ -113,9 +113,7 @@ void MappedFile::Open(const std::string& name)
 {
 	EXCEPT_INFO_BEGIN
 
-		ptr.reset();
-
-	using HandleRAII = std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&::CloseHandle)>;
+	ptr.reset();
 
 	//TODO: This prevents other processes from modifying the file
 	HandleRAII fileHandle(CreateFile(name.c_str(), GENERIC_READ, 0, nullptr,
@@ -158,6 +156,39 @@ void MappedFile::Close()
 		return;
 
 	CHECKED_CLOSE(ptr, "UnmapViewOfFile");
+}
+
+bool CacheIsFresh(const std::string& file, const std::string& cache)
+{
+	WIN32_FIND_DATA ffd;
+	FILETIME cacheTime, fileTime;
+
+	HandleRAII hFindCache(::FindFirstFile(cache.c_str(), &ffd), &::FindClose);
+
+	if (hFindCache.get() == INVALID_HANDLE_VALUE)
+	{
+		if (::GetLastError() == ERROR_FILE_NOT_FOUND)
+			return false;
+		else
+			ThrowErrno("FindFirstFile");
+	}
+
+	cacheTime = ffd.ftLastWriteTime;
+
+	HandleRAII hFindFile(::FindFirstFile(file.c_str(), &ffd), &::FindClose);
+
+	if (hFindFile.get() == INVALID_HANDLE_VALUE)
+	{
+		if (::GetLastError() == ERROR_FILE_NOT_FOUND)
+			return true; //so we can delete the original
+		else
+			ThrowErrno("FindFirstFile");
+	}
+
+	fileTime = ffd.ftLastWriteTime;
+
+	return std::tie(cacheTime.dwHighDateTime, cacheTime.dwLowDateTime)
+		> std::tie(fileTime.dwHighDateTime, fileTime.dwLowDateTime);
 }
 
 #else

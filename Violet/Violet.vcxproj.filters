@@ -177,6 +177,9 @@
     <ClInclude Include="Editor\MaterialEdit.hpp">
       <Filter>Source Files\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="File\BlobFile.hpp">
+      <Filter>Source Files\File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -286,6 +289,9 @@
     </ClCompile>
     <ClCompile Include="Editor\MaterialEdit.cpp">
       <Filter>Source Files\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="File\BlobFile.cpp">
+      <Filter>Source Files\File</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

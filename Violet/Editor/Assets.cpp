@@ -13,17 +13,18 @@
 using namespace Asset_detail;
 
 template<typename Key>
-Asset<Key>::Asset()
-	: thumb("assets/cube.png"), slide(200ms)
+Assets<Key>::Assets() : slide(200ms) {}
+
+Asset::Asset()
+	: thumb("assets/cube.png")
+{}
+
+Asset::Asset(std::string name)
+	: thumb("assets/cube.png"), name(name)
 {}
 
 template<typename Key>
-Asset<Key>::Asset(std::string name, Key key)
-	: thumb("assets/cube.png"), name(name), key(key)
-{}
-
-template<typename Key>
-bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&, UI::AlignedBox2i)> edit)
+bool Assets<Key>::Draw(Key& cur, std::function<void(const Key&, UI::AlignedBox2i)> edit)
 {
 	UI::LayoutStack& l = UI::CurLayout();
 	bool ret = slide.Draw(WIDTH);
@@ -56,8 +57,8 @@ bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&, UI::AlignedBox2
 			UI::AlignedBox2i box{ init, init + size };
 			UI::AlignedBox2i textBox{ init, init + Vector2i{ THM_SIZE, UI::LINEH } };
 
-			UI::DrawQuad(it->thumb, box);
-			if (cur == it->key)
+			UI::DrawQuad(it->second.thumb, box);
+			if (cur == it->first)
 			{
 				UI::PushZ();
 				UI::DrawHlBox(box);
@@ -65,9 +66,10 @@ bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&, UI::AlignedBox2
 			}
 
 			UI::PushZ();
-			std::string::size_type strbegin = std::max(0, int(it->name.size()) - THM_CHARS);
+			const auto& name = it->second.name;
+			std::string::size_type strbegin = std::max(0, int(name.size()) - THM_CHARS);
 			UI::DrawBox(textBox, button->GetColor(), button->GetColor());
-			UI::DrawText(it->name.substr(strbegin, it->name.size()), textBox);
+			UI::DrawText(name.substr(strbegin, name.size()), textBox);
 
 			if (edit)
 			{
@@ -77,14 +79,14 @@ bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&, UI::AlignedBox2
 				UI::DrawQuad(editIcon, editBox);
 				UI::DrawBox(editBox, editButton->GetColor(), editButton->GetColor());
 				if (editButton->Behavior(editBox))
-					edit(*it, box);
+					edit(it->first, box);
 				++editButton;
 				UI::PopZ();
 			}
 
 			if (button->Behavior(box))
 			{
-				cur = it->key;
+				cur = it->first;
 				slide.Close();
 			}
 
@@ -95,26 +97,29 @@ done:
 	UI::PopZ();
 
 	l.Pop();
-
 	UI::PopZ();
+
 	return ret;
 }
 
 ObjAssets::ObjAssets()
 {
 	for (auto path : Browse("assets"))
-		if (IsWavefront(path))
+	{
+		auto realPath = ends_with(path, ".cache") ? path.substr(0, path.size() - 6) : path;
+		if (IsWavefront(realPath))
 		{
-			a.assets.emplace_back(path, path);
-			a.assets.back().thumb = Thumb(path);
+			auto it = a.assets.emplace(realPath, realPath).first;
+			it->second.thumb = Thumb(realPath);
 		}
+	}
 }
 
 bool ObjAssets::Draw(VertexData& cur)
 {
 	std::string curName = cur.Name();
 	bool ret = a.Draw(curName, {});
-	if (ret) cur = curName;
+	if (curName != cur.Name()) cur = curName;
 	return ret;
 }
 
@@ -125,8 +130,8 @@ MaterialAssets::MaterialAssets(Persist& persist)
 	for (auto matTup : persist.GetAll<Material>())
 	{
 		Material mat{ std::get<0>(matTup), persist };
-		a.assets.emplace_back(mat.Name(), mat.Key());
-		a.assets.back().thumb = Thumb(mat);
+		auto it = a.assets.emplace(mat.Key(), mat.Name()).first;
+		it->second.thumb = Thumb(mat);
 	}
 }
 
@@ -136,18 +141,18 @@ bool MaterialAssets::Draw(Material& cur, Persist& persist)
 	{
 		//update the thumbnail
 		Material& edited = edit.Current();
-		auto editedAsset = std::find(a.assets.begin(), a.assets.end(), edited.GetId());
-		editedAsset->thumb = Thumb(edited);
-		editedAsset->name = edited.Name();
+		auto& editedAsset = a.assets[edited.GetId()];
+		editedAsset.thumb = Thumb(edited);
+		editedAsset.name = edited.Name();
 
 		editorOn = false;
 	}
 
 	Material::Id curName = cur.GetId();
-	bool ret = a.Draw(curName, [&](Asset<Material::Id>& mat, UI::AlignedBox2i box){
+	bool ret = a.Draw(curName, [&](const Material::Id& mat, UI::AlignedBox2i box){
 		editorOn = true;
-		edit.Edit(Material{ curName, persist }, box);
+		edit.Edit(Material{ mat, persist }, box);
 	});
-	if (ret) cur = Material{ curName, persist };
+	if (curName != cur.GetId()) cur = Material{ curName, persist };
 	return ret;
 }

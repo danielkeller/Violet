@@ -9,24 +9,23 @@
 class Material;
 class VertexData;
 
-template<typename Key>
 struct Asset
 {
 	Asset();
-	Asset(std::string name, Key key);
+	//This signature is to remind you not to load things just to take their pictures
+	Asset(std::string name);
 	Tex thumb;
 	std::string name;
-	Key key;
-	MEMBER_EQUALITY(Key, key)
 };
 
 template<typename Key>
 class Assets
 {
 public:
+	Assets();
 	//true if selection changed
-	bool Draw(Key& cur, std::function<void(Asset<Key>&, UI::AlignedBox2i)> edit);
-	std::vector<Asset<Key>> assets;
+	bool Draw(Key& cur, std::function<void(const Key&, UI::AlignedBox2i)> edit);
+	std::map<Key, Asset> assets;
 
 private:
 	std::vector<UI::Button> buttons;

@@ -104,7 +104,7 @@ VertexData WavefrontVertexData(std::string filename)
 		norm_it < w.norms.end() ? Vector3f{ *norm_it++ } : Vector3f::Zero(),
 		uv_it < w.uvs.end() ? Vector2f{ *uv_it++ } : Vector2f::Zero() });
 
-	return{ filename, attribs, w.indices };
+	return{ filename, attribs, w.indices, true };
 }
 
 Mesh WavefrontMesh(std::string filename)

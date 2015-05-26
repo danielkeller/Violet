@@ -66,4 +66,8 @@ private:
 	void ThrowErrno(const std::string& text);
 };
 
+//Note that this is subject to a race condition: if the file is deleted in between
+//when we check for it and open it. This could be fixed but that seems like a lot of work
+bool CacheIsFresh(const std::string& file, const std::string& cache);
+
 #endif

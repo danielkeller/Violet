@@ -20,4 +20,6 @@ inline void ThrowErrno(const std::string& text)
 	throw std::runtime_error(text + ": " + message);
 }
 
+using HandleRAII = std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&::CloseHandle)>;
+
 #endif

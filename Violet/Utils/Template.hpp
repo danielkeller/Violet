@@ -46,7 +46,7 @@ struct FromBytes
 	{
 		static_assert(std::is_standard_layout<T>::value, "Type must be standard layout");
 		T ret;
-		std::copy(ptr, ptr + sizeof(T), reinterpret_cast<char*>(&ret));
+		std::memcpy(&ret, ptr, sizeof(ret));
 		return ret;
 	}
 };

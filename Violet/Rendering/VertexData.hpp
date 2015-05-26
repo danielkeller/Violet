@@ -3,6 +3,7 @@
 
 #include "Core/Resource.hpp"
 #include "BufferObject.hpp"
+#include "Containers/WrappedIterator.hpp"
 
 struct ResourcePersistTag;
 
@@ -34,11 +35,20 @@ public:
 	VertexData(const std::string& file);
 
     template<class V, class VAlloc, class I, class IAlloc>
-    VertexData(const std::string& name, const std::vector<V, VAlloc>& verts, const std::vector<I, IAlloc>& inds)
+    VertexData(const std::string& name,
+		const std::vector<V, VAlloc>& verts, const std::vector<I, IAlloc>& inds,
+		bool cache = false)
     {
         resource = VertexDataResource::FindResource(name);
         if (!resource)
             resource = VertexDataResource::MakeShared(name, verts, inds);
+
+		if (cache)
+			resource->WriteCache(
+				{reinterpret_cast<const char*>(verts.data()),
+				reinterpret_cast<const char*>(verts.data() + verts.size())},
+				{reinterpret_cast<const char*>(inds.data()),
+				reinterpret_cast<const char*>(inds.data() + inds.size())});
 	}
 
 	BASIC_EQUALITY(VertexData, resource)
@@ -60,6 +70,11 @@ private:
         {
             numVertecies = static_cast<GLsizei>(indexBuffer.Size());
         }
+
+		//read from cache
+		VertexDataResource(const std::string& name);
+
+		void WriteCache(range<const char*> verts, range<const char*> inds);
 
         Schema vertexBufferSchema;
         GLsizei vertexBufferStride;

@@ -93,7 +93,7 @@ public:
 
 	//Don't compile this if it doesn't make sense
 	template<class ret = typename std::iterator_traits<iterator>::difference_type>
-	ret size()
+	ret size() const
 	{
 		return end_ - begin_;
 	}

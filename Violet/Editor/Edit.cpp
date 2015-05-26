@@ -188,14 +188,18 @@ void Edit::PhysTick(Object camera)
 	if (currentPicker != AssetPicker::None)
 	{
 		auto tup = r.Info(selected);
+		auto old = tup;
+		
 		if (currentPicker == AssetPicker::Meshes
 			? meshes.Draw(std::get<1>(tup))
 			: materials.Draw(std::get<0>(tup), persist))
+			currentPicker = AssetPicker::None;
+
+		if (old != tup)
 		{
 			r.Remove(selected);
 			r.Create(selected, tup);
 			r.Save(selected, persist);
-			currentPicker = AssetPicker::None;
 		}
 	}
 

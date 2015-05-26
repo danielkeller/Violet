@@ -167,6 +167,7 @@
     <ClInclude Include="Editor\Edit.hpp" />
     <ClInclude Include="Editor\MaterialEdit.hpp" />
     <ClInclude Include="Editor\Tool.hpp" />
+    <ClInclude Include="File\BlobFile.hpp" />
     <ClInclude Include="File\Filesystem.hpp" />
     <ClInclude Include="File\Persist.hpp" />
     <ClInclude Include="File\Persist_detail.hpp" />
@@ -221,6 +222,7 @@
     <ClCompile Include="Editor\MaterialEdit.cpp" />
     <ClCompile Include="Editor\Thumbnail.cpp" />
     <ClCompile Include="Editor\Tool.cpp" />
+    <ClCompile Include="File\BlobFile.cpp" />
     <ClCompile Include="File\Filesystem.cpp" />
     <ClCompile Include="File\Persist.cpp" />
     <ClCompile Include="File\Wavefront.cpp" />
