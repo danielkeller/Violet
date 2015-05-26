@@ -120,53 +120,26 @@ bool TextButton::Draw()
 	return button.Draw(l, text);
 }
 
-ModalBoxRAII::ModalBoxRAII(UI::Layout::Dir dir)
-	: closed(false)
-{
-	UI::PushModal();
-	Events& e = UI::FrameEvents();
-	//FIXME: this steals the event
-	if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
-		closed = true;
-
-	UI::LayoutStack& l = UI::CurLayout();
-	l.PushLayer(dir);
-	UI::PushZ(10); //I don't like this
-
-	l.Inset(30);
-	UI::DrawBox(l.Current());
-	UI::DrawShadow(l.Current());
-	l.Inset(20);
-}
-
-ModalBoxRAII::~ModalBoxRAII()
-{
-	UI::PopZ();
-	UI::CurLayout().PopLayer();
-	UI::PopModal();
-}
-
-Animation::Animation()
-	: start(-1s)
-	, last(-1s)
+Animation::Animation(Ease ease, Time::clock::duration time)
+	: ease(ease), time(time), start(-1s), last(-1s)
 {}
 
-bool UI::Animation::Running() const
+bool Animation::Started() const
 {
 	return UI::FrameEvents().simTime == last + Time::dt
 		|| UI::FrameEvents().simTime == last;
 }
 
-void UI::Animation::Start()
+void Animation::Start()
 {
-	if (!Running())
+	if (!Started())
 		last = start = UI::FrameEvents().simTime;
 }
 
-int UI::Animation::Continue(int initial, int final, Ease ease, Time::clock::duration time)
+float Animation::Continue() const
 {
-	if (!Running())
-		return initial;
+	if (!Started())
+		return 0.f;
 
 	auto simTime = UI::FrameEvents().simTime;
 	last = simTime;
@@ -175,7 +148,7 @@ int UI::Animation::Continue(int initial, int final, Ease ease, Time::clock::dura
 	auto alpha = std::chrono::duration_cast<millifloat>(simTime - start)
 		/ std::chrono::duration_cast<millifloat>(time);
 	if (alpha >= 1.f)
-		return final;
+		return 1.f;
 
 	//1d cubic bezier control points (the curve is from 0 to 1)
 	float x1, x2;
@@ -183,27 +156,77 @@ int UI::Animation::Continue(int initial, int final, Ease ease, Time::clock::dura
 	if (ease == Ease::Out) std::tie(x1, x2) = std::make_tuple(0.f, .6f);
 	if (ease == Ease::InOut) std::tie(x1, x2) = std::make_tuple(.4f, .6f);
 
-	float x = 3 * (1 - alpha) * alpha * ((1 - alpha) * x1 + alpha*x2) + alpha*alpha*alpha;
-
-	return initial + int((final - initial)*x);
+	return 3 * (1 - alpha) * alpha * ((1 - alpha) * x1 + alpha*x2) + alpha*alpha*alpha;
 }
 
-int Animation::Run(int initial, int final, Ease ease, Time::clock::duration time)
+float Animation::Run()
 {
 	Start();
-	return Continue(initial, final, ease, time);
+	return Continue();
 }
 
-bool UI::SlideInOut::Draw(int size, Time::clock::duration time)
+SlideInOut::SlideInOut(Time::clock::duration time)
+	: open(Ease::In, time), close(Ease::Out, time)
+{}
+
+bool SlideInOut::Draw(int size)
 {
 	UI::LayoutStack& l = UI::CurLayout();
-	l.PutSpace(open.Run(-size, 0, UI::Ease::In, time));
-	int closing = close.Continue(0, -size, UI::Ease::Out, time);
+	l.PutSpace(int((open.Run() - 1.f) * size));
+	int closing = int(-close.Continue() * size);
 	l.PutSpace(closing);
 	return closing == -size;
 }
 
-void UI::SlideInOut::Close()
+void SlideInOut::Close()
 {
 	close.Start();
+}
+
+ModalBox::ModalBox()
+	: open(Ease::In, 200ms), close(Ease::Out, 200ms)
+{}
+
+ModalBox::RAII ModalBox::Draw(UI::Layout::Dir dir, AlignedBox2i initBox)
+{
+	UI::PushModal();
+	Events& e = UI::FrameEvents();
+
+	UI::LayoutStack& l = UI::CurLayout();
+	l.PushLayer(dir);
+	UI::PushZ(10);
+	l.Inset(30);
+
+	float anim = open.Run() - close.Continue();
+
+	AlignedBox2i final = l.Current();
+	AlignedBox2i box = Eigen::AlignedBox2f{
+		initBox.min().cast<float>() * (1.f - anim) + final.min().cast<float>()*anim,
+		initBox.max().cast<float>() * (1.f - anim) + final.max().cast<float>()*anim }.cast<int>();
+
+	UI::DrawBox(box);
+	UI::DrawShadow(box);
+	l.Inset(20);
+
+	return{ *this };
+}
+
+bool ModalBox::Closed() const
+{
+	return close.Continue() == 1.f;
+}
+
+bool ModalBox::Ready() const
+{
+	return open.Continue() - close.Continue() == 1.f;
+}
+
+ModalBox::RAII::~RAII()
+{
+	if (UI::FrameEvents().PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
+		box.close.Start();
+
+	UI::PopZ();
+	UI::CurLayout().PopLayer();
+	UI::PopModal();
 }

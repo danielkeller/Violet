@@ -16,9 +16,10 @@ MaterialEdit::MaterialEdit()
 	instances.Assign(0, object);
 }
 
-void MaterialEdit::Edit(Material newMat)
+void MaterialEdit::Edit(Material newMat, UI::AlignedBox2i newInitBox)
 {
 	mat = newMat;
+	initBox = newInitBox;
 
 	static VertexData sample{ "assets/capsule.obj" };
 	vao = { mat.Shader(), sample };
@@ -32,9 +33,11 @@ Material MaterialEdit::Current() const
 
 bool MaterialEdit::Draw(Persist& persist)
 {
-	UI::ModalBoxRAII modalBox(UI::Layout::Dir::Right);
-	if (modalBox.closed)
+	auto boxRAII = modalBox.Draw(UI::Layout::Dir::Right, initBox);
+	if (modalBox.Closed())
 		return true;
+	if (!modalBox.Ready())
+		return false;
 
 	UI::LayoutStack& l = UI::CurLayout();
 

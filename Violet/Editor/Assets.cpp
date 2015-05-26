@@ -14,7 +14,7 @@ using namespace Asset_detail;
 
 template<typename Key>
 Asset<Key>::Asset()
-	: thumb("assets/cube.png")
+	: thumb("assets/cube.png"), slide(200ms)
 {}
 
 template<typename Key>
@@ -23,10 +23,10 @@ Asset<Key>::Asset(std::string name, Key key)
 {}
 
 template<typename Key>
-bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&)> edit)
+bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&, UI::AlignedBox2i)> edit)
 {
 	UI::LayoutStack& l = UI::CurLayout();
-	bool ret = slide.Draw(WIDTH, 200ms);
+	bool ret = slide.Draw(WIDTH);
 	l.PushNext(UI::Layout::Dir::Down);
 	l.EnsureWidth(WIDTH);
 	UI::PushZ(3);
@@ -77,7 +77,7 @@ bool Assets<Key>::Draw(Key& cur, std::function<void(Asset<Key>&)> edit)
 				UI::DrawQuad(editIcon, editBox);
 				UI::DrawBox(editBox, editButton->GetColor(), editButton->GetColor());
 				if (editButton->Behavior(editBox))
-					edit(*it);
+					edit(*it, box);
 				++editButton;
 				UI::PopZ();
 			}
@@ -144,9 +144,9 @@ bool MaterialAssets::Draw(Material& cur, Persist& persist)
 	}
 
 	Material::Id curName = cur.GetId();
-	bool ret = a.Draw(curName, [&](Asset<Material::Id>& mat){
+	bool ret = a.Draw(curName, [&](Asset<Material::Id>& mat, UI::AlignedBox2i box){
 		editorOn = true;
-		edit.Edit(Material{ curName, persist });
+		edit.Edit(Material{ curName, persist }, box);
 	});
 	if (ret) cur = Material{ curName, persist };
 	return ret;

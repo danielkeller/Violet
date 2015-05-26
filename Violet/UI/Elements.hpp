@@ -108,14 +108,6 @@ namespace UI
 		}
 	};
 
-	struct ModalBoxRAII
-	{
-		ModalBoxRAII(UI::Layout::Dir dir);
-		~ModalBoxRAII();
-		//true if the box was closed
-		bool closed;
-	};
-
 	enum class Ease
 	{
 		In, Out, InOut
@@ -124,26 +116,50 @@ namespace UI
 	class Animation
 	{
 	public:
-		Animation();
+		Animation(Ease ease, Time::clock::duration time = 100ms);
 		void Start();
-		int Continue(int initial, int final, Ease ease, Time::clock::duration time = 100ms);
-		int Run(int initial, int final, Ease ease, Time::clock::duration time = 100ms);
-		bool Running() const;
+		float Continue() const;
+		float Run();
+		bool Started() const;
 
 	private:
-		Time::clock::duration start, last;
+		Ease ease;
+		Time::clock::duration time;
+		Time::clock::duration start;
+		mutable Time::clock::duration last;
 	};
 
 	class SlideInOut
 	{
 	public:
+		SlideInOut(Time::clock::duration time = 100ms);
 		//return true on close. This backs up the layout and so should be
 		//called before drawing anything
-		bool Draw(int size, Time::clock::duration time = 100ms);
+		bool Draw(int size);
 		void Close();
 
 	private:
 		Animation open, close;
+	};
+
+	class ModalBox
+	{
+		struct RAII;
+	public:
+		ModalBox();
+		RAII Draw(Layout::Dir dir, AlignedBox2i initBox);
+		//true if the box is ready to contain UI
+		bool Ready() const;
+		bool Closed() const;
+
+	private:
+		Animation open, close;
+
+		struct RAII
+		{
+			~RAII();
+			ModalBox& box;
+		};
 	};
 }
 

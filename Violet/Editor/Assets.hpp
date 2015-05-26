@@ -25,7 +25,7 @@ class Assets
 {
 public:
 	//true if selection changed
-	bool Draw(Key& cur, std::function<void(Asset<Key>&)> edit);
+	bool Draw(Key& cur, std::function<void(Asset<Key>&, UI::AlignedBox2i)> edit);
 	std::vector<Asset<Key>> assets;
 
 private:
