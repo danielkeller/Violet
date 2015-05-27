@@ -14,8 +14,7 @@ public:
 	AABB(Mesh m);
 
 private:
-	using TreeTy = BinTree<Box, Mesh, Eigen::aligned_allocator<Box>>;
-	void build(Mesh mLeft, Box cur, size_t depth, TreeTy::iterator it);
+	using TreeTy = BinTree<AlignedBox3f, Mesh, Eigen::aligned_allocator<AlignedBox3f>>;
 	TreeTy tree;
 	friend struct ShowAABB;
 };

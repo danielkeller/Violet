@@ -95,14 +95,15 @@ public:
 	ConstMeshIter cend() const { return end(); }
 	ConstMeshIter end() const;
 
-	Box bound() const;
+	AlignedBox3f bound() const;
 
 	size_t size() { return submesh.size() ? submesh.size() : resource->indices.size(); }
 
 	void erase(MeshIter first, MeshIter last) { submesh.erase(first.it, last.it); }
 
 	//Remove all triangles not touching box
-	void Chop(Box box);
+	//TODO: return resultant bounding box
+	void Chop(AlignedBox3f box);
 
 	void PrintDataSize();
 	

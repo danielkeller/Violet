@@ -38,7 +38,7 @@ Viewport::Viewport(Eigen::AlignedBox2i sb)
 //FIXME?
 Vector3f Viewport::ApparentPos(Vector2f posPixel, const Matrix4f& modelview) const
 {
-	auto screenAxes = PerspMat() * modelview;
+	Matrix4f screenAxes = PerspMat() * modelview;
 	Vector4f screenVec;
 	screenVec << Pixel2Scr(posPixel)*screenAxes(3, 3), screenAxes(2, 3), screenAxes(3, 3);
 	Vector4f worldVec(screenAxes.householderQr().solve(screenVec));

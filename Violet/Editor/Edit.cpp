@@ -226,9 +226,9 @@ void Edit::PhysTick(Object camera)
 			bool stopped = false, moved = false;
 
 			l.PushNext(UI::Layout::Dir::Right);
-			stopped |= xEdit.Draw(xfrm.pos.x())
-				| yEdit.Draw(xfrm.pos.y())
-				| zEdit.Draw(xfrm.pos.z());
+			stopped |= xEdit.Draw(xfrm.pos.x());
+			stopped |= yEdit.Draw(xfrm.pos.y());
+			stopped |= zEdit.Draw(xfrm.pos.z());
 			moved |= xEdit.editing | yEdit.editing | zEdit.editing;
 			l.Pop();
 
@@ -253,8 +253,8 @@ void Edit::PhysTick(Object camera)
 				}
 				else //object in control
 				{
-					auto other = Vector3f::Unit((axis + 1) % 3);
-					auto rotated = twist * other;
+					Vector3f other = Vector3f::Unit((axis + 1) % 3);
+					Vector3f rotated = twist * other;
 					curAngle[axis] = std::atan2(rotated[(axis + 2) % 3], rotated[(axis + 1) % 3]);
 				}
 			}

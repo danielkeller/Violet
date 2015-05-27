@@ -1,3 +1,6 @@
+#ifndef PROFILE_HPP
+#define PROFILE_HPP
+
 #define PROFILE
 
 #ifdef PROFILE
@@ -58,4 +61,6 @@ public:
 	static void CalibrateProfiling() {}
 	static void Print();
 };
+#endif
+
 #endif

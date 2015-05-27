@@ -49,10 +49,6 @@ try
 	Object teapotObj = objName["teapot"];
 	Object teapot2Obj = objName["teapot2"];
 
-	//AABB teapotAabb(teapot.mesh);
-	//Object aabbObj;
-	//ShowAABB aabb(teapotAabb);
-
 	if (!persist.Exists<Render>(teapotObj) || !persist.Exists<Render>(teapot2Obj))
 	{
 		//load the object
@@ -67,7 +63,12 @@ try
 
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
-
+	/*
+	AABB teapotAabb({ "assets/capsule.obj" });
+	Object aabbObj;
+	ShowAABB aabb(teapotAabb);
+	r.Create(aabbObj, { "aabb", aabb.shaderProgram }, aabb.vertData);
+	*/
 	position[camera]->pos = {0, -3, 0};
     
     Time t;

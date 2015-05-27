@@ -293,6 +293,9 @@
     <ClCompile Include="File\BlobFile.cpp">
       <Filter>Source Files\File</Filter>
     </ClCompile>
+    <ClCompile Include="Geometry\Collide.cpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\simple.frag">

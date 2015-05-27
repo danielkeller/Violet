@@ -1,12 +1,14 @@
 #ifndef BINTREE_HPP
 #define BINTREE_HPP
 #include <array>
+#include <deque>
 #include "WrappedIterator.hpp"
+#include "Utils/Profiling.hpp"
 
 //default traversal order is breadth-first
 template<class NodeTy, class LeafTy, class ContTy>
 class BinTreeIterBase :
-	public WrappedIterator < BinTreeIterBase<NodeTy, LeafTy, ContTy>, size_t, NodeTy >
+	public WrappedIterator<BinTreeIterBase<NodeTy, LeafTy, ContTy>, size_t, NodeTy>
 {
     using Base = WrappedIterator<BinTreeIterBase<NodeTy, LeafTy, ContTy>, size_t, NodeTy>;
     using Base::it;
@@ -14,8 +16,7 @@ class BinTreeIterBase :
 public:
 	NodeTy& operator*()
 	{
-		tree.ReserveNodes(it);
-		return tree.inner[it];
+		return tree.nodes[it];
 	}
 	using Base::operator*;
 
@@ -43,7 +44,7 @@ private:
 		: Base(pos), tree(t)
 	{}
 
-	size_t Leaf() const { return it - tree.inner.size() / 2; }
+	size_t Leaf() const { return it - tree.nodes.size() / 2; }
 };
 
 template<class NodeTy, class LeafTy,
@@ -51,33 +52,56 @@ class NodeAlloc = std::allocator<NodeTy>, class LeafAlloc = std::allocator<LeafT
 class BinTree
 {
 public:
-	BinTree(NodeTy&& n)
-	{
-		inner.push_back(std::move(n));
-	}
-
-	using iterator = BinTreeIterBase < NodeTy, LeafTy, BinTree >;
-	using const_iterator = BinTreeIterBase <const NodeTy, const LeafTy, BinTree>;
+	using iterator = BinTreeIterBase<NodeTy, LeafTy, BinTree>;
+	using const_iterator = BinTreeIterBase<const NodeTy, const LeafTy, BinTree>;
 
 	iterator begin() { return{ 0, *this }; }
 	const_iterator begin() const { return{ 0, *const_cast<BinTree*>(this) }; }
 	const_iterator cbegin() { return begin(); }
 
-	iterator end() { return{ inner.size(), *this }; }
-	const_iterator end() const { return{ inner.size(), *const_cast<BinTree*>(this) }; }
+	iterator end() { return{ nodes.size(), *this }; }
+	const_iterator end() const { return{ nodes.size(), *const_cast<BinTree*>(this) }; }
 	const_iterator cend() { return end(); }
 
-	//Only guaranteed to work if the tree is being built preorder
-	void PreorderLeafPush(LeafTy leaf)
+	template<typename State, typename F, typename G>
+	BinTree(size_t height, NodeTy root, State init, F makeNode, G makeLeaf)
 	{
-		leaves.push_back(leaf);
+		auto p = Profile("build AABB");
+
+		size_t numNodes = (1 << height) - 1;
+
+		nodes.reserve(numNodes);
+
+		std::deque<State> states;
+		states.push_back(std::move(init));
+		nodes.push_back(std::move(root));
+
+		size_t numInnerNodes = (1 << (height - 1)) - 1;
+		for (size_t i = 0; i < numInnerNodes; ++i)
+		{
+			std::tuple<NodeTy, State, NodeTy, State> tup
+				= makeNode(states.front(), nodes[i]);
+			states.pop_front();
+
+			nodes.push_back(std::move(std::get<0>(tup)));
+			states.push_back(std::move(std::get<1>(tup)));
+			nodes.push_back(std::move(std::get<2>(tup)));
+			states.push_back(std::move(std::get<3>(tup)));
+		}
+
+		size_t numLeaves = 1 << (height - 1);
+		leaves.reserve(numLeaves);
+
+		for (size_t i = numInnerNodes; i < numNodes; ++i)
+		{
+			leaves.push_back(makeLeaf(states.front(), nodes[i]));
+			states.pop_front();
+		}
 	}
 
 	//Each bottom node has one leaf
 	LeafTy& Leaf(const iterator& parent)
 	{
-		//Leaf numbering starts at the first node with no children
-		ReserveLeaves(parent.Leaf());
 		return leaves[parent.Leaf()];
 	}
 
@@ -90,25 +114,8 @@ private:
 	friend iterator;
 	friend const_iterator;
 
-	std::vector<NodeTy, NodeAlloc> inner;
+	std::vector<NodeTy, NodeAlloc> nodes;
 	std::vector<LeafTy, LeafAlloc> leaves;
-
-	void ReserveLeaves(size_t idx)
-	{
-		if (leaves.size() <= idx)
-			leaves.resize(idx + 1);
-	}
-
-	void ReserveNodes(size_t idx)
-	{
-		if (inner.size() <= idx)
-		{
-			//TODO this is inefficient
-			if (leaves.size() >= idx - inner.size())
-				leaves.erase(leaves.begin(), leaves.begin() + idx - inner.size());
-			inner.resize(idx + 1);
-		}
-	}
 };
 
 #endif

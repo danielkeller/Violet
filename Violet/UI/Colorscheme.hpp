@@ -1,11 +1,9 @@
 #ifndef COLORSCHEME_HPP
 #define COLORSCHEME_HPP
 
-#include <cstdint>
-
 namespace UI
 {
-	using Color = std::uint32_t;
+	using Color = unsigned int;
 
 	namespace Colors
 	{

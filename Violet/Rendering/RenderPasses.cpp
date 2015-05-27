@@ -76,7 +76,7 @@ void RenderPasses::Highlight(Object o, Highlights type)
 
 Object RenderPasses::Pick(Vector2f posPixel) const
 {
-	auto posView = view.Pixel2View(posPixel).array();
+	Eigen::Array2f posView = view.Pixel2View(posPixel).array();
 
 	if ((posView < Eigen::Array2f::Zero()).any()
 		|| (posView > Eigen::Array2f(1, 1)).any())

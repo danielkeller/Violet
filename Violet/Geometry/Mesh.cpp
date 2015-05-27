@@ -58,7 +58,7 @@ ConstMeshIter Mesh::end() const
 		return{ resource->indices.end(), resource->points };
 }
 
-void Mesh::Chop(Box box)
+void Mesh::Chop(AlignedBox3f box)
 {
 	if (!submesh.size())
 		submesh = resource->indices;
@@ -80,7 +80,7 @@ void Mesh::PrintDataSize()
 		resource->indices.size() * sizeof(TriInd)) / 1024 << "kb total\n";
 }
 
-Box Mesh::bound() const
+AlignedBox3f Mesh::bound() const
 {
 	float maxflt = std::numeric_limits<float>::max();
 	float minflt = std::numeric_limits<float>::min();
