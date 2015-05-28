@@ -35,5 +35,4 @@ AlignedBox3f Bound(const Mesh&);
 //Remove all triangles not touching box
 Mesh ApproxChop(Mesh, AlignedBox3f box);
 
-
 #endif

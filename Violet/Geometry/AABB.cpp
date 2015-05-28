@@ -1,16 +1,49 @@
 #include "stdafx.h"
 #include "AABB.hpp"
-//#include <boost/range/algorithm.hpp>
 #include <numeric>
 
+//These methods take comparable time to produce a tree of comparable size
+//#define OVERLAP_OK
+
+//#include <iostream>
+//static float volTotal = 0.f;
+
 AABB::AABB(Mesh m)
-	: tree(7, Bound(m), m,
+	: tree(8, Bound(m), m,
 		[](Mesh parent, const AlignedBox3f& cur)
 		{
+			//if (std::isfinite(cur.volume()))
+			//	volTotal += cur.volume();
+
 			//Get longest axis
 			Vector3f::Index longestAxis;
 			cur.sizes().maxCoeff(&longestAxis);
 
+#ifdef OVERLAP_OK
+			auto rCenter = MapRange(parent, centroid);
+			Vector3f meanCentroid =
+				std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
+				/ float(parent.size());
+
+			Mesh left, right;
+
+			std::partition_copy(parent.begin(), parent.end(),
+				std::back_inserter(left), std::back_inserter(right),
+				[=](const Triangle& t)
+			{
+				return t.row(longestAxis).maxCoeff() < meanCentroid[longestAxis];
+				//produces much higher total volume
+				//return centroid(t)[longestAxis] < meanCentroid[longestAxis];
+			});
+
+			auto lBound = Bound(left);
+			auto rBound = Bound(right);
+
+			return std::make_tuple(
+				lBound, std::move(left),
+				rBound, std::move(right));
+
+#else
 			auto rCenter = MapRange(parent, centroid);
 			Vector3f meanCentroid =
 				std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
@@ -23,16 +56,18 @@ AABB::AABB(Mesh m)
 			//remove all non-intersecting elements
 			Mesh mLeft = ApproxChop(parent, left);
 			Mesh mRight = ApproxChop(std::move(parent), right);
-
 			return std::make_tuple(left.intersection(Bound(mLeft)), std::move(mLeft),
 				right.intersection(Bound(mRight)), std::move(mRight));
+#endif
 		},
 		[](Mesh mLeft, const AlignedBox3f&)
 		{
 			return mLeft;
 		}
 		)
-{}
+{
+	//std::cerr << volTotal << '\n';
+}
 
 struct AABBVert
 {
@@ -55,7 +90,10 @@ ShowAABB::ShowAABB(const AABB& aabb)
 	std::vector<AABBVert, AABBVert::Allocator> attribs;
 	std::vector<LineInd> indices;
 
-	for (auto it = aabb.tree.begin(); it != aabb.tree.end(); ++it)
+	auto it = aabb.tree.begin();
+	//while (!it.Bottom()) ++it;
+
+	for (; it != aabb.tree.end(); ++it)
 	{
 		auto depth = static_cast<float>(it.Depth());
 		Vector3f color = {

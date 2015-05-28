@@ -53,7 +53,7 @@ class BinTree
 {
 public:
 	using iterator = BinTreeIterBase<NodeTy, LeafTy, BinTree>;
-	using const_iterator = BinTreeIterBase<const NodeTy, const LeafTy, BinTree>;
+	using const_iterator = BinTreeIterBase<const NodeTy, const LeafTy, const BinTree>;
 
 	iterator begin() { return{ 0, *this }; }
 	const_iterator begin() const { return{ 0, *const_cast<BinTree*>(this) }; }

@@ -40,9 +40,8 @@ Mesh ApproxChop(Mesh m, AlignedBox3f box)
 AlignedBox3f Bound(const Mesh& m)
 {
 	float maxflt = std::numeric_limits<float>::max();
-	float minflt = std::numeric_limits<float>::min();
 	Eigen::Array3f min{ maxflt, maxflt, maxflt };
-	Eigen::Array3f max{ minflt, minflt, minflt };
+	Eigen::Array3f max = -min;
 
 	for (const auto& tri : m)
 	{

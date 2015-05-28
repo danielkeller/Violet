@@ -38,6 +38,7 @@ public:
 	bool operator==(const Derived& other) const { return it == other.it; }
 	bool operator!=(const Derived& other) const { return it != other.it; }
 	bool operator<(const Derived& other) const { return it < other.it; }
+	bool operator>(const Derived& other) const { return it > other.it; }
 
 protected:
 	IterTy it;
