@@ -14,19 +14,23 @@ LineSegment Project(Vector3f v, Vector3f ax)
 
 std::array<Vector3f, 4> Axes(const Triangle& t)
 {
-	Vector3f face = (t.q - t.r).cross(t.s - t.r).normalized();
+	const Vector3f
+		a = t.col(0) - t.col(1),
+		b = t.col(1) - t.col(2),
+		c = t.col(2) - t.col(0);
+	Vector3f face = a.cross(b).normalized();
 	return{
 		face, //If I put braces around this the compiler crashes
-		{ face.cross(t.q - t.r).normalized() },
-		{ face.cross(t.r - t.s).normalized() },
-		{ face.cross(t.s - t.q).normalized() }
+		{ face.cross(a).normalized() },
+		{ face.cross(b).normalized() },
+		{ face.cross(c).normalized() }
 	};
 }
 
 LineSegment Project(const Triangle& t, Vector3f ax)
 {
-	auto projs = { ax.dot(t.q), ax.dot(t.r), ax.dot(t.s) };
-	return{ std::min(projs), std::max(projs) };
+	Vector3f projs = t.matrix().transpose() * ax;
+	return{ projs.minCoeff(), projs.maxCoeff() };
 }
 
 std::array<Vector3f, 3> Axes(const AlignedBox3f&)
@@ -53,13 +57,13 @@ LineSegment Project(const AlignedBox3f& box, Vector3f ax)
 		std::max(ax.dot(c), ax.dot(d)) };
 }
 
-bool Intersects(const AlignedBox3f& a, const Triangle& b)
+bool ApproxIntersects(const AlignedBox3f& a, const Triangle& tri)
 {
-	for (const Vector3f& ax : Axes(a))
-		if (!Intersects(Project(a, ax), Project(b, ax)))
-			return false;
-	for (const Vector3f& ax : Axes(b))
-		if (!Intersects(Project(a, ax), Project(b, ax)))
-			return false;
-	return true;
+	//all points (col), on any axis (row), are < min or > max
+	return !(
+		(tri < a.min().array().replicate<1, 3>())
+		.rowwise().all()
+		|| (tri > a.max().array().replicate<1, 3>())
+		.rowwise().all()
+		).any();
 }

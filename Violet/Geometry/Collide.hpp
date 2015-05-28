@@ -36,7 +36,6 @@ inline bool Intersects(const AlignedBox3f& a, const AlignedBox3f& b)
 	return a.intersection(b).volume() > 0.f;
 }
 
-//Copy-paste it into Collide.cpp so it can compile with optimizations on
-bool Intersects(const AlignedBox3f& a, const Triangle& b);
+bool ApproxIntersects(const AlignedBox3f& a, const Triangle& b);
 
 #endif

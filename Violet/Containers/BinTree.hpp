@@ -80,13 +80,13 @@ public:
 		for (size_t i = 0; i < numInnerNodes; ++i)
 		{
 			std::tuple<NodeTy, State, NodeTy, State> tup
-				= makeNode(states.front(), nodes[i]);
+				= makeNode(std::move(states.front()), nodes[i]);
 			states.pop_front();
 
-			nodes.push_back(std::move(std::get<0>(tup)));
-			states.push_back(std::move(std::get<1>(tup)));
-			nodes.push_back(std::move(std::get<2>(tup)));
-			states.push_back(std::move(std::get<3>(tup)));
+			nodes.emplace_back(std::move(std::get<0>(tup)));
+			states.emplace_back(std::move(std::get<1>(tup)));
+			nodes.emplace_back(std::move(std::get<2>(tup)));
+			states.emplace_back(std::move(std::get<3>(tup)));
 		}
 
 		size_t numLeaves = 1 << (height - 1);
@@ -94,7 +94,7 @@ public:
 
 		for (size_t i = numInnerNodes; i < numNodes; ++i)
 		{
-			leaves.push_back(makeLeaf(states.front(), nodes[i]));
+			leaves.emplace_back(makeLeaf(std::move(states.front()), nodes[i]));
 			states.pop_front();
 		}
 	}

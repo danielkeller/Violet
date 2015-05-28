@@ -31,8 +31,8 @@ const Schema AttribTraits<WavefrontVert>::schema = {
 
 struct Wavefront
 {
-	vectorVector3f verts;
-	vectorVector3f norms;
+	Verts verts;
+	Verts norms;
 	std::vector<Vector2f, Eigen::aligned_allocator<Vector2f>> uvs;
 	std::vector<TriInd> indices;
 
@@ -110,5 +110,5 @@ VertexData WavefrontVertexData(std::string filename)
 Mesh WavefrontMesh(std::string filename)
 {
 	Wavefront w(filename);
-	return{ filename, w.verts, w.indices };
+	return MakeMesh(w.verts, w.indices);
 }

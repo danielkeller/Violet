@@ -5,10 +5,12 @@
 
 using LineSegment = std::pair<float, float>;
 
-struct Triangle
+using Triangle = Eigen::Array33f;
+
+inline Vector3f centroid(const Triangle& t)
 {
-	Vector3f q, r, s;
-};
+	return t.rowwise().sum() / 3.f;
+}
 
 using Eigen::AlignedBox3f;
 

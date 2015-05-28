@@ -3,36 +3,29 @@
 //#include <boost/range/algorithm.hpp>
 #include <numeric>
 
-Vector3f centroid(const Triangle& t)
-{
-	return (t.q + t.r + t.s) / 3.f;
-}
-
 AABB::AABB(Mesh m)
-	: tree(6, m.bound(), m,
-		[](Mesh mLeft, const AlignedBox3f& cur)
+	: tree(7, Bound(m), m,
+		[](Mesh parent, const AlignedBox3f& cur)
 		{
 			//Get longest axis
 			Vector3f::Index longestAxis;
 			cur.sizes().maxCoeff(&longestAxis);
 
-			auto rCenter = MapRange(mLeft, centroid);
+			auto rCenter = MapRange(parent, centroid);
 			Vector3f meanCentroid =
 				std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
-				/ float(mLeft.size());
+				/ float(parent.size());
 
 			AlignedBox3f left = cur, right = cur;
 			left.max()[longestAxis] = meanCentroid[longestAxis];
 			right.min()[longestAxis] = meanCentroid[longestAxis];
 
-			Mesh mRight = mLeft;
-
 			//remove all non-intersecting elements
-			mLeft.Chop(left);
-			mRight.Chop(right);
+			Mesh mLeft = ApproxChop(parent, left);
+			Mesh mRight = ApproxChop(std::move(parent), right);
 
-			return std::make_tuple(left.intersection(mLeft.bound()), mLeft,
-				right.intersection(mRight.bound()), mRight);
+			return std::make_tuple(left.intersection(Bound(mLeft)), std::move(mLeft),
+				right.intersection(Bound(mRight)), std::move(mRight));
 		},
 		[](Mesh mLeft, const AlignedBox3f&)
 		{

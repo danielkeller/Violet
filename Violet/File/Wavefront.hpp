@@ -2,7 +2,8 @@
 #define WAVEFRONT_HPP
 
 class VertexData;
-class Mesh;
+
+#include "Geometry/Mesh.hpp"
 
 VertexData WavefrontVertexData(std::string filename);
 Mesh WavefrontMesh(std::string filename);

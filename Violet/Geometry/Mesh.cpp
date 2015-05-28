@@ -7,94 +7,48 @@
 
 using namespace std::placeholders;
 
-Mesh::Mesh(std::string file)
+Mesh LoadMesh(std::string file)
 {
-	resource = MeshResource::FindResource(file);
-	if (!resource)
-	{
-		if (IsWavefront(file))
-			*this = WavefrontMesh(file);
-		else
-			throw std::runtime_error("Unrecognized object file " + file);
-	}
-}
-
-Mesh::Mesh(std::string name, vectorVector3f p, std::vector<TriInd> i)
-{
-	resource = MeshResource::FindResource(name);
-	if (!resource)
-		resource = MeshResource::MakeShared(name, p, i);
-}
-
-MeshIter Mesh::begin()
-{
-	if (!submesh.size())
-		submesh = resource->indices;
-
-	return{ submesh.begin(), resource->points };
-}
-
-MeshIter Mesh::end()
-{
-	if (!submesh.size())
-		submesh = resource->indices;
-
-	return{ submesh.end(), resource->points };
-}
-
-ConstMeshIter Mesh::begin() const
-{
-	if (submesh.size())
-		return{ submesh.begin(), resource->points };
+	if (IsWavefront(file))
+		return WavefrontMesh(file);
 	else
-		return{ resource->indices.begin(), resource->points };
+		throw std::runtime_error("Unrecognized object file " + file);
 }
 
-ConstMeshIter Mesh::end() const
+Mesh MakeMesh(Verts vert, std::vector<TriInd> inds)
 {
-	if (submesh.size())
-		return{ submesh.end(), resource->points };
-	else
-		return{ resource->indices.end(), resource->points };
+	Mesh ret;
+	ret.resize(inds.size());
+	auto it = ret.begin();
+
+	for (const auto& ind : inds)
+		*it++ << vert[ind.a], vert[ind.b], vert[ind.c];
+
+	return ret;
 }
 
-void Mesh::Chop(AlignedBox3f box)
+Mesh ApproxChop(Mesh m, AlignedBox3f box)
 {
-	if (!submesh.size())
-		submesh = resource->indices;
-	submesh.erase(std::remove_if(submesh.begin(), submesh.end(),
-		[&](const TriInd& tri) {
-		return !Intersects(box, Triangle{
-			resource->points[tri.a],
-			resource->points[tri.b],
-			resource->points[tri.c] });
+	m.erase(std::remove_if(m.begin(), m.end(),
+		[&](const Triangle& tri) {
+		return !ApproxIntersects(box, tri);
 		}),
-		submesh.end());
+		m.end());
+	return m;
 }
 
-void Mesh::PrintDataSize()
-{
-	std::cout << resource->points.size() * sizeof(Vector3f) << "b points "
-		<< resource->indices.size() * sizeof(TriInd) << "b inds "
-		<< (resource->points.size() * sizeof(Vector3f) +
-		resource->indices.size() * sizeof(TriInd)) / 1024 << "kb total\n";
-}
-
-AlignedBox3f Mesh::bound() const
+AlignedBox3f Bound(const Mesh& m)
 {
 	float maxflt = std::numeric_limits<float>::max();
 	float minflt = std::numeric_limits<float>::min();
-	Vector3f min{ maxflt, maxflt, maxflt };
-	Vector3f max{ minflt, minflt, minflt };
+	Eigen::Array3f min{ maxflt, maxflt, maxflt };
+	Eigen::Array3f max{ minflt, minflt, minflt };
 
-	for (const auto& tri : *this)
+	for (const auto& tri : m)
 	{
-		min = min.cwiseMin(tri.Triangle().q);
-		min = min.cwiseMin(tri.Triangle().r);
-		min = min.cwiseMin(tri.Triangle().s);
-		max = max.cwiseMax(tri.Triangle().q);
-		max = max.cwiseMax(tri.Triangle().r);
-		max = max.cwiseMax(tri.Triangle().s);
+		min = min.cwiseMin(tri.rowwise().minCoeff());
+		max = max.cwiseMax(tri.rowwise().maxCoeff());
 	}
+
 	return{ min, max };
 }
