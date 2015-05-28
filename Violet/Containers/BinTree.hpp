@@ -26,7 +26,7 @@ public:
 	BinTreeIterBase Left() const { auto ret = *this; ret.ToLeft(); return ret; }
 	BinTreeIterBase Right() const { auto ret = *this; ret.ToRight(); return ret; }
 	BinTreeIterBase Parent() const { auto ret = *this; ret.ToParent(); return ret; }
-	bool Bottom() const { return Left() > tree.end(); }
+	bool Bottom() const { return Left() >= tree.end(); }
 	bool Top() const { return it == 0; }
 	size_t Depth() const
 	{
@@ -52,22 +52,30 @@ class NodeAlloc = std::allocator<NodeTy>, class LeafAlloc = std::allocator<LeafT
 class BinTree
 {
 public:
+	BinTree() = default;
+	BinTree(const BinTree&) = default;
+	BinTree(BinTree&&) = default;
+	BinTree& operator=(BinTree other)
+	{
+		std::swap(nodes, other.nodes);
+		std::swap(leaves, other.leaves);
+		return *this;
+	}
+
 	using iterator = BinTreeIterBase<NodeTy, LeafTy, BinTree>;
 	using const_iterator = BinTreeIterBase<const NodeTy, const LeafTy, const BinTree>;
 
 	iterator begin() { return{ 0, *this }; }
-	const_iterator begin() const { return{ 0, *const_cast<BinTree*>(this) }; }
-	const_iterator cbegin() { return begin(); }
+	const_iterator begin() const { return{ 0, *this }; }
+	const_iterator cbegin() { return{ 0, *this }; }
 
 	iterator end() { return{ nodes.size(), *this }; }
-	const_iterator end() const { return{ nodes.size(), *const_cast<BinTree*>(this) }; }
-	const_iterator cend() { return end(); }
+	const_iterator end() const { return{ nodes.size(), *this }; }
+	const_iterator cend() { return{ nodes.size(), *this }; }
 
 	template<typename State, typename F, typename G>
 	BinTree(size_t height, NodeTy root, State init, F makeNode, G makeLeaf)
 	{
-		auto p = Profile("build AABB");
-
 		size_t numNodes = (1 << height) - 1;
 
 		nodes.reserve(numNodes);
@@ -108,6 +116,13 @@ public:
 	const LeafTy& Leaf(const const_iterator& parent) const
 	{
 		return leaves[parent.Leaf()];
+	}
+
+	size_t Height() const
+	{
+		size_t h = 0;
+		while ((1_sz << h) < nodes.size()) ++h;
+		return h;
 	}
 
 private:

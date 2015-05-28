@@ -1,72 +1,187 @@
 #include "stdafx.h"
 #include "AABB.hpp"
 #include <numeric>
+#include "File/Filesystem.hpp"
+#include "File/BlobFile.hpp"
 
-//These methods take comparable time to produce a tree of comparable size
-//#define OVERLAP_OK
+#include <iostream>
+
+//These methods take comparable time to produce a tree of comparable total volume
+//the cache file is about 70% as big (ie fewer duplicated tris) so this is probably better
+#define OVERLAP_OK
 
 //#include <iostream>
-//static float volTotal = 0.f;
 
-AABB::AABB(Mesh m)
-	: tree(8, Bound(m), m,
-		[](Mesh parent, const AlignedBox3f& cur)
+AABB::AABB(std::string file)
+{
+	auto p = Profile("build AABB");
+
+	std::string cacheFile = file + ".aabb.cache";
+
+	float volTotal = 0.f, overlapTotal = 0.f;
+
+	if (CacheIsFresh(file, cacheFile))
+	{
+		try
 		{
-			//if (std::isfinite(cur.volume()))
-			//	volTotal += cur.volume();
+			LoadCache(cacheFile);
+			return;
+		}
+		catch (BlobFileException& ex)
+		{
+			std::cerr << ex.what() << '\n';
+			//fall thru and load
+		}
+	}
 
-			//Get longest axis
-			Vector3f::Index longestAxis;
-			cur.sizes().maxCoeff(&longestAxis);
+	Mesh m = LoadMesh(file);
+
+	tree = TreeTy(8, Bound(m), m,
+		[&](Mesh parent, const AlignedBox3f& cur)
+	{
+		if (std::isfinite(cur.volume()))
+			volTotal += cur.volume();
+
+		//Get longest axis
+		Vector3f::Index longestAxis;
+		cur.sizes().maxCoeff(&longestAxis);
 
 #ifdef OVERLAP_OK
-			auto rCenter = MapRange(parent, centroid);
-			Vector3f meanCentroid =
-				std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
-				/ float(parent.size());
+		auto rCenter = MapRange(parent, centroid);
+		Vector3f meanCentroid =
+			std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
+			/ float(parent.size());
 
-			Mesh left, right;
+		Mesh left, right;
 
-			std::partition_copy(parent.begin(), parent.end(),
-				std::back_inserter(left), std::back_inserter(right),
-				[=](const Triangle& t)
-			{
-				return t.row(longestAxis).maxCoeff() < meanCentroid[longestAxis];
-				//produces much higher total volume
-				//return centroid(t)[longestAxis] < meanCentroid[longestAxis];
-			});
+		std::partition_copy(parent.begin(), parent.end(),
+			std::back_inserter(left), std::back_inserter(right),
+			[=](const Triangle& t)
+		{
+			return t.row(longestAxis).maxCoeff() < meanCentroid[longestAxis];
+			//produces much higher total volume
+			//return centroid(t)[longestAxis] < meanCentroid[longestAxis];
+		});
 
-			auto lBound = Bound(left);
-			auto rBound = Bound(right);
+		auto lBound = Bound(left);
+		auto rBound = Bound(right);
 
-			return std::make_tuple(
-				lBound, std::move(left),
-				rBound, std::move(right));
+		float overlap = lBound.intersection(rBound).volume();
+		if (std::isfinite(overlap))
+			overlapTotal += overlap;
+
+		return std::make_tuple(
+			lBound, std::move(left),
+			rBound, std::move(right));
 
 #else
-			auto rCenter = MapRange(parent, centroid);
-			Vector3f meanCentroid =
-				std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
-				/ float(parent.size());
+		auto rCenter = MapRange(parent, centroid);
+		Vector3f meanCentroid =
+			std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
+			/ float(parent.size());
 
-			AlignedBox3f left = cur, right = cur;
-			left.max()[longestAxis] = meanCentroid[longestAxis];
-			right.min()[longestAxis] = meanCentroid[longestAxis];
+		AlignedBox3f left = cur, right = cur;
+		left.max()[longestAxis] = meanCentroid[longestAxis];
+		right.min()[longestAxis] = meanCentroid[longestAxis];
 
-			//remove all non-intersecting elements
-			Mesh mLeft = ApproxChop(parent, left);
-			Mesh mRight = ApproxChop(std::move(parent), right);
-			return std::make_tuple(left.intersection(Bound(mLeft)), std::move(mLeft),
-				right.intersection(Bound(mRight)), std::move(mRight));
+		//remove all non-intersecting elements
+		Mesh mLeft = ApproxChop(parent, left);
+		Mesh mRight = ApproxChop(std::move(parent), right);
+		auto lBound = Bound(mLeft);
+		auto rBound = Bound(mRight);
+
+		return std::make_tuple(
+			left.intersection(lBound), std::move(mLeft),
+			right.intersection(rBound), std::move(mRight));
 #endif
-		},
+	},
 		[](Mesh mLeft, const AlignedBox3f&)
-		{
-			return mLeft;
-		}
-		)
+	{
+		return mLeft;
+	}
+	);
+	std::cerr << "Total volume for " << file << ' ' << volTotal
+		<< " overlapping " << overlapTotal << '\n';
+	SaveCache(cacheFile);
+}
+
+using AABBFixedType = std::uint8_t;
+//#define FIXED_AABB_CACHE
+
+void AABB::SaveCache(std::string cacheFile)
 {
-	//std::cerr << volTotal << '\n';
+	BlobOutFile file{ cacheFile, {'a','a','b','b'}, 1 };
+
+	auto it = tree.cbegin();
+	file.Write<BlobSizeType>(tree.Height());
+
+	//write out the first box in full
+	file.Write(*it);
+
+	for (++it; it != tree.cend(); ++it)
+	{
+		//This would make a big difference if it weren't for the 100s of k's of
+		//mesh data after
+#ifdef FIXED_AABB_CACHE
+		//write the rest in fixed point
+		Eigen::Array3f scale = std::numeric_limits<AABBFixedType>::max()
+			/ it.Parent()->sizes().array();
+		Vector3f min = (it->min() - it.Parent()->min()).array() * scale;
+		Vector3f max = (it->max() - it.Parent()->min()).array() * scale;
+		
+		file.Write(min.cast<AABBFixedType>().eval());
+		file.Write(max.cast<AABBFixedType>().eval());
+#else
+		file.Write(*it);
+#endif
+	}
+
+	auto leafit = tree.cbegin();
+	for (; !leafit.Bottom(); leafit.ToLeft())
+		;
+
+	for (; leafit != tree.cend(); ++leafit)
+	{
+		//can't do this in the chop algorithm because the triangles stick
+		//out of the boxes sometimes
+#if defined(FIXED_AABB_CACHE) && defined(OVERLAP_OK)
+		Eigen::Array3f scale = std::numeric_limits<AABBFixedType>::max()
+			/ leafit->sizes().array();
+		const auto& leaf = tree.Leaf(leafit);
+		std::vector<Eigen::Array<AABBFixedType, 3, 3>> fixed(leaf.size());
+
+		std::transform(leaf.begin(), leaf.end(), fixed.begin(), [&](const Triangle& t)
+		{
+			return ((t.colwise() - leafit->min().array())
+				.colwise() * scale).cast<AABBFixedType>();
+		});
+		file.Write(fixed);
+#else
+		file.Write(tree.Leaf(leafit));
+#endif
+	}
+}
+
+void AABB::LoadCache(std::string cacheFile)
+{
+	BlobInFile file{ cacheFile, { 'a','a','b','b' }, 1 };
+
+	auto it = tree.cbegin();
+	auto height = file.Read<size_t, BlobSizeType>();
+	auto root = file.Read<AlignedBox3f>();
+	
+	//relies on this running breadth-first
+	tree = TreeTy(height, root, 0,
+		[&](int, const AlignedBox3f&)
+	{
+		auto left = file.Read<AlignedBox3f>();
+		auto right = file.Read<AlignedBox3f>();
+		return std::make_tuple(left, 0, right, 0);
+	},
+		[&](int, const AlignedBox3f&)
+	{
+		return file.ReadVector<Mesh::value_type, Mesh::allocator_type>();
+	});
 }
 
 struct AABBVert

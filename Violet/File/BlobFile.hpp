@@ -27,8 +27,8 @@ public:
 
 	void Write(bool val);
 
-	template<typename T>
-	void Write(const std::vector<T>& val)
+	template<typename T, typename Alloc>
+	void Write(const std::vector<T, Alloc>& val)
 	{
 		Write<BlobSizeType>(val.size());
 		str.write(reinterpret_cast<const char*>(val.data()), sizeof(T)*val.size());
@@ -72,11 +72,11 @@ public:
 
 	bool ReadBool();
 
-	template<typename T>
-	std::vector<T> ReadVector()
+	template<typename T, typename Alloc = std::allocator<T>>
+	std::vector<T, Alloc> ReadVector()
 	{
-		auto size = static_cast<std::vector<T>::size_type>(Read<BlobSizeType>());
-		std::vector<T> ret(size);
+		auto size = static_cast<std::vector<T, Alloc>::size_type>(Read<BlobSizeType>());
+		std::vector<T, Alloc> ret(size);
 		str.read(reinterpret_cast<char*>(ret.data()), sizeof(T)*size);
 		CheckAndThrow();
 		return ret;

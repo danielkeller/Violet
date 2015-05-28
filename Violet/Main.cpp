@@ -64,7 +64,7 @@ try
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
 	
-	AABB teapotAabb(LoadMesh("assets/capsule.obj"));
+	AABB teapotAabb("assets/capsule.obj");
 	Object aabbObj;
 	ShowAABB aabb(teapotAabb);
 	r.Create(aabbObj, { "aabb", aabb.shaderProgram }, aabb.vertData);

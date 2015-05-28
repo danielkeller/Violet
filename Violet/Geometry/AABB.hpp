@@ -11,9 +11,12 @@
 class AABB
 {
 public:
-	AABB(Mesh m);
+	AABB(std::string file);
 
 private:
+	void LoadCache(std::string cacheFile);
+	void SaveCache(std::string cacheFile);
+
 	using TreeTy = BinTree<AlignedBox3f, Mesh, Eigen::aligned_allocator<AlignedBox3f>>;
 	TreeTy tree;
 	friend struct ShowAABB;
