@@ -58,6 +58,8 @@ public:
 	value_type* data() { return store.data(); }
 	const value_type* data() const { return store.data(); }
 
+	size_type count(const key_type& k) const { return inds.count(k); }
+
 	iterator find(const key_type& k)
 	{
 		auto pos = inds.find(k);

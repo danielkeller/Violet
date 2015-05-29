@@ -176,6 +176,7 @@
     <ClInclude Include="Geometry\Shapes.hpp" />
     <ClInclude Include="magic_ptr.hpp" />
     <ClInclude Include="Mobile.hpp" />
+    <ClInclude Include="Physics\NarrowPhase.hpp" />
     <ClInclude Include="Position.hpp" />
     <ClInclude Include="Rendering\BufferObject.hpp" />
     <ClInclude Include="Rendering\FBO.hpp" />
@@ -240,6 +241,7 @@
     <ClCompile Include="Geometry\Mesh.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mobile.cpp" />
+    <ClCompile Include="Physics\NarrowPhase.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="Rendering\FBO.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />

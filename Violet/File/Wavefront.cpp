@@ -31,8 +31,8 @@ const Schema AttribTraits<WavefrontVert>::schema = {
 
 struct Wavefront
 {
-	Verts verts;
-	Verts norms;
+	std::vector<Vector3f> verts;
+	std::vector<Vector3f> norms;
 	std::vector<Vector2f, Eigen::aligned_allocator<Vector2f>> uvs;
 	std::vector<TriInd> indices;
 

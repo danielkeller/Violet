@@ -7,6 +7,7 @@
 #include "Viewport.hpp"
 #include "Mobile.hpp"
 #include "Material.hpp"
+#include "Containers/l_unordered_map.hpp"
 
 class Render;
 class Window;
@@ -18,6 +19,9 @@ public:
 	RenderPasses(Position& p, Window& w, Render& r);
 
 	void Draw(Events e, float alpha);
+
+	using Custom = std::function<void(float alpha)>;
+	void CreateCustom(Object obj, Custom draw);
 
 	enum Passes
 	{
@@ -52,6 +56,8 @@ private:
 	//UBO shared with all shaders
 	ShaderProgram simpleShader;
 	UBO commonUBO;
+
+	l_unordered_map<Object, Custom> customs;
 
 	Material screenMat;
 	VAO screenQuad;

@@ -24,11 +24,35 @@ std::vector<TriInd> boxInds = {
     {1, 3, 2}
 };
 
+std::vector<Vector3f> cubeVerts = {
+	{ 0, 0, 0 },
+	{ 0, 1, 0 },
+	{ 1, 1, 0 },
+	{ 1, 0, 0 },
+	{ 1, 0, 1 },
+	{ 1, 1, 1 },
+	{ 0, 1, 1 },
+	{ 0, 0, 1 }
+};
+
+std::vector<LineInd> cubeInds = {
+	{0, 1}, {1, 2}, {2, 3}, {3, 0},
+	{3, 4}, {2, 5}, {1, 6}, {0, 7},
+	{4, 5}, {5, 6}, {6, 7}, {7, 4}
+};
+
 VertexData::VertexData(UnitBoxT)
 {
     resource = VertexDataResource::FindResource("UnitBox");
     if (!resource)
         resource = VertexDataResource::MakeShared("UnitBox", boxVerts, boxInds);
+}
+
+VertexData::VertexData(WireCubeT)
+{
+	resource = VertexDataResource::FindResource("WireCube");
+	if (!resource)
+		resource = VertexDataResource::MakeShared("WireCube", cubeVerts, cubeInds);
 }
 
 VertexData::VertexData(const std::string& file)

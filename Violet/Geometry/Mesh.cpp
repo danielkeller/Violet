@@ -15,7 +15,7 @@ Mesh LoadMesh(std::string file)
 		throw std::runtime_error("Unrecognized object file " + file);
 }
 
-Mesh MakeMesh(Verts vert, std::vector<TriInd> inds)
+Mesh MakeMesh(std::vector<Vector3f> vert, std::vector<TriInd> inds)
 {
 	Mesh ret;
 	ret.resize(inds.size());

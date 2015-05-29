@@ -37,6 +37,9 @@
     <Filter Include="Source Files\File">
       <UniqueIdentifier>{2f2a5c3b-9eba-4190-9a8e-ac0ccba11dde}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Physics">
+      <UniqueIdentifier>{3f9527a0-372c-405e-a671-de944ec3eb48}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Rendering\Render.hpp">
@@ -180,6 +183,9 @@
     <ClInclude Include="File\BlobFile.hpp">
       <Filter>Source Files\File</Filter>
     </ClInclude>
+    <ClInclude Include="Physics\NarrowPhase.hpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -295,6 +301,9 @@
     </ClCompile>
     <ClCompile Include="Geometry\Collide.cpp">
       <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\NarrowPhase.cpp">
+      <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

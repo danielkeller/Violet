@@ -1,18 +1,28 @@
 #include "stdafx.h"
 #include "AABB.hpp"
-#include <numeric>
 #include "File/Filesystem.hpp"
 #include "File/BlobFile.hpp"
 
+#include <numeric>
 #include <iostream>
+
+struct AABB::Resource : public ::Resource<AABB::Resource>
+{
+	TreeTy tree;
+	Resource(std::string file);
+	void LoadCache(std::string cacheFile);
+	void SaveCache(std::string cacheFile);
+};
 
 //These methods take comparable time to produce a tree of comparable total volume
 //the cache file is about 70% as big (ie fewer duplicated tris) so this is probably better
+//on the other hand the teapot has a lot of overlap
 #define OVERLAP_OK
 
 //#include <iostream>
 
-AABB::AABB(std::string file)
+AABB::Resource::Resource(std::string file)
+	: ResourceTy(file)
 {
 	auto p = Profile("build AABB");
 
@@ -36,7 +46,11 @@ AABB::AABB(std::string file)
 
 	Mesh m = LoadMesh(file);
 
-	tree = TreeTy(8, Bound(m), m,
+	static const int MAX_TRIS_PER_LEAF = 8;
+	size_t height = static_cast<size_t>(
+		std::ceilf(std::log2f(float(m.size() / MAX_TRIS_PER_LEAF))));
+
+	tree = TreeTy(height, Bound(m), m,
 		[&](Mesh parent, const AlignedBox3f& cur)
 	{
 		if (std::isfinite(cur.volume()))
@@ -105,10 +119,26 @@ AABB::AABB(std::string file)
 	SaveCache(cacheFile);
 }
 
-using AABBFixedType = std::uint8_t;
-//#define FIXED_AABB_CACHE
+AABB::AABB(std::string file)
+	: resource(Resource::FindOrMake(file))
+{}
 
-void AABB::SaveCache(std::string cacheFile)
+std::string AABB::Name() const
+{
+	return resource->Key();
+}
+
+const AABB::TreeTy& AABB::Tree() const
+{
+	return resource->tree;
+}
+
+//This would make a big difference if it weren't for the 100s of k's of
+//mesh data after
+//#define FIXED_AABB_CACHE
+using AABBFixedType = std::uint8_t;
+
+void AABB::Resource::SaveCache(std::string cacheFile)
 {
 	BlobOutFile file{ cacheFile, {'a','a','b','b'}, 1 };
 
@@ -120,8 +150,6 @@ void AABB::SaveCache(std::string cacheFile)
 
 	for (++it; it != tree.cend(); ++it)
 	{
-		//This would make a big difference if it weren't for the 100s of k's of
-		//mesh data after
 #ifdef FIXED_AABB_CACHE
 		//write the rest in fixed point
 		Eigen::Array3f scale = std::numeric_limits<AABBFixedType>::max()
@@ -162,7 +190,7 @@ void AABB::SaveCache(std::string cacheFile)
 	}
 }
 
-void AABB::LoadCache(std::string cacheFile)
+void AABB::Resource::LoadCache(std::string cacheFile)
 {
 	BlobInFile file{ cacheFile, { 'a','a','b','b' }, 1 };
 
@@ -202,13 +230,15 @@ const Schema AttribTraits<AABBVert>::schema = {
 ShowAABB::ShowAABB(const AABB& aabb)
 	: shaderProgram ("assets/color")
 {
+	const auto& tree = aabb.resource->tree;
+
 	std::vector<AABBVert, AABBVert::Allocator> attribs;
 	std::vector<LineInd> indices;
 
-	auto it = aabb.tree.begin();
+	auto it = tree.begin();
 	//while (!it.Bottom()) ++it;
 
-	for (; it != aabb.tree.end(); ++it)
+	for (; it != tree.end(); ++it)
 	{
 		auto depth = static_cast<float>(it.Depth());
 		Vector3f color = {

@@ -35,6 +35,11 @@ void RenderPasses::Camera(Object c)
 	camera = c;
 }
 
+void RenderPasses::CreateCustom(Object obj, Custom draw)
+{
+	customs[obj] = draw;
+}
+
 void RenderPasses::Draw(Events e, float alpha)
 {
 	//just don't bother
@@ -59,6 +64,8 @@ void RenderPasses::Draw(Events e, float alpha)
 		fbo.PreDraw(Vector4f{ 0, 0, 0, 0 },
 			Eigen::Matrix<GLuint, 4, 1>{ Object::none.Id(), 0, 0, 0 });
 		r.Draw(alpha);
+
+		for (auto& fn : customs) fn.second(alpha);
 	}
 
 	view.GlViewport();

@@ -9,6 +9,8 @@
 #include "File/Persist.hpp"
 #include "UI/PixelDraw.hpp"
 
+#include "Physics/NarrowPhase.hpp"
+
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
@@ -36,9 +38,12 @@ try
 	RenderPasses passes(position, w, r);
 	Edit edit(r, passes, position, objName, mgr, persist);
 
+	NarrowPhase narrowPhase(position, passes);
+
 	mgr.Register(&position);
 	mgr.Register(&r);
 	mgr.Register(&edit);
+	mgr.Register(&narrowPhase);
 	mgr.Load(persist);
 
 	UI::Init(w);
@@ -63,11 +68,14 @@ try
 
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
+	//uhhhh this is a problem
+	narrowPhase.Add(teapotObj, "assets/capsule.obj");
+	narrowPhase.Add(teapot2Obj, "assets/capsule.obj");
 	
 	AABB teapotAabb("assets/capsule.obj");
 	Object aabbObj;
 	ShowAABB aabb(teapotAabb);
-	r.Create(aabbObj, { "aabb", aabb.shaderProgram }, aabb.vertData);
+	//r.Create(aabbObj, { "aabb", aabb.shaderProgram }, aabb.vertData);
 	
 	position[camera]->pos = {0, -3, 0};
     
@@ -86,6 +94,8 @@ try
 
         //physics step
         position[teapotObj]->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
+
+		narrowPhase.Query(teapotObj, teapot2Obj);
 
         return !w.ShouldClose();
     };

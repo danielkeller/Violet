@@ -27,10 +27,14 @@ struct AttribTraits
 struct UnitBoxT {};
 static UnitBoxT UnitBox;
 
+struct WireCubeT {};
+static WireCubeT WireCube;
+
 class VertexData
 {
 public:
     VertexData(UnitBoxT);
+	VertexData(WireCubeT);
     
 	VertexData(const std::string& file);
 

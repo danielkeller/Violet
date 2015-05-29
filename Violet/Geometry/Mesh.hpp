@@ -8,8 +8,6 @@ class ShaderProgram;
 
 //These should go in a general geometry loading header*
 //{
-using Verts = std::vector<Vector3f, Eigen::aligned_allocator<Vector3f>>;
-
 struct LineInd
 {
 	GLint a, b;
@@ -28,7 +26,7 @@ using Mesh = std::vector<Triangle, Eigen::aligned_allocator<Triangle>>;
 
 Mesh LoadMesh(std::string file);
 //*as should this
-Mesh MakeMesh(Verts verts, std::vector<TriInd> inds);
+Mesh MakeMesh(std::vector<Vector3f> verts, std::vector<TriInd> inds);
 
 AlignedBox3f Bound(const Mesh&);
 

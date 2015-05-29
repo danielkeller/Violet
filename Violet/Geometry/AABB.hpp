@@ -1,7 +1,8 @@
 #ifndef AABB_HPP
 #define AABB_HPP
-#include "Mesh.hpp"
+
 #include "Containers/BinTree.hpp"
+#include "Mesh.hpp"
 
 //#ifdef SOMETHING
 #include "Rendering/VertexData.hpp"
@@ -10,15 +11,18 @@
 
 class AABB
 {
+	struct Resource;
 public:
 	AABB(std::string file);
-
-private:
-	void LoadCache(std::string cacheFile);
-	void SaveCache(std::string cacheFile);
+	std::string Name() const;
 
 	using TreeTy = BinTree<AlignedBox3f, Mesh, Eigen::aligned_allocator<AlignedBox3f>>;
-	TreeTy tree;
+	const TreeTy& Tree() const;
+
+	using PersistCategory = ResourcePersistTag;
+
+private:
+	std::shared_ptr<Resource> resource;
 	friend struct ShowAABB;
 };
 
