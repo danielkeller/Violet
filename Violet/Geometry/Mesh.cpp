@@ -27,11 +27,11 @@ Mesh MakeMesh(std::vector<Vector3f> vert, std::vector<TriInd> inds)
 	return ret;
 }
 
-Mesh ApproxChop(Mesh m, AlignedBox3f box)
+Mesh ConservativeChop(Mesh m, AlignedBox3f box)
 {
 	m.erase(std::remove_if(m.begin(), m.end(),
 		[&](const Triangle& tri) {
-		return !ApproxIntersects(box, tri);
+		return !ConservativeIntersects(box, tri);
 		}),
 		m.end());
 	return m;

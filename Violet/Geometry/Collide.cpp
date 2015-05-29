@@ -57,7 +57,7 @@ LineSegment Project(const AlignedBox3f& box, Vector3f ax)
 		std::max(ax.dot(c), ax.dot(d)) };
 }
 
-bool ApproxIntersects(const AlignedBox3f& a, const Triangle& tri)
+bool ConservativeIntersects(const AlignedBox3f& a, const Triangle& tri)
 {
 	//all points (col), on any axis (row), are < min or > max
 	return !(
@@ -66,4 +66,20 @@ bool ApproxIntersects(const AlignedBox3f& a, const Triangle& tri)
 		|| (tri > a.max().array().replicate<1, 3>())
 		.rowwise().all()
 		).any();
+}
+
+bool ConservativeOBBvsOBB1(const Matrix4f& lInv, const Matrix4f& r)
+{
+	using Eigen::Array3f;
+	Matrix4f rToL = lInv * r;
+	Array3f pt = rToL.block<3, 1>(0, 3);
+	Eigen::Array33f frame = rToL.block<3, 3>(0, 0);
+
+	return (frame.cwiseMax(0).rowwise().sum() + pt > Array3f::Zero()).all() //all max > 0
+		&& (frame.cwiseMin(0).rowwise().sum() + pt < Array3f::Ones()).all(); //all min < 1
+}
+
+bool ConservativeOBBvsOBB(const Matrix4f& l, const Matrix4f& lInv, const Matrix4f& r, const Matrix4f& rInv)
+{
+	return ConservativeOBBvsOBB1(lInv, r) && ConservativeOBBvsOBB1(rInv, l);
 }

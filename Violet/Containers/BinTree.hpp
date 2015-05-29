@@ -16,7 +16,7 @@ class BinTreeIterBase :
 public:
 	NodeTy& operator*()
 	{
-		return tree.nodes[it];
+		return tree->nodes[it];
 	}
 	using Base::operator*;
 
@@ -26,7 +26,7 @@ public:
 	BinTreeIterBase Left() const { auto ret = *this; ret.ToLeft(); return ret; }
 	BinTreeIterBase Right() const { auto ret = *this; ret.ToRight(); return ret; }
 	BinTreeIterBase Parent() const { auto ret = *this; ret.ToParent(); return ret; }
-	bool Bottom() const { return Left() >= tree.end(); }
+	bool Bottom() const { return Left() >= tree->end(); }
 	bool Top() const { return it == 0; }
 	size_t Depth() const
 	{
@@ -38,13 +38,13 @@ public:
 
 private:
 	friend ContTy;
-	ContTy& tree;
+	ContTy* tree;
 
-	BinTreeIterBase(size_t pos, ContTy& t)
+	BinTreeIterBase(size_t pos, ContTy* t)
 		: Base(pos), tree(t)
 	{}
 
-	size_t Leaf() const { return it - tree.nodes.size() / 2; }
+	size_t Leaf() const { return it - tree->nodes.size() / 2; }
 };
 
 template<class NodeTy, class LeafTy,
@@ -65,13 +65,13 @@ public:
 	using iterator = BinTreeIterBase<NodeTy, LeafTy, BinTree>;
 	using const_iterator = BinTreeIterBase<const NodeTy, const LeafTy, const BinTree>;
 
-	iterator begin() { return{ 0, *this }; }
-	const_iterator begin() const { return{ 0, *this }; }
-	const_iterator cbegin() { return{ 0, *this }; }
+	iterator begin() { return{ 0, this }; }
+	const_iterator begin() const { return{ 0, this }; }
+	const_iterator cbegin() { return{ 0, this }; }
 
-	iterator end() { return{ nodes.size(), *this }; }
-	const_iterator end() const { return{ nodes.size(), *this }; }
-	const_iterator cend() { return{ nodes.size(), *this }; }
+	iterator end() { return{ nodes.size(), this }; }
+	const_iterator end() const { return{ nodes.size(), this }; }
+	const_iterator cend() { return{ nodes.size(), this }; }
 
 	template<typename State, typename F, typename G>
 	BinTree(size_t height, NodeTy root, State init, F makeNode, G makeLeaf)

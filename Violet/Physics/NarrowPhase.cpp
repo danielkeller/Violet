@@ -7,49 +7,79 @@
 #include "Rendering/RenderPasses.hpp"
 
 #include <iostream>
+#include <queue>
+#include <random>
 
-Matrix4f BoxMat(const AlignedBox3f& box)
-{
-	return Eigen::Affine3f{ Eigen::Translation3f{ box.min() }
-	* Eigen::AlignedScaling3f{ box.max() - box.min() }
-	}.matrix();
-}
+using Iter = AABB::TreeTy::const_iterator;
+using IterPair = std::pair<Iter, Iter>;
 
-bool ConservativeOBBvsOBB1(const Matrix4f& l, const Matrix4f& r)
+struct TotalVolCmp
 {
-	using Eigen::Array3f;
-	Matrix4f rToL = AffineInverse(l) * r;
-	Array3f pt = rToL.block<3, 1>(0, 3);
-	Eigen::Array33f frame = rToL.block<3, 3>(0, 0);
-	
-	return (frame.cwiseMax(0).rowwise().sum() + pt > Array3f::Zero()).all() //all max > 0
-		&& (frame.cwiseMin(0).rowwise().sum() + pt < Array3f::Ones()).all(); //all min < 1
-}
-
-bool ConservativeOBBvsOBB(const Matrix4f& l, const Matrix4f& r)
-{
-	return ConservativeOBBvsOBB1(l, r) && ConservativeOBBvsOBB1(r, l);
-}
+	bool operator()(const IterPair& l, const IterPair& r)
+	{
+		return l.first->volume() + l.second->volume()
+			< r.first->volume() + r.second->volume();
+	}
+};
 
 std::vector<Vector3f> NarrowPhase::Query(Object a, Object b)
 {
 	Matrix4f apos = position[a].get().ToMatrix();
+	Matrix4f aInv = AffineInverse(position[a].get().ToMatrix());
 	Matrix4f bpos = position[b].get().ToMatrix();
-
-	AlignedBox3f abb = *data.at(a).Tree().begin(),
-		bbb = *data.at(b).Tree().begin();
+	Matrix4f bInv = AffineInverse(position[b].get().ToMatrix());
 	
-	std::vector<DebugInst> insts = {
-		{ apos * BoxMat(abb), {} },
-		{ bpos * BoxMat(bbb), {} }
-	};
+	std::vector<DebugInst> insts;
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	gen.seed(0);
+	std::uniform_real_distribution<float> dis(0, 1);
 
-	if (ConservativeOBBvsOBB(apos * BoxMat(abb), bpos * BoxMat(bbb)))
-		insts[0].color = insts[1].color = Vector3f{ 1, 0, 0 };
-	else
-		insts[0].color = insts[1].color = Vector3f{ 0, 1, 0 };
+	std::priority_queue<IterPair, std::vector<IterPair>, TotalVolCmp> queue;
+	queue.push({ data.at(a).Tree().begin(), data.at(b).Tree().begin() });
 
+	while (!queue.empty())
+	{
+		auto pair = queue.top();
+		queue.pop();
+
+		if (ConservativeOBBvsOBB(
+			apos * BoxMat(*pair.first), InvBoxMat(*pair.first) * aInv,
+			bpos * BoxMat(*pair.second), InvBoxMat(*pair.second) * bInv))
+		{
+			if (!pair.first.Bottom() && 
+				(pair.second.Bottom() || pair.first->volume() > pair.second->volume()))
+			{
+				queue.push({ pair.first.Left(), pair.second });
+				queue.push({ pair.first.Right(), pair.second });
+			}
+			else if (!pair.second.Bottom())
+			{
+				queue.push({ pair.first, pair.second.Left() });
+				queue.push({ pair.first, pair.second.Right() });
+			}
+			else
+			{
+				insts.push_back({ apos * BoxMat(*pair.first),  Vector3f{ 1, .5f, 0 } });
+				insts.push_back({ bpos * BoxMat(*pair.second), Vector3f{ 1, .5f, 0 } });
+
+				for (; !pair.first.Top() && !pair.second.Top(); pair.first.ToParent(), pair.second.ToParent())
+				{
+					Vector3f shiny{ dis(gen), dis(gen), dis(gen) };
+					insts.push_back({ apos * BoxMat(*pair.first), shiny });
+					insts.push_back({ bpos * BoxMat(*pair.second), shiny });
+				}
+			}
+		}
+		else
+		{
+			//insts.push_back({ apos * BoxMat(*pair.first),  Vector3f{ 0, 1, 0 } });
+			//insts.push_back({ bpos * BoxMat(*pair.second), Vector3f{ 0, 1, 0 } });
+		}
+	}
+		
 	instances.Data(insts);
+	dbgVao.NumInstances(static_cast<GLsizei>(insts.size()));
 
 	return{};
 }

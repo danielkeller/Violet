@@ -50,7 +50,7 @@ protected:
 private:
 	Derived* DerivedThis() { return static_cast<Derived*>(this); }
 	const Derived* DerivedThis() const { return static_cast<const Derived*>(this); }
-	Derived* DerivedThisUnconst() const { return const_cast<Derived*>(this); }
+	Derived* DerivedThisUnconst() const { return const_cast<Derived*>(DerivedThis()); }
 };
 
 template<class IterTy, class Func>

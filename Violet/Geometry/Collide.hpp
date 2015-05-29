@@ -36,6 +36,8 @@ inline bool Intersects(const AlignedBox3f& a, const AlignedBox3f& b)
 	return a.intersection(b).volume() > 0.f;
 }
 
-bool ApproxIntersects(const AlignedBox3f& a, const Triangle& b);
+bool ConservativeIntersects(const AlignedBox3f& a, const Triangle& b);
+
+bool ConservativeOBBvsOBB(const Matrix4f& l, const Matrix4f& lInv, const Matrix4f& r, const Matrix4f& rInv);
 
 #endif

@@ -1,6 +1,11 @@
 //Big headers go here
 //TODO: split into gl, math, etc
 
+#ifndef NDEBUG
+//Disable some of MSVC's more unnecesary checks
+#define _ITERATOR_DEBUG_LEVEL 1
+#endif
+
 #define APIENTRY __stdcall
 #include "GL/gl_core_3_3.h"
 #include "Eigen/Core"

@@ -46,7 +46,7 @@ AABB::Resource::Resource(std::string file)
 
 	Mesh m = LoadMesh(file);
 
-	static const int MAX_TRIS_PER_LEAF = 8;
+	static const int MAX_TRIS_PER_LEAF = 20;
 	size_t height = static_cast<size_t>(
 		std::ceilf(std::log2f(float(m.size() / MAX_TRIS_PER_LEAF))));
 
@@ -99,8 +99,8 @@ AABB::Resource::Resource(std::string file)
 		right.min()[longestAxis] = meanCentroid[longestAxis];
 
 		//remove all non-intersecting elements
-		Mesh mLeft = ApproxChop(parent, left);
-		Mesh mRight = ApproxChop(std::move(parent), right);
+		Mesh mLeft = ConservativeChop(parent, left);
+		Mesh mRight = ConservativeChop(std::move(parent), right);
 		auto lBound = Bound(mLeft);
 		auto rBound = Bound(mRight);
 

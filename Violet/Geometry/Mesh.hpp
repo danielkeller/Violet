@@ -31,6 +31,6 @@ Mesh MakeMesh(std::vector<Vector3f> verts, std::vector<TriInd> inds);
 AlignedBox3f Bound(const Mesh&);
 
 //Remove all triangles not touching box
-Mesh ApproxChop(Mesh, AlignedBox3f box);
+Mesh ConservativeChop(Mesh, AlignedBox3f box);
 
 #endif
