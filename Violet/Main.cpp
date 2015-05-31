@@ -69,12 +69,12 @@ try
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
 	//uhhhh this is a problem
-	narrowPhase.Add(teapotObj, "assets/capsule.obj");
-	narrowPhase.Add(teapot2Obj, "assets/capsule.obj");
+	narrowPhase.Add(teapotObj, "assets/teapot.obj");
+	narrowPhase.Add(teapot2Obj, "assets/teapot.obj");
 	
-	AABB teapotAabb("assets/capsule.obj");
-	Object aabbObj;
-	ShowAABB aabb(teapotAabb);
+	//AABBTree teapotAabb("assets/capsule.obj");
+	//Object aabbObj;
+	//ShowAABB aabb(teapotAabb);
 	//r.Create(aabbObj, { "aabb", aabb.shaderProgram }, aabb.vertData);
 	
 	position[camera]->pos = {0, -3, 0};

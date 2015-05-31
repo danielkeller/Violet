@@ -6,7 +6,7 @@
 #include <numeric>
 #include <iostream>
 
-struct AABB::Resource : public ::Resource<AABB::Resource>
+struct AABBTree::Resource : public ::Resource<AABBTree::Resource>
 {
 	TreeTy tree;
 	Resource(std::string file);
@@ -21,7 +21,7 @@ struct AABB::Resource : public ::Resource<AABB::Resource>
 
 //#include <iostream>
 
-AABB::Resource::Resource(std::string file)
+AABBTree::Resource::Resource(std::string file)
 	: ResourceTy(file)
 {
 	auto p = Profile("build AABB");
@@ -46,11 +46,11 @@ AABB::Resource::Resource(std::string file)
 
 	Mesh m = LoadMesh(file);
 
-	static const int MAX_TRIS_PER_LEAF = 20;
+	static const int MAX_TRIS_PER_LEAF = 8;
 	size_t height = static_cast<size_t>(
 		std::ceilf(std::log2f(float(m.size() / MAX_TRIS_PER_LEAF))));
 
-	tree = TreeTy(height, Bound(m), m,
+	tree = TreeTy::TopDown(height, Bound(m), m,
 		[&](Mesh parent, const AlignedBox3f& cur)
 	{
 		if (std::isfinite(cur.volume()))
@@ -68,14 +68,29 @@ AABB::Resource::Resource(std::string file)
 
 		Mesh left, right;
 
-		std::partition_copy(parent.begin(), parent.end(),
-			std::back_inserter(left), std::back_inserter(right),
-			[=](const Triangle& t)
+		auto ax = longestAxis;
+
+		while (true)
 		{
-			return t.row(longestAxis).maxCoeff() < meanCentroid[longestAxis];
-			//produces much higher total volume
-			//return centroid(t)[longestAxis] < meanCentroid[longestAxis];
-		});
+			std::partition_copy(parent.begin(), parent.end(),
+				std::back_inserter(left), std::back_inserter(right),
+				[=](const Triangle& t)
+			{
+				return t.row(ax).maxCoeff() < meanCentroid[ax];
+				//produces much higher total volume
+				//return centroid(t)[ax] < meanCentroid[ax];
+			});
+
+			ax = (ax + 1) % 3;
+
+			//If one side has the whole mesh, split it differently
+			if (left.size() != 0 && right.size() != 0 //nondegenerate split
+				|| ax == longestAxis) //no more axes to try
+				break;
+
+			//still axes to try
+			left.clear(), right.clear();
+		}
 
 		auto lBound = Bound(left);
 		auto rBound = Bound(right);
@@ -119,16 +134,16 @@ AABB::Resource::Resource(std::string file)
 	SaveCache(cacheFile);
 }
 
-AABB::AABB(std::string file)
+AABBTree::AABBTree(std::string file)
 	: resource(Resource::FindOrMake(file))
 {}
 
-std::string AABB::Name() const
+std::string AABBTree::Name() const
 {
 	return resource->Key();
 }
 
-const AABB::TreeTy& AABB::Tree() const
+const AABBTree::TreeTy& AABBTree::Tree() const
 {
 	return resource->tree;
 }
@@ -138,7 +153,7 @@ const AABB::TreeTy& AABB::Tree() const
 //#define FIXED_AABB_CACHE
 using AABBFixedType = std::uint8_t;
 
-void AABB::Resource::SaveCache(std::string cacheFile)
+void AABBTree::Resource::SaveCache(std::string cacheFile)
 {
 	BlobOutFile file{ cacheFile, {'a','a','b','b'}, 1 };
 
@@ -190,7 +205,7 @@ void AABB::Resource::SaveCache(std::string cacheFile)
 	}
 }
 
-void AABB::Resource::LoadCache(std::string cacheFile)
+void AABBTree::Resource::LoadCache(std::string cacheFile)
 {
 	BlobInFile file{ cacheFile, { 'a','a','b','b' }, 1 };
 
@@ -199,7 +214,7 @@ void AABB::Resource::LoadCache(std::string cacheFile)
 	auto root = file.Read<AlignedBox3f>();
 	
 	//relies on this running breadth-first
-	tree = TreeTy(height, root, 0,
+	tree = TreeTy::TopDown(height, root, 0,
 		[&](int, const AlignedBox3f&)
 	{
 		auto left = file.Read<AlignedBox3f>();
@@ -227,7 +242,7 @@ const Schema AttribTraits<AABBVert>::schema = {
 	AttribProperties{ "color",    GL_FLOAT, false, 3 * sizeof(float), {3, 1}},
 };
 
-ShowAABB::ShowAABB(const AABB& aabb)
+ShowAABB::ShowAABB(const AABBTree& aabb)
 	: shaderProgram ("assets/color")
 {
 	const auto& tree = aabb.resource->tree;

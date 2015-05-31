@@ -9,14 +9,14 @@
 #include "Rendering/Shader.hpp"
 //#endif
 
-class AABB
+class AABBTree
 {
 	struct Resource;
 public:
-	AABB(std::string file);
+	AABBTree(std::string file);
 	std::string Name() const;
 
-	using TreeTy = BinTree<AlignedBox3f, Mesh, Eigen::aligned_allocator<AlignedBox3f>>;
+	using TreeTy = BinTree<AlignedBox3f, Mesh>;
 	const TreeTy& Tree() const;
 
 	using PersistCategory = ResourcePersistTag;
@@ -30,7 +30,7 @@ struct ShowAABB
 {
 	VertexData vertData;
 	ShaderProgram shaderProgram;
-	ShowAABB(const AABB& aabb);
+	ShowAABB(const AABBTree& aabb);
 };
 
 #endif

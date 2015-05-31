@@ -3,6 +3,7 @@
 
 #include "Core/Component.hpp"
 #include "Geometry/AABB.hpp"
+#include "Geometry/OBB.hpp"
 #include <unordered_map>
 
 #include "Rendering/Render.hpp"
@@ -25,7 +26,7 @@ private:
 	void Remove(Object);
 
 	Position& position;
-	std::unordered_map<Object, AABB> data;
+	std::unordered_map<Object, OBBTree> data;
 
 	Object debugObj;
 	Material dbgMat;
@@ -40,6 +41,6 @@ private:
 	BufferObject<DebugInst, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instances;
 };
 
-MAKE_PERSIST_TRAITS(NarrowPhase, Object, AABB)
+MAKE_PERSIST_TRAITS(NarrowPhase, Object, AABBTree)
 
 #endif

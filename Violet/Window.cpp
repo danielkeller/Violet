@@ -21,7 +21,7 @@ void CheckGLError()
 		if (gluErrorString(err))
 			std::cerr << "GL Error '" << gluErrorString(err) << "'\n";
 		else
-			std::cerr << "Other GL error: 0x" << std::hex << err << '\n';
+			std::cerr << "Other GL error: 0x" << std::hex << err << std::dec << '\n';
         err = glGetError();
     }
 }

@@ -177,6 +177,7 @@
     <ClInclude Include="Geometry\AABB.hpp" />
     <ClInclude Include="Geometry\Collide.hpp" />
     <ClInclude Include="Geometry\Mesh.hpp" />
+    <ClInclude Include="Geometry\OBB.hpp" />
     <ClInclude Include="Geometry\Shapes.hpp" />
     <ClInclude Include="magic_ptr.hpp" />
     <ClInclude Include="Mobile.hpp" />
@@ -232,6 +233,7 @@
     <ClCompile Include="Geometry\AABB.cpp" />
     <ClCompile Include="Geometry\Collide.cpp" />
     <ClCompile Include="Geometry\Mesh.cpp" />
+    <ClCompile Include="Geometry\OBB.cpp" />
     <ClCompile Include="Geometry\Shapes.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mobile.cpp" />

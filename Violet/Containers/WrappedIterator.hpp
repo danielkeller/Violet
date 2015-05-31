@@ -26,9 +26,9 @@ public:
 	const_pointer operator->() const { return &**DerivedThisUnconst(); }
 	
 	Derived& operator++() { ++it; return *DerivedThis(); }
-	Derived operator++(int) const { auto ret = *DerivedThis(); ++ret; return ret; }
+	Derived operator++(int) { auto ret = *DerivedThis(); operator++(); return ret; }
 	Derived& operator--() { --it; return *DerivedThis(); }
-	Derived operator--(int) const { auto ret = *DerivedThis(); --ret; return ret; }
+	Derived operator--(int) { auto ret = *DerivedThis(); operator--(); return ret; }
     //TODO: use std::advance
 	Derived& operator+=(ptrdiff_t o) { it += o; return *DerivedThis(); }
 	Derived operator+(ptrdiff_t o) const { auto ret(*DerivedThis()); ret.it = it + o; return ret; }

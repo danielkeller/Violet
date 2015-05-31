@@ -74,8 +74,12 @@ public:
 	const_iterator cend() { return{ nodes.size(), this }; }
 
 	template<typename State, typename F, typename G>
-	BinTree(size_t height, NodeTy root, State init, F makeNode, G makeLeaf)
+	static BinTree TopDown(size_t height, NodeTy root, State init, F makeNode, G makeLeaf)
 	{
+		BinTree ret;
+		auto& nodes = ret.nodes;
+		auto& leaves = ret.leaves;
+
 		size_t numNodes = (1 << height) - 1;
 
 		nodes.reserve(numNodes);
@@ -105,7 +109,33 @@ public:
 			leaves.emplace_back(makeLeaf(std::move(states.front()), nodes[i]));
 			states.pop_front();
 		}
+
+		return ret;
 	}
+	/*
+	template<typename F, typename G>
+	static BinTree BottomUp(std::vector<LeafTy, LeafAlloc> leaves, F makeBottomNode, G makeInnerNode)
+	{
+		BinTree ret;
+		auto& nodes = ret.nodes();
+		ret.leaves = std::move(leaves);
+
+		size_t numLeaves = leaves.size();
+		size_t height = 1;
+		while (1 << (height - 1) < numLeaves) ++height;
+		
+		size_t numNodes = (1 << height) - 1;
+		nodes.resize(numNodes); //Note: this is different from TopDown
+		size_t numInnerNodes = (1 << (height - 1)) - 1;
+
+		for (size_t i = numLeaves - 1; i >= 0; --i)
+			nodes[i + numInnerNodes] = makeBottomNode(ret.leaves[i]);
+
+		for (size_t i = numInnerNodes; i >= 0; --i)
+			nodes[i] = makeInnerNode(nodes[2 * i + 1], nodes[2 * i + 2]);
+
+		return ret;
+	}*/
 
 	//Each bottom node has one leaf
 	LeafTy& Leaf(const iterator& parent)
