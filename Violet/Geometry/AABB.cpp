@@ -28,7 +28,7 @@ AABBTree::Resource::Resource(std::string file)
 
 	std::string cacheFile = file + ".aabb.cache";
 
-	float volTotal = 0.f, overlapTotal = 0.f;
+	float volTotal = 0.f, overlapTotal = 0.f, imbTotal = 0.f;
 
 	if (CacheIsFresh(file, cacheFile))
 	{
@@ -46,7 +46,7 @@ AABBTree::Resource::Resource(std::string file)
 
 	Mesh m = LoadMesh(file);
 
-	static const int MAX_TRIS_PER_LEAF = 8;
+	static const int MAX_TRIS_PER_LEAF = 1;
 	size_t height = static_cast<size_t>(
 		std::ceilf(std::log2f(float(m.size() / MAX_TRIS_PER_LEAF))));
 
@@ -60,12 +60,9 @@ AABBTree::Resource::Resource(std::string file)
 		Vector3f::Index longestAxis;
 		cur.sizes().maxCoeff(&longestAxis);
 
-#ifdef OVERLAP_OK
-		auto rCenter = MapRange(parent, centroid);
-		Vector3f meanCentroid =
-			std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
-			/ float(parent.size());
+		Vector3f meshCentroid = centroid(parent);
 
+#ifdef OVERLAP_OK
 		Mesh left, right;
 
 		auto ax = longestAxis;
@@ -76,9 +73,9 @@ AABBTree::Resource::Resource(std::string file)
 				std::back_inserter(left), std::back_inserter(right),
 				[=](const Triangle& t)
 			{
-				return t.row(ax).maxCoeff() < meanCentroid[ax];
-				//produces much higher total volume
-				//return centroid(t)[ax] < meanCentroid[ax];
+				//return t.row(ax).maxCoeff() < meshCentroid[ax];
+				//produces much higher total volume, but more balanced tree
+				return centroid(t)[ax] < meshCentroid[ax];
 			});
 
 			ax = (ax + 1) % 3;
@@ -92,6 +89,10 @@ AABBTree::Resource::Resource(std::string file)
 			left.clear(), right.clear();
 		}
 
+		if (left.size() + right.size() > 0)
+			imbTotal += std::abs(float(left.size()) - float(right.size()))
+				/ float(left.size() + right.size());
+
 		auto lBound = Bound(left);
 		auto rBound = Bound(right);
 
@@ -104,14 +105,9 @@ AABBTree::Resource::Resource(std::string file)
 			rBound, std::move(right));
 
 #else
-		auto rCenter = MapRange(parent, centroid);
-		Vector3f meanCentroid =
-			std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
-			/ float(parent.size());
-
 		AlignedBox3f left = cur, right = cur;
-		left.max()[longestAxis] = meanCentroid[longestAxis];
-		right.min()[longestAxis] = meanCentroid[longestAxis];
+		left.max()[longestAxis] = centroid[longestAxis];
+		right.min()[longestAxis] = centroid[longestAxis];
 
 		//remove all non-intersecting elements
 		Mesh mLeft = ConservativeChop(parent, left);
@@ -130,8 +126,9 @@ AABBTree::Resource::Resource(std::string file)
 	}
 	);
 	std::cerr << "Total volume for " << file << ' ' << volTotal
-		<< " overlapping " << overlapTotal << '\n';
-	SaveCache(cacheFile);
+		<< " overlapping " << overlapTotal
+		<< " imbalace " << imbTotal / float(tree.end() - tree.begin()) << '\n';
+	//SaveCache(cacheFile);
 }
 
 AABBTree::AABBTree(std::string file)

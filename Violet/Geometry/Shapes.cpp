@@ -1,18 +1,19 @@
 #include "stdafx.h"
 #include "Shapes.hpp"
 
+#include "Containers/WrappedIterator.hpp"
+#include <numeric>
 #include "Eigen/Eigenvalues"
 
-OBB AABBToObb(const AlignedBox3f& aabb)
-{
-	return{ Eigen::DiagonalMatrix<float, 3, 3>{aabb.sizes()}.toDenseMatrix(),
-		aabb.min() };
-}
+//how thick flat things are
+static const float ZERO_SIZE = 0.001f;
 
-OBB AABBToObb(const AlignedBox3f& aabb, const Matrix4f& xfrm)
+Vector3f centroid(const Mesh & m)
 {
-	OBB ret = AABBToObb(aabb);
-	return{ xfrm.block<3,3>(0,0) * ret.axes, xfrm.block<3,1>(0,3) + xfrm.block<3,3>(0,0)*ret.origin };
+	auto rCenter = MapRange(m, static_cast<Vector3f(*)(const Triangle&)>(centroid));
+	return
+		std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
+		/ float(m.size());
 }
 
 Matrix4f BoxMat(const AlignedBox3f& box)
@@ -30,9 +31,29 @@ Matrix4f InvBoxMat(const AlignedBox3f& box)
 	}.matrix();
 }
 
+AlignedBox3f Bound(const Mesh& m)
+{
+	float maxflt = std::numeric_limits<float>::max();
+	Eigen::Vector3f min{ maxflt, maxflt, maxflt };
+	Eigen::Vector3f max = -min;
+
+	for (const auto& tri : m)
+	{
+		min = min.cwiseMin(tri.rowwise().minCoeff());
+		max = max.cwiseMax(tri.rowwise().maxCoeff());
+	}
+
+	return{ min, max };
+}
+
 float OBB::volume() const
 {
 	return axes.colwise().norm().prod();
+}
+
+float OBB::squaredVolume() const
+{
+	return axes.colwise().squaredNorm().prod();
 }
 
 Matrix4f OBBMat(const OBB& obb)
@@ -47,64 +68,14 @@ Matrix4f InvOBBMat(const OBB& obb)
 		, -RotSclInv * obb.origin //translation
 		, 0, 0, 0, 1).finished();
 }
-/*
-OBB Merge(const OBB& l, const OBB& r)
-{
-	OBB ret;
 
-	Quaternionf lRot{ l.axes.colwise().normalized() };
-	Quaternionf rRot{ r.axes.colwise().normalized() };
-
-	Matrix3f axes = lRot.slerp(0.5f, rRot).matrix();
-	Matrix3f invAxes = axes.transpose();
-
-	Vector3f lMax = (invAxes * l.axes).cwiseMax(0).rowwise().sum()
-		+ invAxes * l.origin;
-	Vector3f rMax = (invAxes * r.axes).cwiseMax(0).rowwise().sum()
-		+ invAxes * r.origin;
-
-	Vector3f lMin = (invAxes * l.axes).cwiseMin(0).rowwise().sum()
-		+ invAxes * l.origin;
-	Vector3f rMin = (invAxes * r.axes).cwiseMin(0).rowwise().sum()
-		+ invAxes * r.origin;
-
-	ret.origin = axes * lMin.cwiseMin(rMin);
-	ret.axes = axes * Eigen::AlignedScaling3f{ lMax.cwiseMax(rMax) - lMin.cwiseMin(rMin) };
-	return ret;
-}
-*/
-
-Matrix3f VertexInertiaTensor(const OBB& obb, Vector3f centerOfMass)
+Matrix3f InertiaTensor(const OBB& obb, Vector3f centerOfMass)
 {
 	Matrix3f ret = Matrix3f::Zero();
 
-	static AlignedBox3f box{ Vector3f::Zero(), Vector3f::Ones() };
-	for (int corner = AlignedBox3f::BottomLeftFloor;
-	corner <= AlignedBox3f::TopRightCeil; ++corner)
+	auto addPt = [&](const Vector3f& boxPos)
 	{
-		Vector3f lpos = obb.origin
-			+ obb.axes * box.corner(static_cast<AlignedBox3f::CornerType>(corner))
-			- centerOfMass;
-
-		ret(0, 0) += (lpos.y()*lpos.y() + lpos.z()*lpos.z());
-		ret(1, 1) += (lpos.x()*lpos.x() + lpos.z()*lpos.z());
-		ret(2, 2) += (lpos.x()*lpos.x() + lpos.y()*lpos.y());
-		ret(1, 0) -= lpos.x()*lpos.y();
-		ret(2, 0) -= lpos.x()*lpos.z();
-		ret(2, 1) -= lpos.y()*lpos.z();
-	}
-
-	return ret * obb.volume(); //mass
-}
-
-
-Matrix3f FaceInertiaTensor(const OBB& obb, Vector3f centerOfMass)
-{
-	Matrix3f ret = Matrix3f::Zero();
-
-	auto addPt = [&](const Vector3f& boxPox)
-	{
-		Vector3f lpos = obb.origin + obb.axes * boxPox - centerOfMass;
+		Vector3f lpos = obb.origin + obb.axes * boxPos - centerOfMass;
 
 		ret(0, 0) += (lpos.y()*lpos.y() + lpos.z()*lpos.z());
 		ret(1, 1) += (lpos.x()*lpos.x() + lpos.z()*lpos.z());
@@ -124,10 +95,22 @@ Matrix3f FaceInertiaTensor(const OBB& obb, Vector3f centerOfMass)
 
 	return ret * obb.volume(); //mass
 }
-//newAxes must be orthogonal
-OBB Merge(const OBB& l, const OBB& r, const Matrix3f& newAxes)
+
+OBB::OBB(const AlignedBox3f& aabb)
+	: axes(Eigen::DiagonalMatrix<float, 3, 3>{aabb.sizes()}.toDenseMatrix())
+	, origin(aabb.min())
+{}
+
+OBB::OBB(const AlignedBox3f& aabb, const Matrix4f& xfrm)
+	: OBB(aabb)
 {
-	OBB ret;
+	axes = xfrm.block<3, 3>(0, 0) * axes;
+	origin = xfrm.block<3, 1>(0, 3) + xfrm.block<3, 3>(0, 0)*origin;
+}
+
+//newAxes must be orthogonal
+OBB::OBB(const OBB& l, const OBB& r, const Matrix3f& newAxes)
+{
 	Matrix3f invAxes = newAxes.transpose();
 	Matrix3f ourl = newAxes.transpose() * l.axes;
 	Matrix3f ourr = newAxes.transpose() * r.axes;
@@ -139,14 +122,11 @@ OBB Merge(const OBB& l, const OBB& r, const Matrix3f& newAxes)
 	Vector3f lMin = ourl.cwiseMin(0).rowwise().sum() + lOrig;
 	Vector3f rMin = ourr.cwiseMin(0).rowwise().sum() + rOrig;
 
-	ret.origin = newAxes * lMin.cwiseMin(rMin);
-	ret.axes = newAxes * Eigen::AlignedScaling3f{ lMax.cwiseMax(rMax) - lMin.cwiseMin(rMin) };
-	return ret;
+	origin = newAxes * lMin.cwiseMin(rMin);
+	axes = newAxes * Eigen::AlignedScaling3f{ lMax.cwiseMax(rMax) - lMin.cwiseMin(rMin) };
 }
 
-#include <iostream>
-
-OBB Merge(const OBB& l, const OBB& r)
+OBB::OBB(const OBB& l, const OBB& r)
 {
 	float lMass = l.volume(), rMass = r.volume();
 	Vector3f lCenter = l.origin + l.axes*Vector3f{ .5f, .5f, .5f };
@@ -156,28 +136,60 @@ OBB Merge(const OBB& l, const OBB& r)
 
 	Eigen::SelfAdjointEigenSolver<Matrix3f> es;
 
-	Matrix3f vertInertiaTensor = VertexInertiaTensor(l, centerOfMass)
-		+ VertexInertiaTensor(r, centerOfMass);
+	Matrix3f vertInertiaTensor = InertiaTensor(l, centerOfMass)
+		+ InertiaTensor(r, centerOfMass);
 
 	es.computeDirect(vertInertiaTensor); //faster than compute()
 
-	return Merge(l, r, es.eigenvectors());
+	*this = { l, r, es.eigenvectors() };
 }
 
-OBB MergeFace(const OBB& l, const OBB& r)
+OBB::OBB(const Mesh& m)
 {
-	float lMass = l.volume(), rMass = r.volume();
-	Vector3f lCenter = l.origin + l.axes*Vector3f{ .5f, .5f, .5f };
-	Vector3f rCenter = r.origin + r.axes*Vector3f{ .5f, .5f, .5f };
+	if (m.size() == 0)
+	{
+		axes = -ZERO_SIZE * Matrix3f::Identity(); //make it inside out (i guess)
+		origin = Vector3f::Zero();
+		return;
+	}
 
-	Vector3f centerOfMass = (lCenter*lMass + rCenter*rMass) / (lMass + rMass);
+	Vector3f centerOfMass = centroid(m);
+	Matrix3f inertiaTensor = Matrix3f::Zero();
+
+	auto addPt = [&](const Vector3f& pt, float mass)
+	{
+		Vector3f lpos = pt - centerOfMass;
+
+		inertiaTensor(0, 0) += (lpos.y()*lpos.y() + lpos.z()*lpos.z()) * mass;
+		inertiaTensor(1, 1) += (lpos.x()*lpos.x() + lpos.z()*lpos.z()) * mass;
+		inertiaTensor(2, 2) += (lpos.x()*lpos.x() + lpos.y()*lpos.y()) * mass;
+		inertiaTensor(1, 0) -= lpos.x()*lpos.y() * mass;
+		inertiaTensor(2, 0) -= lpos.x()*lpos.z() * mass;
+		inertiaTensor(2, 1) -= lpos.y()*lpos.z() * mass;
+	};
+
+	for (const auto& tri : m)
+	{
+		float area = (tri.col(1) - tri.col(0)).cross(tri.col(2) - tri.col(0)).norm() / 6.f;
+		addPt(tri.col(0), area);
+		addPt(tri.col(1), area);
+		addPt(tri.col(2), area);
+	}
 
 	Eigen::SelfAdjointEigenSolver<Matrix3f> es;
+	es.computeDirect(inertiaTensor);
+	axes = es.eigenvectors();
 
-	Matrix3f faceInertiaTensor = FaceInertiaTensor(l, centerOfMass)
-		+ FaceInertiaTensor(r, centerOfMass);
+	float maxflt = std::numeric_limits<float>::max();
+	Eigen::Vector3f min{ maxflt, maxflt, maxflt };
+	Eigen::Vector3f max = -min;
 
-	es.computeDirect(faceInertiaTensor); //faster than compute()
+	for (const auto& tri : m)
+	{
+		min = min.cwiseMin((axes.transpose() * tri).rowwise().minCoeff());
+		max = max.cwiseMax((axes.transpose() * tri).rowwise().maxCoeff());
+	}
 
-	return Merge(l, r, es.eigenvectors());
+	origin = axes * min;
+	axes *= Eigen::AlignedScaling3f{ max - min };
 }

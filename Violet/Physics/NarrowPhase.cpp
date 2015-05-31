@@ -10,17 +10,17 @@
 #include <queue>
 #include <random>
 
-using Iter = OBBTree::TreeTy::const_iterator;
+using Iter = NarrowPhase::TreeTy::TreeTy::const_iterator;
 using IterPair = std::pair<Iter, Iter>;
-/*
+
 struct TotalVolCmp
 {
 	bool operator()(const IterPair& l, const IterPair& r)
 	{
-		return l.first->volume() + l.second->volume()
-			< r.first->volume() + r.second->volume();
+		return l.first->squaredVolume() + l.second->squaredVolume()
+			< r.first->squaredVolume() + r.second->squaredVolume();
 	}
-};*/
+};
 
 std::vector<Vector3f> NarrowPhase::Query(Object a, Object b)
 {
@@ -34,39 +34,18 @@ std::vector<Vector3f> NarrowPhase::Query(Object a, Object b)
 	std::mt19937 gen(rd());
 	gen.seed(0);
 	std::uniform_real_distribution<float> dis(0, 1);
-	/*
-	AlignedBox3f aBound = *data.at(a).Tree().begin();
-	OBB aOBB = AABBToObb(aBound, apos);
-	AlignedBox3f bBound = *data.at(b).Tree().begin();
-	OBB bOBB = AABBToObb(bBound, bpos);
-
-	insts = {
-		{ OBBMat(aOBB), { 1, 0, 0 } },
-		{ OBBMat(bOBB), { 1, 0, 0 } },
-		{ OBBMat(Merge(aOBB, bOBB)),{ 0, 1, 0 } },
-	};
-	*/
 	
 	auto it = data.at(a).Tree().begin();
 	while (!it.Left().Left().Bottom()) it.ToLeft();
-	/*
-	for (; !it.Left().Bottom(); ++it)
-		insts.push_back({ apos * OBBMat(*it),{ 0, 1, 0 } });
-	for (; !it.Bottom(); ++it)
-		insts.push_back({ apos * OBBMat(*it), {1, 0, 1} });
-	for (; it != data.at(a).Tree().end(); ++it)
-		insts.push_back({ apos * OBBMat(*it), {1, 0.5f, 0} });
-		*/
 	
 	std::vector<IterPair> leavesToCheck;
 
-	//std::priority_queue<IterPair, std::vector<IterPair>, TotalVolCmp> queue;
-	std::queue<IterPair> queue;
+	std::priority_queue<IterPair, std::vector<IterPair>, TotalVolCmp> queue;
 	queue.push({ data.at(a).Tree().begin(), data.at(b).Tree().begin() });
 
 	while (!queue.empty())
 	{
-		auto pair = queue.front();
+		auto pair = queue.top();
 		queue.pop();
 		
 		if (ConservativeOBBvsOBB(
@@ -91,11 +70,14 @@ std::vector<Vector3f> NarrowPhase::Query(Object a, Object b)
 				insts.push_back({ apos * OBBMat(*pair.first),  Vector3f{ 1, .5f, 0 } });
 				insts.push_back({ bpos * OBBMat(*pair.second), Vector3f{ 1, .5f, 0 } });
 
-				for (; !pair.first.Top() && !pair.second.Top(); pair.first.ToParent(), pair.second.ToParent())
+				for (; ; pair.first.ToParent(), pair.second.ToParent())
 				{
 					Vector3f shiny{ dis(gen), dis(gen), dis(gen) };
 					insts.push_back({ apos * OBBMat(*pair.first), shiny });
 					insts.push_back({ bpos * OBBMat(*pair.second), shiny });
+
+					if (pair.first.Top() || pair.second.Top())
+						break;//goto done;
 				}
 			}
 		}
@@ -105,6 +87,7 @@ std::vector<Vector3f> NarrowPhase::Query(Object a, Object b)
 			insts.push_back({ bpos * OBBMat(*pair.second), Vector3f{ 0, 1, 0 } });
 		}*/
 	}
+	done:
 	
 
 	instances.Data(insts);

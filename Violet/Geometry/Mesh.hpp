@@ -3,8 +3,8 @@
 
 #include "Shapes.hpp"
 
-class VAO;
-class ShaderProgram;
+//This is faster to deal with than any fancy point-index thing
+using Mesh = std::vector<Triangle, Eigen::aligned_allocator<Triangle>>;
 
 //These should go in a general geometry loading header*
 //{
@@ -20,9 +20,6 @@ struct TriInd
 	static const GLenum mode = GL_TRIANGLES;
 };
 //}
-
-//This is faster to deal with than any fancy point-index thing
-using Mesh = std::vector<Triangle, Eigen::aligned_allocator<Triangle>>;
 
 Mesh LoadMesh(std::string file);
 //*as should this

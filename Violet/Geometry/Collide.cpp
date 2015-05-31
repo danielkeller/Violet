@@ -61,9 +61,9 @@ bool ConservativeIntersects(const AlignedBox3f& a, const Triangle& tri)
 {
 	//all points (col), on any axis (row), are < min or > max
 	return !(
-		(tri < a.min().array().replicate<1, 3>())
+		(tri.array() < a.min().array().replicate<1, 3>())
 		.rowwise().all()
-		|| (tri > a.max().array().replicate<1, 3>())
+		|| (tri.array() > a.max().array().replicate<1, 3>())
 		.rowwise().all()
 		).any();
 }

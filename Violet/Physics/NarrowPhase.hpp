@@ -18,6 +18,8 @@ public:
 	void Add(Object obj, std::string mesh);
 	std::vector<Vector3f> Query(Object a, Object b);
 
+	using TreeTy = OBBTree;
+
 private:
 	void Load(const Persist&);
 	void Unload(const Persist&);
@@ -26,7 +28,7 @@ private:
 	void Remove(Object);
 
 	Position& position;
-	std::unordered_map<Object, OBBTree> data;
+	std::unordered_map<Object, TreeTy> data;
 
 	Object debugObj;
 	Material dbgMat;

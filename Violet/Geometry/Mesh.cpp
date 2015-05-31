@@ -36,18 +36,3 @@ Mesh ConservativeChop(Mesh m, AlignedBox3f box)
 		m.end());
 	return m;
 }
-
-AlignedBox3f Bound(const Mesh& m)
-{
-	float maxflt = std::numeric_limits<float>::max();
-	Eigen::Array3f min{ maxflt, maxflt, maxflt };
-	Eigen::Array3f max = -min;
-
-	for (const auto& tri : m)
-	{
-		min = min.cwiseMin(tri.rowwise().minCoeff());
-		max = max.cwiseMax(tri.rowwise().maxCoeff());
-	}
-
-	return{ min, max };
-}

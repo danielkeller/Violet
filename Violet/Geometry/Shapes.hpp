@@ -5,12 +5,17 @@
 
 using LineSegment = std::pair<float, float>;
 
-using Triangle = Eigen::Array33f;
+using Triangle = Eigen::Matrix3f;
 
 inline Vector3f centroid(const Triangle& t)
 {
 	return t.rowwise().sum() / 3.f;
 }
+
+//you can't forward declare a type like this
+using Mesh = std::vector<Triangle, Eigen::aligned_allocator<Triangle>>;
+
+Vector3f centroid(const Mesh& m);
 
 using Eigen::AlignedBox3f;
 Matrix4f BoxMat(const AlignedBox3f& box);
@@ -19,16 +24,20 @@ Matrix4f InvBoxMat(const AlignedBox3f& box);
 //Transform?
 struct OBB
 {
+	OBB(const AlignedBox3f& aabb);
+	OBB(const AlignedBox3f& aabb, const Matrix4f& xfrm);
+	OBB(const OBB&, const OBB&);
+	OBB(const OBB&, const OBB&, const Matrix3f&);
+	OBB(const Mesh&);
+
 	Matrix3f axes;
 	Vector3f origin;
 	float volume() const;
+	float squaredVolume() const;
 };
 
 Matrix4f OBBMat(const OBB& obb);
 Matrix4f InvOBBMat(const OBB& obb);
-OBB AABBToObb(const AlignedBox3f& aabb);
-OBB AABBToObb(const AlignedBox3f& aabb, const Matrix4f& xfrm);
-OBB Merge(const OBB&, const OBB&);
 OBB MergeFace(const OBB&, const OBB&);
 
 //TODO: some kind of math header
