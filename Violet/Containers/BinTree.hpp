@@ -36,6 +36,11 @@ public:
 		return lvl;
 	}
 
+	LeafTy& Leaf() const
+	{
+		return tree->leaves[it - tree->nodes.size() / 2];
+	}
+
 private:
 	friend ContTy;
 	ContTy* tree;
@@ -43,8 +48,6 @@ private:
 	BinTreeIterBase(size_t pos, ContTy* t)
 		: Base(pos), tree(t)
 	{}
-
-	size_t Leaf() const { return it - tree->nodes.size() / 2; }
 };
 
 template<class NodeTy, class LeafTy,
@@ -136,17 +139,6 @@ public:
 
 		return ret;
 	}*/
-
-	//Each bottom node has one leaf
-	LeafTy& Leaf(const iterator& parent)
-	{
-		return leaves[parent.Leaf()];
-	}
-
-	const LeafTy& Leaf(const const_iterator& parent) const
-	{
-		return leaves[parent.Leaf()];
-	}
 
 	size_t Height() const
 	{

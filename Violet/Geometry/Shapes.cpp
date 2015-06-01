@@ -16,6 +16,13 @@ Vector3f centroid(const Mesh & m)
 		/ float(m.size());
 }
 
+Triangle TransformTri(const Triangle& t, const Matrix4f& mat)
+{
+	Eigen::Matrix<float, 4, 3> triExt;
+	triExt << t, 1, 1, 1;
+	return (mat * triExt).block<3, 3>(0, 0);
+}
+
 Matrix4f BoxMat(const AlignedBox3f& box)
 {
 	return Eigen::Affine3f{ Eigen::Translation3f{ box.min() }
@@ -170,7 +177,7 @@ OBB::OBB(const Mesh& m)
 
 	for (const auto& tri : m)
 	{
-		float area = (tri.col(1) - tri.col(0)).cross(tri.col(2) - tri.col(0)).norm() / 6.f;
+		float area = TriNormal(tri).norm() / 6.f;
 		addPt(tri.col(0), area);
 		addPt(tri.col(1), area);
 		addPt(tri.col(2), area);
@@ -191,5 +198,7 @@ OBB::OBB(const Mesh& m)
 	}
 
 	origin = axes * min;
-	axes *= Eigen::AlignedScaling3f{ max - min };
+
+	Vector3f extents = (max - min).cwiseMax(ZERO_SIZE);
+	axes *= Eigen::AlignedScaling3f{ extents };
 }

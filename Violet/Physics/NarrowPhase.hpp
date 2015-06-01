@@ -11,12 +11,20 @@
 class Position;
 class RenderPasses;
 
+struct Contact
+{
+	Vector3f point;
+	//contact normals in world coordinates
+	Vector3f aNormal;
+	Vector3f bNormal;
+};
+
 class NarrowPhase : public Component
 {
 public:
 	NarrowPhase(Position&, RenderPasses&);
 	void Add(Object obj, std::string mesh);
-	std::vector<Vector3f> Query(Object a, Object b);
+	std::vector<Contact> Query(Object a, Object b) const;
 
 	using TreeTy = OBBTree;
 
@@ -30,17 +38,16 @@ private:
 	Position& position;
 	std::unordered_map<Object, TreeTy> data;
 
-	Object debugObj;
-	Material dbgMat;
-	VAO dbgVao;
-
 	struct DebugInst
 	{
 		Matrix4f loc;
 		Vector3f color;
 	};
 
-	BufferObject<DebugInst, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instances;
+	Object debugObj;
+	Material dbgMat;
+	mutable VAO dbgVao;
+	mutable BufferObject<DebugInst, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instances;
 };
 
 MAKE_PERSIST_TRAITS(NarrowPhase, Object, AABBTree)

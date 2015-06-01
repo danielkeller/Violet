@@ -24,7 +24,7 @@ OBBTree::Resource::Resource(std::string file)
 
 	static const int MAX_TRIS_PER_LEAF = 3;
 	size_t height = static_cast<size_t>(
-		std::ceilf(std::log2f(float(m.size() / MAX_TRIS_PER_LEAF))));
+		std::max(1.f, std::ceilf(std::log2f(float(m.size() / MAX_TRIS_PER_LEAF)))));
 
 	//constrct the OBB tree
 	tree = TreeTy::TopDown(height, m, m,

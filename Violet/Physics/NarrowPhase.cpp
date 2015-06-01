@@ -22,7 +22,7 @@ struct TotalVolCmp
 	}
 };
 
-std::vector<Vector3f> NarrowPhase::Query(Object a, Object b)
+std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 {
 	Matrix4f apos = position[a].get().ToMatrix();
 	Matrix4f aInv = AffineInverse(position[a].get().ToMatrix());
@@ -68,34 +68,44 @@ std::vector<Vector3f> NarrowPhase::Query(Object a, Object b)
 				leavesToCheck.push_back(pair);
 				
 				insts.push_back({ apos * OBBMat(*pair.first),  Vector3f{ 1, .5f, 0 } });
-				insts.push_back({ bpos * OBBMat(*pair.second), Vector3f{ 1, .5f, 0 } });
+				insts.push_back({ bpos * OBBMat(*pair.second), Vector3f{ 0, 1, 0 } });
+			}
+		}
+	}
+	
+	std::vector<Contact> ret;
 
-				for (; ; pair.first.ToParent(), pair.second.ToParent())
+	for (const auto& leafPair : leavesToCheck)
+	{
+		for (const auto& aTri : leafPair.first.Leaf())
+		{
+			Triangle aWorld = TransformTri(aTri, apos);
+			for (const auto& bTri : leafPair.second.Leaf())
+			{
+				Triangle bWorld = TransformTri(bTri, bpos);
+				auto pair = ContactPoint(aWorld, bWorld);
+				if (pair.second)
 				{
-					Vector3f shiny{ dis(gen), dis(gen), dis(gen) };
-					insts.push_back({ apos * OBBMat(*pair.first), shiny });
-					insts.push_back({ bpos * OBBMat(*pair.second), shiny });
+					ret.push_back({ pair.first,
+						TriNormal(aWorld).normalized(), TriNormal(bWorld).normalized() });
 
-					if (pair.first.Top() || pair.second.Top())
-						break;//goto done;
+					Matrix4f normVis = Matrix4f::Zero();
+					normVis.block<3, 1>(0, 3) = pair.first;
+					normVis(3, 3) = 1;
+
+					normVis.block<3, 1>(0, 0) = ret.back().aNormal;
+					insts.push_back({ normVis, { 1, .5f, 1 } });
+					normVis.block<3, 1>(0, 0) = ret.back().bNormal;
+					insts.push_back({ normVis, { 0, 1, 1 } });
 				}
 			}
 		}
-		/*else
-		{
-			insts.push_back({ apos * OBBMat(*pair.first),  Vector3f{ 0, 1, 0 } });
-			insts.push_back({ bpos * OBBMat(*pair.second), Vector3f{ 0, 1, 0 } });
-		}*/
 	}
-	done:
-	
 
 	instances.Data(insts);
 	dbgVao.NumInstances(static_cast<GLsizei>(insts.size()));
 
-	//std::cerr << leavesToCheck.size() << '\n';
-
-	return{};
+	return ret;
 }
 
 NarrowPhase::NarrowPhase(Position& position, RenderPasses& passes)

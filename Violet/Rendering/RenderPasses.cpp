@@ -63,7 +63,9 @@ void RenderPasses::Draw(Events e, float alpha)
 		auto bound = fbo.Bind(GL_FRAMEBUFFER);
 		fbo.PreDraw(Vector4f{ 0, 0, 0, 0 },
 			Eigen::Matrix<GLuint, 4, 1>{ Object::none.Id(), 0, 0, 0 });
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		r.Draw(alpha);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		for (auto& fn : customs) fn.second(alpha);
 	}

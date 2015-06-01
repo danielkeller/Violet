@@ -81,7 +81,7 @@ try
     
     Time t;
 	Events e;
-    
+
     auto physTick = [&]()
 	{
 		auto p = Profile::Profile("physics");

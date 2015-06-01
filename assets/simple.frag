@@ -31,5 +31,6 @@ void main()
 
    color = texture(tex, texCoordFrag) *
       vec4(ambient + lambert * diffuse + spec*specular, 1);
+	  color = vec4(0,0,0.5,1);
    picker = objectFrag;
 }

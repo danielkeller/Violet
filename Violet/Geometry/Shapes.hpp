@@ -12,6 +12,14 @@ inline Vector3f centroid(const Triangle& t)
 	return t.rowwise().sum() / 3.f;
 }
 
+Triangle TransformTri(const Triangle& t, const Matrix4f& mat);
+
+//result is not neccesarily normalized
+inline Vector3f TriNormal(const Triangle& t)
+{
+	return (t.col(1) - t.col(0)).cross(t.col(2) - t.col(0));
+}
+
 //you can't forward declare a type like this
 using Mesh = std::vector<Triangle, Eigen::aligned_allocator<Triangle>>;
 
