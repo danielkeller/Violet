@@ -182,6 +182,7 @@
     <ClInclude Include="magic_ptr.hpp" />
     <ClInclude Include="Mobile.hpp" />
     <ClInclude Include="Physics\NarrowPhase.hpp" />
+    <ClInclude Include="Physics\RigidBody.hpp" />
     <ClInclude Include="Position.hpp" />
     <ClInclude Include="Rendering\BufferObject.hpp" />
     <ClInclude Include="Rendering\FBO.hpp" />
@@ -238,6 +239,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mobile.cpp" />
     <ClCompile Include="Physics\NarrowPhase.cpp" />
+    <ClCompile Include="Physics\RigidBody.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="Rendering\FBO.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />

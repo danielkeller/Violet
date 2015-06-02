@@ -10,6 +10,7 @@
 #include "UI/PixelDraw.hpp"
 
 #include "Physics/NarrowPhase.hpp"
+#include "Physics/RigidBody.hpp"
 
 #include <iostream>
 #include <cstdlib>
@@ -39,6 +40,7 @@ try
 	Edit edit(r, passes, position, objName, mgr, persist);
 
 	NarrowPhase narrowPhase(position, passes);
+	RigidBody rigidBody(position);
 
 	mgr.Register(&position);
 	mgr.Register(&r);
@@ -69,8 +71,9 @@ try
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
 	//uhhhh this is a problem
-	narrowPhase.Add(teapotObj, "assets/teapot.obj");
-	narrowPhase.Add(teapot2Obj, "assets/teapot.obj");
+	//narrowPhase.Add(teapotObj, "assets/teapot.obj");
+	//narrowPhase.Add(teapot2Obj, "assets/teapot.obj");
+	rigidBody.Add(teapotObj, 1, 1);
 	
 	//AABBTree teapotAabb("assets/capsule.obj");
 	//Object aabbObj;
@@ -95,7 +98,8 @@ try
         //physics step
         //position[teapotObj]->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
 
-		narrowPhase.Query(teapotObj, teapot2Obj);
+		//narrowPhase.Query(teapotObj, teapot2Obj);
+		rigidBody.PhysTick(t.SimTime());
 
         return !w.ShouldClose();
     };

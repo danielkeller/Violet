@@ -59,10 +59,12 @@ bool LineEdit::Draw(std::string& text)
 
 	bool ret = focus.Draw(box);
 
+	bool selectedAll = state.select_start == 0 && state.select_end == lastText.size();
+
 	if (ret || text != lastText)
 		stb_textedit_clear_state(&state, true);
 
-	if (focus.tabbedIn) //auto select all
+	if (selectedAll || focus.tabbedIn) //auto select all
 	{
 		state.select_start = 0;
 		state.select_end = int(text.size());
@@ -72,6 +74,8 @@ bool LineEdit::Draw(std::string& text)
 		stb_textedit_click(&text, &state, mouseOffs.x(), mouseOffs.y());
 	else if (focus.focused && FrameEvents().MouseButton(GLFW_MOUSE_BUTTON_LEFT))
 		stb_textedit_drag(&text, &state, mouseOffs.x(), mouseOffs.y());
+	else
+		stb_textedit_sortselection(&state); //fix the selection on mouseup
 
 	if (focus.focused)
 	{
@@ -132,12 +136,10 @@ bool LineEdit::Draw(std::string& text)
 
 		if (state.select_start != state.select_end)
 		{
-			int start = std::min(state.select_start, state.select_end);
-			stb_textedit_find_charpos(&find, &text, start, true);
+			stb_textedit_find_charpos(&find, &text, state.select_start, true);
 			Vector2i selStart{ ulStart + Vector2i{ find.x - 1, 2 } };
 
-			int end = std::max(state.select_start, state.select_end);
-			stb_textedit_find_charpos(&find, &text, end, true);
+			stb_textedit_find_charpos(&find, &text, state.select_end, true);
 			Vector2i selEnd{ ulStart + Vector2i{ find.x + 1, LINEH } };
 
 			DrawBox({ selStart, selEnd }, UI::Colors::selection, 0);

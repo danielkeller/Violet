@@ -189,6 +189,9 @@
     <ClInclude Include="Geometry\OBB.hpp">
       <Filter>Source Files\Geometry</Filter>
     </ClInclude>
+    <ClInclude Include="Physics\RigidBody.hpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -313,6 +316,9 @@
     </ClCompile>
     <ClCompile Include="Geometry\OBB.cpp">
       <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\RigidBody.cpp">
+      <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
