@@ -6,6 +6,7 @@
 #include "Core/Time.hpp"
 
 class Position;
+class NarrowPhase;
 
 //TODO: "physics mesh" component
 
@@ -17,17 +18,21 @@ struct State
 
 	Vector3f orientation, angularMomentum;
 	float inertia;
+
+	//holds momentum taken up by collision in last frame
+	Vector3f compression;
 };
 
 class RigidBody
 {
 public:
-	RigidBody(Position&);
+	RigidBody(Position&, NarrowPhase&);
 	void Add(Object o, float mass, float inertia);
 	void PhysTick(Time::clock::duration simTime);
 
 private:
 	Position& position;
+	NarrowPhase& narrowPhase;
 	l_unordered_map<Object, State> data;
 };
 

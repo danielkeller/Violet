@@ -25,6 +25,8 @@ public:
 	NarrowPhase(Position&, RenderPasses&);
 	void Add(Object obj, std::string mesh);
 	std::vector<Contact> Query(Object a, Object b) const;
+	//FIXME: broadphase
+	std::vector<Contact> QueryAll(Object a) const;
 
 	using TreeTy = OBBTree;
 

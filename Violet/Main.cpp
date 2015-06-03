@@ -40,7 +40,7 @@ try
 	Edit edit(r, passes, position, objName, mgr, persist);
 
 	NarrowPhase narrowPhase(position, passes);
-	RigidBody rigidBody(position);
+	RigidBody rigidBody(position, narrowPhase);
 
 	mgr.Register(&position);
 	mgr.Register(&r);
@@ -71,8 +71,8 @@ try
 	edit.Editable(teapotObj);
 	edit.Editable(teapot2Obj);
 	//uhhhh this is a problem
-	//narrowPhase.Add(teapotObj, "assets/teapot.obj");
-	//narrowPhase.Add(teapot2Obj, "assets/teapot.obj");
+	narrowPhase.Add(teapotObj, "assets/teapot.obj");
+	narrowPhase.Add(teapot2Obj, "assets/triangle.obj");
 	rigidBody.Add(teapotObj, 1, 1);
 	
 	//AABBTree teapotAabb("assets/capsule.obj");

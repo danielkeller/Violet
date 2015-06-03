@@ -108,6 +108,18 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 	return ret;
 }
 
+std::vector<Contact> NarrowPhase::QueryAll(Object a) const
+{
+	std::vector<Contact> ret;
+	for (const auto& obj : data)
+		if (obj.first != a)
+		{
+			auto contacts = Query(a, obj.first);
+			ret.insert(ret.begin(), contacts.begin(), contacts.end());
+		}
+	return ret;
+}
+
 NarrowPhase::NarrowPhase(Position& position, RenderPasses& passes)
 	: position(position), dbgMat("NarrowPhaseDebug", "assets/color")
 	, dbgVao(dbgMat.Shader(), WireCube), instances(2)
