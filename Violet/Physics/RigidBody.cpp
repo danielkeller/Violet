@@ -70,6 +70,8 @@ void integrate(State& state, Time::clock::duration t, F force, T torque)
 	advance(state, final, simDt);
 }
 
+#include <iostream>
+
 void RigidBody::PhysTick(Time::clock::duration simTime)
 {
 	for (auto& obj : data)
@@ -82,30 +84,59 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		state.orientation = QuatToRot(xfrm.rot);
 
 		//apply impulses
-		if (state.compression.isZero(.01f)) //use a generous epsilon to flush to zero
-			state.compression = Vector3f::Zero();
+		//if (state.compression.isZero(.01f)) //use a generous epsilon to flush to zero
+		//	state.compression = Vector3f::Zero();
 
 		state.momentum += state.compression;
 		state.compression = Vector3f::Zero();
 
-		integrate(state, simTime,
-			[](const State& state, Time::clock::duration t)
+		Vector3f normalForce = Vector3f::Zero();
+
+		auto contacts = narrowPhase.QueryAll(obj.first);
+		size_t ncontacts = contacts.size();
+
+		if (ncontacts)
 		{
-			return Vector3f{ 0, 0, -10.f };
+			Eigen::MatrixXf F(1, ncontacts); //rows are applied forces
+			Eigen::VectorXf b = Eigen::VectorXf::Zero(1);
+			b[0] = 10.f;
+
+			for (size_t j = 0; j < ncontacts; ++j)
+			{
+				//degree of opposition to applied force
+				float proj = -contacts[j].bNormal.dot(Vector3f{ 0, 0, -1.f });
+				F(0, j) = std::max(proj, 0.f);
+			}
+
+			Eigen::HouseholderQR<Eigen::MatrixXf> decomp{ F.transpose() };
+			Eigen::VectorXf N = decomp.householderQ() * Eigen::MatrixXf::Identity(ncontacts, 1) *
+				decomp.matrixQR().topLeftCorner(1, 1).triangularView<Eigen::Upper>().transpose().solve(b);
+
+			for (size_t j = 0; j < ncontacts; ++j)
+				normalForce += contacts[j].bNormal * N[j];
+		}
+
+		integrate(state, simTime,
+			[=](const State& state, Time::clock::duration t)
+		{
+			return normalForce + Vector3f{ 0, 0, -10.f };
 		},
 			[](const State& state, Time::clock::duration t)
 		{
 			return Vector3f{ 0, 0, 0 };
 		});
 
-		auto contacts = narrowPhase.QueryAll(obj.first);
-
-		if (state.position.z() <= 0.f)
+		for (size_t j = 0; j < ncontacts; ++j)
 		{
-			state.position.z() = 0.f;
-			//elasticity goes here
-			state.compression.z() -= state.momentum.z();
-			state.momentum.z() = 0;
+			Vector3f contactNormal = contacts[j].bNormal;
+			float badMomentum = -state.momentum.dot(contactNormal);
+			if (badMomentum <= 0.f)
+				continue;
+			//should this be in the integrator?
+			Vector3f dM = contactNormal*badMomentum;
+			state.position += dM / state.mass * simDt;
+			//state.compression += dM;
+			state.momentum += dM;
 		}
 		state.compression *= .8f; //restitution
 
