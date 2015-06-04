@@ -37,6 +37,7 @@ public:
 	VertexData(WireCubeT);
     
 	VertexData(const std::string& file);
+	VertexData(const char* file) : VertexData(std::string(file)) {}
 
     template<class V, class VAlloc, class I, class IAlloc>
     VertexData(const std::string& name,

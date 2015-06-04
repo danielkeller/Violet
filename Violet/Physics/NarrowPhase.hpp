@@ -52,6 +52,6 @@ private:
 	mutable BufferObject<DebugInst, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instances;
 };
 
-MAKE_PERSIST_TRAITS(NarrowPhase, Object, AABBTree)
+MAKE_PERSIST_TRAITS(NarrowPhase, Object, NarrowPhase::TreeTy)
 
 #endif

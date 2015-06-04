@@ -63,17 +63,6 @@ void Position::Load(const Persist& persist)
 		Set(std::get<0>(row), std::get<1>(row));
 }
 
-void Position::Unload(const Persist& persist)
-{
-	for (const auto& row : persist.GetAll<Position>())
-		Remove(std::get<0>(row));
-}
-
-bool Position::Has(Object obj) const
-{
-	return data.count(obj) > 0;
-}
-
 void Position::Save(Object obj, Persist& persist) const
 {
 	if (Has(obj))
@@ -82,10 +71,7 @@ void Position::Save(Object obj, Persist& persist) const
 		persist.Delete<Position>(obj);
 }
 
-void Position::Remove(Object obj)
-{
-	data.erase(obj);
-}
+MAP_COMPONENT_BOILERPLATE(Position, data)
 
 template<>
 const char* PersistSchema<Position>::name = "position";

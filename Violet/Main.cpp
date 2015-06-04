@@ -46,6 +46,7 @@ try
 	mgr.Register(&r);
 	mgr.Register(&edit);
 	mgr.Register(&narrowPhase);
+	mgr.Register(&rigidBody);
 	mgr.Load(persist);
 
 	UI::Init(w);
@@ -58,22 +59,20 @@ try
 
 	if (!persist.Exists<Render>(teapotObj) || !persist.Exists<Render>(teapot2Obj))
 	{
-		//load the object
-		VertexData capsule{ "assets/capsule.obj" };
 		Material capsuleMat{ "capsule", { "assets/simple" }, { "assets/capsule.png" } };
 		capsuleMat.Save(persist);
 
-		r.Create(teapotObj, capsuleMat, capsule, Mobilty::Yes);
-		r.Create(teapot2Obj, capsuleMat, capsule, Mobilty::No);
+		r.Create(teapotObj, capsuleMat, "assets/teapot.obj", Mobilty::Yes);
+		r.Create(teapot2Obj, capsuleMat, "assets/triangle.obj", Mobilty::No);
+
+		edit.Editable(teapotObj);
+		edit.Editable(teapot2Obj);
+		narrowPhase.Add(teapotObj, "assets/teapot.obj");
+		narrowPhase.Add(teapot2Obj, "assets/triangle.obj");
+		rigidBody.Add(teapotObj, 1, 1);
+
 		mgr.Save(teapotObj, persist); mgr.Save(teapot2Obj, persist);
 	}
-
-	edit.Editable(teapotObj);
-	edit.Editable(teapot2Obj);
-	//uhhhh this is a problem
-	narrowPhase.Add(teapotObj, "assets/teapot.obj");
-	narrowPhase.Add(teapot2Obj, "assets/triangle.obj");
-	rigidBody.Add(teapotObj, 1, 1);
 	
 	//AABBTree teapotAabb("assets/capsule.obj");
 	//Object aabbObj;

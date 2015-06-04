@@ -33,4 +33,20 @@ private:
 	std::vector<Component*> components;
 };
 
+//for components that hold a simple map
+#define MAP_COMPONENT_BOILERPLATE(Class, member)\
+void Class::Unload(const Persist& persist)\
+{\
+	for (auto& dat : persist.GetAll<Class>())\
+		member.erase(std::get<0>(dat));\
+}\
+bool Class::Has(Object obj) const\
+{\
+	return member.count(obj) > 0;\
+}\
+void Class::Remove(Object obj)\
+{\
+	member.erase(obj);\
+}
+
 #endif

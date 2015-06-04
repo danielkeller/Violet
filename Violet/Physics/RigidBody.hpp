@@ -1,7 +1,7 @@
 #ifndef RIGID_BODY_HPP
 #define RIGID_BODY_HPP
 
-#include "Core/Object.hpp"
+#include "Core/Component.hpp"
 #include "Containers/l_unordered_map.hpp"
 #include "Core/Time.hpp"
 
@@ -12,7 +12,6 @@ class NarrowPhase;
 
 struct State
 {
-	State();
 	Vector3f position, momentum;
 	float mass;
 
@@ -20,7 +19,7 @@ struct State
 	float inertia;
 };
 
-class RigidBody
+class RigidBody : public Component
 {
 public:
 	RigidBody(Position&, NarrowPhase&);
@@ -31,6 +30,14 @@ private:
 	Position& position;
 	NarrowPhase& narrowPhase;
 	l_unordered_map<Object, State> data;
+
+	void Load(const Persist&);
+	void Unload(const Persist&);
+	bool Has(Object) const;
+	void Save(Object, Persist&) const;
+	void Remove(Object);
 };
+
+MAKE_PERSIST_TRAITS(RigidBody, Object, float, float)
 
 #endif

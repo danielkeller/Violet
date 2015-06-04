@@ -3,6 +3,7 @@
 
 #include "Position.hpp"
 #include "NarrowPhase.hpp"
+#include "File/Persist.hpp"
 
 static const float simDt = std::chrono::duration<float>{ Time::dt }.count();
 
@@ -110,25 +111,35 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		if (ncontacts)
 		{
 			//Vector3f tangentMometum = state.momentum - state.momentum.dot()
+			Eigen::MatrixXf::Index appliedForceDims = 3;
 
-			Eigen::MatrixXf F(1, ncontacts); //rows are applied forces
-			Eigen::VectorXf b = Eigen::VectorXf::Zero(1);
-			b[0] = gravity.norm();
+			//rows are dimensions of applied forces
+			Eigen::MatrixXf F = Eigen::MatrixXf::Zero(appliedForceDims, ncontacts);
+			Eigen::VectorXf b = Eigen::VectorXf::Zero(appliedForceDims);
+			b.block<3, 1>(0, 0) = -gravity;
 
-			//FIXME
+			//can this contact oppose the force while remaining positive?
+			for (size_t j = 0; j < ncontacts; ++j)
+				if (contacts[j].bNormal.dot(-gravity) > 0.f)
+					F.block<3, 1>(0, j) = contacts[j].bNormal;
+
+			//Find the least-squares solution, ie, the smallest force that will counteract
+			//the applied force. Note that this minimizes both the norm of the force vector
+			//among redundant contacts (ie, spreads the load evenly) and minimizes the
+			//residual (ie, counteracts the force as much as possible without overdoing it).
+			//Right now the SVD is the only decomposition I've found that correctly handles
+			//singular least squares systems. This isn't great because the SVD is very slow,
+			//so hopefully the QR can be made to work.
+			Eigen::JacobiSVD<Eigen::MatrixXf> decomp{ F, Eigen::ComputeThinU | Eigen::ComputeThinV };
+			Eigen::VectorXf N = decomp.solve(b);
+			
+			//std::cerr << F << " *\n\n" << N << " =\n\n" << b << "\n\n\n";
+
 			for (size_t j = 0; j < ncontacts; ++j)
 			{
-				//degree of opposition to applied force
-				float proj = -contacts[j].bNormal.dot(Vector3f{ 0, 0, -1.f });
-				F(0, j) = std::max(proj, 0.f);
-			}
-
-			Eigen::HouseholderQR<Eigen::MatrixXf> decomp{ F.transpose() };
-			Eigen::VectorXf N = decomp.householderQ() * Eigen::MatrixXf::Identity(ncontacts, 1) *
-				decomp.matrixQR().topLeftCorner(1, 1).triangularView<Eigen::Upper>().transpose().solve(b);
-
-			for (size_t j = 0; j < ncontacts; ++j)
+				assert(N[j] > -.01f && "Negative normal force");
 				normalForce += contacts[j].bNormal * N[j];
+			}
 		}
 
 		for (size_t j = 0; j < ncontacts; ++j)
@@ -162,6 +173,21 @@ RigidBody::RigidBody(Position& position, NarrowPhase& narrowPhase)
 {
 }
 
+void RigidBody::Load(const Persist& persist)
+{
+	for (auto& dat : persist.GetAll<RigidBody>())
+		Add(std::get<0>(dat), std::get<1>(dat), std::get<2>(dat));
+}
+
+void RigidBody::Save(Object obj, Persist& persist) const
+{
+	//TODO: this is dumb
+	if (Has(obj))
+		persist.Set<RigidBody>(obj, data.at(obj).mass, data.at(obj).inertia);
+	else
+		persist.Delete<RigidBody>(obj);
+}
+
 void RigidBody::Add(Object o, float mass, float inertia)
 {
 	State init;
@@ -173,5 +199,9 @@ void RigidBody::Add(Object o, float mass, float inertia)
 	data.try_emplace(o, init);
 }
 
-State::State()
-{}
+MAP_COMPONENT_BOILERPLATE(RigidBody, data);
+
+template<>
+const char* PersistSchema<RigidBody>::name = "rigidbody";
+template<>
+Columns PersistSchema<RigidBody>::cols = { "object", "mass", "inertia" };

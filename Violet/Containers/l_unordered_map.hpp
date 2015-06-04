@@ -7,13 +7,13 @@
 template<class Key, class T,
 class Hash = std::hash<Key>,
 class KeyEqal = std::equal_to<Key>,
-class Alloc = std::allocator<std::pair<const Key, T>>>
+class Alloc = std::allocator<std::pair<Key, T>>>
 class l_unordered_map
 {
 public:
 	using key_type = Key;
 	using mapped_type = T;
-	using value_type = std::pair<const Key, T>;
+	using value_type = std::pair<Key, T>;
 	using size_type = typename std::vector<value_type, Alloc>::size_type;
 private:
 	using storety = std::vector<value_type, Alloc>;
@@ -71,7 +71,15 @@ public:
 
 	const_iterator find(const key_type& r) const
 	{
-		return const_cast<l_unordered_map*>(this)->at(r);
+		return const_cast<l_unordered_map*>(this)->find(r);
+	}
+
+	const T& at(const key_type& r) const
+	{
+		auto it = find(r);
+		if (it == store.end())
+			throw std::domain_error("l_unordered_map does not contain key");
+		return it->second;
 	}
 
 	T& operator[](const key_type& key)
@@ -92,13 +100,13 @@ public:
 		return std::make_pair(store.end() - 1, true);
 	}
 
-	iterator erase(const_iterator pos)
+	iterator erase(iterator pos)
 	{
 		//swap with last element
 		swap(*pos, store.back());
-		inds[pos->second] = pos - store.begin();
+		inds[pos->first] = pos - store.begin();
 		//pop off the last element
-		inds.erase(store.back()->second);
+		inds.erase(store.back().first);
 		store.resize(store.size() - 1);
 		return pos;
 	}

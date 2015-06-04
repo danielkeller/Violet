@@ -140,38 +140,24 @@ void NarrowPhase::Add(Object obj, std::string mesh)
 
 void NarrowPhase::Load(const Persist& persist)
 {
-	//for (auto& dat : persist.GetAll<NarrowPhase>())
-	//	data.try_emplace(std::get<0>(dat), std::get<1>(dat));
-}
-
-void NarrowPhase::Unload(const Persist& persist)
-{
 	for (auto& dat : persist.GetAll<NarrowPhase>())
-		data.erase(std::get<0>(dat));
-}
-
-bool NarrowPhase::Has(Object obj) const
-{
-	return data.count(obj) > 0;
+		data.try_emplace(std::get<0>(dat), std::get<1>(dat));
 }
 
 void NarrowPhase::Save(Object obj, Persist& persist) const
 {
-	//if (Has(obj))
-	//	persist.Set<NarrowPhase>(obj, data.at(obj));
-	//else
-	//	persist.Delete<NarrowPhase>(obj);
+	if (Has(obj))
+		persist.Set<NarrowPhase>(obj, data.at(obj));
+	else
+		persist.Delete<NarrowPhase>(obj);
 }
 
-void NarrowPhase::Remove(Object obj)
-{
-	data.erase(obj);
-}
+MAP_COMPONENT_BOILERPLATE(NarrowPhase, data)
 
 template<>
 const char* PersistSchema<NarrowPhase>::name = "narrowphase";
 template<>
-Columns PersistSchema<NarrowPhase>::cols = { "object", "aabb" };
+Columns PersistSchema<NarrowPhase>::cols = { "object", "obb" };
 
 template<>
 const Schema AttribTraits<NarrowPhase::DebugInst>::schema = {

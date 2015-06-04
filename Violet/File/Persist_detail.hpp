@@ -25,6 +25,12 @@ namespace Persist_detail
 		using Category = VectorPersistTag;
 	};
 
+	template<>
+	struct PersistCategory<float>
+	{
+		using Category = BinaryPersistTag;
+	};
+
 	template<class Other>
 	using cat_t = typename PersistCategory<Other>::Category;
 
