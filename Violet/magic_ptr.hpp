@@ -196,8 +196,9 @@ class magic_ptr
 		T* operator->() { return &temp; }
 		~arrow_helper()
 		{
-			assert(orig == *owner &&
-				"magic_ptr::operator-> used more than once in an expression!");
+			//causes problems with NaN
+			//assert(orig == *owner &&
+			//	"magic_ptr::operator-> used more than once in an expression!");
 			owner.set(temp);
 		}
 	};

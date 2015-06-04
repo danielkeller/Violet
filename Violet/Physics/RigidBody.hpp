@@ -18,9 +18,6 @@ struct State
 
 	Vector3f orientation, angularMomentum;
 	float inertia;
-
-	//holds momentum taken up by collision in last frame
-	Vector3f compression;
 };
 
 class RigidBody
