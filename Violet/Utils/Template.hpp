@@ -73,10 +73,24 @@ std::result_of_t<F(Args...)> invoke(F f, std::tuple<Args...> args)
 	return invokeImpl(f, args, gen_seq<sizeof...(Args)>{});
 }
 
-struct StaticBlock
+inline std::size_t hash_combine()
 {
-	template<class Fun>
-	StaticBlock(const Fun& f) { f(); }
+	return 0;
+}
+
+template <class... Args>
+inline std::size_t hash_combine(std::size_t& first, Args... args)
+{
+	return seed ^ hash_combine(args...) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+template<class... Types>
+struct std::hash<std::tuple<Types...>>
+{
+	size_t operator()(const std::tuple<Types...>& tup)
+	{
+		return invoke(hash_combine, tup);
+	}
 };
 
 #endif

@@ -5,6 +5,7 @@ in vec2 texCoord;
 uniform Common
 {
 	mat4 camera;
+	mat4 projection;
 };
 
 out vec2 texCoordFrag;
@@ -18,9 +19,9 @@ in uint object;
 
 void main()
 {
-    gl_Position = camera * transform * vec4(position, 1);
+    gl_Position = projection * camera * transform * vec4(position, 1);
 	posFrag = (transform * vec4(position, 1)).xyz;
-	normalFrag =  (transform * vec4(normal, 0)).xyz;
+	normalFrag = (transform * vec4(normal, 0)).xyz;
 	texCoordFrag = texCoord;
     objectFrag = object;
 }

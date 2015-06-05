@@ -3,6 +3,7 @@ in vec3 position;
 uniform Common
 {
 	mat4 camera;
+	mat4 projection;
 };
 
 uniform Material
@@ -20,9 +21,9 @@ in uint object;
 
 void main()
 {
-    gl_Position = camera * transform * vec4(position, 1);
+    gl_Position = projection * camera * transform * vec4(position, 1);
 
-	screenLight = (camera * transform * vec4(light, 0)).xyz;
+	screenLight = (projection * camera * transform * vec4(light, 0)).xyz;
 	fragPos = gl_Position.xyz;
 
     objectFrag = object;

@@ -8,7 +8,9 @@ flat out uint objectFrag;
 uniform Common
 {
 	mat4 camera;
+	mat4 projection;
 };
+
 uniform Material
 {
     vec3 direction;
@@ -19,9 +21,9 @@ float size = .1;
 
 void main()
 {
-	vec4 screenpos = camera * transform[3];
+	vec4 screenpos = projection * camera * transform[3];
 	screenpos /= screenpos[3];
-    vec4 dir = camera * transform * vec4(direction, 0);
+    vec4 dir = projection * camera * transform * vec4(direction, 0);
     //project onto screen
     vec3 dir3 = normalize(vec3(dir.xy, 0));
     //create transform
@@ -31,8 +33,6 @@ void main()
     realTransform[2].z = size;
     realTransform[3].xyz = vec3((screenpos).xy, .01);
     gl_Position = realTransform * vec4(position, 1);
-	//gl_Position = camera * transform * vec4(position, 1);
-	//gl_Position.z = .01;
 
     objectFrag = object;
 }

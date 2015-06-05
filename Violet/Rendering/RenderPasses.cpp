@@ -4,6 +4,8 @@
 #include "Render.hpp"
 #include "Window.hpp"
 
+#include "Utils/Math.hpp"
+
 RenderPasses::RenderPasses(Position& p, Window& w, Render& r)
 	: r(r), w(w), mobile(p), camera(Object::invalid)
 	, simpleShader("assets/simple")
@@ -56,7 +58,8 @@ void RenderPasses::Draw(Events e, float alpha)
 	//for now it's just this
 	InstData cameraMat(camera);
 	mobile.Update(alpha, &cameraMat, &cameraMat + 1);
-	commonUBO["camera"] = view.PerspMat() * cameraMat.mat;
+	commonUBO["camera"] = cameraMat.mat; //AffineInverse(cameraMat.mat); //TODO
+	commonUBO["projection"] = view.PerspMat();
 	commonUBO.Bind();
 
 	{

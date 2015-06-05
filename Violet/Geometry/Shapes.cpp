@@ -2,6 +2,8 @@
 #include "Shapes.hpp"
 
 #include "Containers/WrappedIterator.hpp"
+#include "Utils/Math.hpp"
+
 #include <numeric>
 #include "Eigen/Eigenvalues"
 

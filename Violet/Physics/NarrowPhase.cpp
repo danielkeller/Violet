@@ -4,6 +4,7 @@
 #include "Position.hpp"
 #include "Geometry/Collide.hpp"
 
+#include "Utils/Math.hpp"
 #include "Rendering/RenderPasses.hpp"
 
 #include <iostream>

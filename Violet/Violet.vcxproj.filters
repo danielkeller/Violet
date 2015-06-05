@@ -195,6 +195,9 @@
     <ClInclude Include="Editor\ComponentEdit.hpp">
       <Filter>Source Files\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="Utils\Math.hpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">

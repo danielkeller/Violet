@@ -84,13 +84,6 @@ using Eigen::Quaternionf;
 using std::swap;
 using std::to_string;
 
-template <class T>
-inline void hash_combine(std::size_t& seed, const T& v)
-{
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
-
 inline bool ends_with(std::string const & value, std::string const & ending)
 {
 	if (ending.size() > value.size()) return false;

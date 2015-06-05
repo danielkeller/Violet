@@ -43,7 +43,8 @@ bool MaterialEdit::Draw(Persist& persist)
 
 	//render the preview
 	Viewport view(l.PutSpace(WIDTH));
-	cam["camera"] = view.OrthoMat();
+	cam["projection"] = view.OrthoMat();
+	cam["camera"] = Matrix4f::Identity();
 	UI::DrawSpecial([=]()
 	{
 		mat.use();

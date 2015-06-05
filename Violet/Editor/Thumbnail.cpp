@@ -16,7 +16,8 @@ Tex ObjAssets::Thumb(const std::string& path)
 	STATIC
 	{
 		mat["light"] = Vector3f{ -1, 1, 1 }.normalized();
-		cam["camera"] = view.PerspMat();
+		cam["camera"] = Matrix4f::Identity();
+		cam["projection"] = view.PerspMat();
 	}
 
 	static InstData object{ Object::invalid,
@@ -61,7 +62,10 @@ Tex MaterialAssets::Thumb(const Material& mat)
 
 	static UBO cam{ mat.Shader(), "Common" };
 	STATIC
+	{
 		cam["camera"] = Matrix4f::Identity();
+		cam["projection"] = Matrix4f::Identity();
+	}
 
 	//look down the end of it
 	static InstData object{ Object::invalid, Eigen::Affine3f{

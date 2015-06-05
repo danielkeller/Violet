@@ -201,6 +201,7 @@
     <ClInclude Include="UI\PixelDraw.hpp" />
     <ClInclude Include="UI\Layout.hpp" />
     <ClInclude Include="UI\Text.hpp" />
+    <ClInclude Include="Utils\Math.hpp" />
     <ClInclude Include="Utils\Profiling.hpp" />
     <ClInclude Include="Utils\Template.hpp" />
     <ClInclude Include="Viewport.hpp" />
