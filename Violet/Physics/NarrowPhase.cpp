@@ -24,12 +24,14 @@ struct TotalVolCmp
 
 std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 {
+	if (!data.count(a) || !data.count(b))
+		return{};
+
 	Matrix4f apos = position[a].get().ToMatrix();
 	Matrix4f aInv = AffineInverse(position[a].get().ToMatrix());
 	Matrix4f bpos = position[b].get().ToMatrix();
 	Matrix4f bInv = AffineInverse(position[b].get().ToMatrix());
 
-	std::vector<DebugInst> insts;
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	gen.seed(0);
@@ -102,14 +104,13 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 		}
 	}
 
-	instances.Data(insts);
-	dbgVao.NumInstances(static_cast<GLsizei>(insts.size()));
-
 	return ret;
 }
 
 std::vector<Contact> NarrowPhase::QueryAll(Object a) const
 {
+	insts.clear();
+
 	std::vector<Contact> ret;
 	for (const auto& obj : data)
 		if (obj.first != a)
@@ -117,6 +118,9 @@ std::vector<Contact> NarrowPhase::QueryAll(Object a) const
 			auto contacts = Query(a, obj.first);
 			ret.insert(ret.begin(), contacts.begin(), contacts.end());
 		}
+
+	instances.Data(insts);
+	dbgVao.NumInstances(static_cast<GLsizei>(insts.size()));
 	return ret;
 }
 

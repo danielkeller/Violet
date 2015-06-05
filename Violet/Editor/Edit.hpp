@@ -2,23 +2,28 @@
 #define EDIT_HPP
 
 #include "UI/Elements.hpp"
-#include "Editor/Tool.hpp"
-#include "Assets.hpp"
 #include "Core/Component.hpp"
+#include "ComponentEdit.hpp"
+#include "Tool.hpp"
 
 #include <unordered_set>
-#include <array>
 
 class Render;
 class RenderPasses;
+class NarrowPhase;
+class RigidBody;
 class Persist;
 struct Events;
+
+//???
+static const int LB_WIDTH = 250;
 
 class Edit : public Component
 {
 public:
-	Edit(Render& r, RenderPasses& rp, Position& position,
-		ObjectName& objName, ComponentManager& mgr, Persist& persist);
+	Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName,
+		NarrowPhase& narrowPhase, RigidBody& rigidBody, ComponentManager& mgr,
+		Persist& persist);
 
     void Editable(Object o);
 
@@ -44,48 +49,16 @@ private:
     Object selected;
 	float viewPitch, viewYaw;
 
-	static const int LB_WIDTH = 250;
-	static const int MOD_WIDTH = 30;
-
-	struct ComponentEditor
-	{
-		ComponentEditor(std::string name)
-			: name(name), addButton("+", MOD_WIDTH), removeButton("-", MOD_WIDTH) {}
-		UI::TextButton addButton, removeButton;
-		std::string name;
-
-		template<typename EditTy, typename AddTy, typename RemoveTy>
-		void Draw(Persist& persist, Component& c, Object selected,
-			EditTy edit, AddTy add, RemoveTy remove);
-	};
-
 	UI::SlideInOut slide;
-
-	enum class AssetPicker
-	{
-		None, Meshes, Materials
-	};
-	AssetPicker currentPicker;
-	void Toggle(AssetPicker clicked);
-
-	ObjAssets meshes;
-	MaterialAssets materials;
 
 	//Name
 	std::string curObjectName;
 	UI::LineEdit objectNameEdit;
 
-	//Position
-	ComponentEditor posEdit;
-	ComponentEditor renderEdit;
-	UI::FloatEdit xEdit, yEdit, zEdit;
-	std::array<float,3> curAngle;
-	std::array<UI::FloatEdit,3> angleEdit;
-	UI::FloatEdit scaleEdit;
-
-	//Render
-	UI::Button materialButton;
-	UI::Button meshButton;
+	PositionEditor posEdit;
+	RenderEditor renderEdit;
+	CollisionEditor collEdit;
+	RigidBodyEditor rbEdit;
 
 	//Object
 	UI::TextButton newObject, delObject;

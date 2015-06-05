@@ -192,6 +192,9 @@
     <ClInclude Include="Physics\RigidBody.hpp">
       <Filter>Source Files\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\ComponentEdit.hpp">
+      <Filter>Source Files\Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -319,6 +322,9 @@
     </ClCompile>
     <ClCompile Include="Physics\RigidBody.cpp">
       <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\ComponentEdit.cpp">
+      <Filter>Source Files\Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

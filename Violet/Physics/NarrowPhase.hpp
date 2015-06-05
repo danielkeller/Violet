@@ -49,6 +49,7 @@ private:
 	Object debugObj;
 	Material dbgMat;
 	mutable VAO dbgVao;
+	mutable std::vector<DebugInst> insts;
 	mutable BufferObject<DebugInst, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instances;
 };
 

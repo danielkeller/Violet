@@ -9,24 +9,19 @@
 #include "UI/Layout.hpp"
 
 Edit::Edit(Render& r, RenderPasses& rp, Position& position,
-	ObjectName& objName, ComponentManager& mgr, Persist& persist)
+	ObjectName& objName, NarrowPhase& narrowPhase, RigidBody& rigidBody,
+	ComponentManager& mgr, Persist& persist)
 	: enabled(true)
 	, rp(rp), r(r), position(position), objName(objName), persist(persist), mgr(mgr)
 	, tool(r, position)
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
 
-	, currentPicker(AssetPicker::None)
-	, materials(persist)
-
 	, objectNameEdit(LB_WIDTH)
-
-	, posEdit("position"), renderEdit("render")
-	, xEdit(LB_WIDTH / 3), yEdit(LB_WIDTH / 3), zEdit(LB_WIDTH / 3)
-	, angleEdit({ LB_WIDTH / 3, LB_WIDTH / 3, LB_WIDTH / 3 })
-	, scaleEdit(LB_WIDTH), objectSelect(LB_WIDTH)
+	, posEdit(position), renderEdit(r, persist), collEdit(narrowPhase, r), rbEdit(rigidBody)
 
 	, newObject("+", MOD_WIDTH), delObject("-", MOD_WIDTH)
+	, objectSelect(LB_WIDTH)
 {
 }
 
@@ -69,57 +64,6 @@ void Edit::Save(Object obj, Persist& persist) const
 void Edit::Remove(Object obj)
 {
 	objectSelect.items.erase(obj);
-}
-
-//decompose rot into rotation around axis (twist) and rotation perpendicular (swing)
-//rot = twist * swing
-std::tuple<Quaternionf, Quaternionf> TwistSwing(const Quaternionf& rot, const Vector3f& axis)
-{
-	auto proj = rot.vec().dot(axis) * axis;
-	Quaternionf twist{ rot.w(), proj.x(), proj.y(), proj.z() };
-	twist.normalize();
-	return std::make_tuple(twist, twist.conjugate() * rot);
-}
-
-void Edit::Toggle(AssetPicker clicked)
-{
-	if (currentPicker == clicked)
-		currentPicker = AssetPicker::None;
-	else currentPicker = clicked;
-}
-
-template<typename EditTy, typename AddTy, typename RemoveTy>
-void Edit::ComponentEditor::Draw(Persist& persist, Component& c, Object selected,
-	EditTy edit, AddTy add, RemoveTy remove)
-{
-	UI::LayoutStack& l = UI::CurLayout();
-
-	l.PushNext(UI::Layout::Dir::Right); l.PutSpace(MOD_WIDTH);
-	UI::DrawText(name, l.PutSpace({ LB_WIDTH - 2 * MOD_WIDTH, UI::LINEH }));
-
-	if (c.Has(selected))
-	{
-		bool doRemove = removeButton.Draw(); l.Pop();
-
-		if (edit())
-			c.Save(selected, persist);
-
-		if (doRemove)
-		{
-			remove();
-			c.Remove(selected);
-			c.Save(selected, persist);
-		}
-	}
-	else
-	{
-		if (addButton.Draw())
-		{
-			add();
-			c.Save(selected, persist);
-		}
-		l.Pop();
-	}
 }
 
 void Edit::PhysTick(Object camera)
@@ -184,26 +128,9 @@ void Edit::PhysTick(Object camera)
 
 	enabled = !slide.Draw(LB_WIDTH);
 
-	//asset picker
-	if (currentPicker != AssetPicker::None)
-	{
-		auto tup = r.Info(selected);
-		auto old = tup;
-		
-		if (currentPicker == AssetPicker::Meshes
-			? meshes.Draw(std::get<1>(tup))
-			: materials.Draw(std::get<0>(tup), persist))
-			currentPicker = AssetPicker::None;
+	renderEdit.DrawPicker(selected, persist);
 
-		if (old != tup)
-		{
-			r.Remove(selected);
-			r.Create(selected, tup);
-			r.Save(selected, persist);
-		}
-	}
-
-	//right bar
+	//left bar
 	l.PushNext(UI::Layout::Dir::Down);
 	l.EnsureWidth(LB_WIDTH);
 
@@ -217,101 +144,10 @@ void Edit::PhysTick(Object camera)
 		}
 
 		l.PutSpace(UI::LINEH);
-
-		posEdit.Draw(persist, position, selected,
-			[&]()
-		{
-			Transform xfrm = *position[selected];
-
-			bool stopped = false, moved = false;
-
-			l.PushNext(UI::Layout::Dir::Right);
-			stopped |= xEdit.Draw(xfrm.pos.x());
-			stopped |= yEdit.Draw(xfrm.pos.y());
-			stopped |= zEdit.Draw(xfrm.pos.z());
-			moved |= xEdit.editing | yEdit.editing | zEdit.editing;
-			l.Pop();
-
-			UI::DrawText("rotation", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-			l.PushNext(UI::Layout::Dir::Right);
-
-			//the angles displayed here are how much the object appears to be rotated when
-			//looking down the given axis at it. The twist-swing decomposition allows us
-			//to separate out the rest of the rotation and edit just the apparent rotation
-			//TODO: radian/degree
-			for (int axis = 0; axis < 3; ++axis)
-			{
-				stopped |= angleEdit[axis].Draw(curAngle[axis]);
-				moved |= angleEdit[axis].editing;
-
-				Quaternionf swing;
-				Quaternionf twist;
-				std::tie(twist, swing) = TwistSwing(xfrm.rot, Vector3f::Unit(axis));
-				if (angleEdit[axis].editing) //editor in control
-				{
-					xfrm.rot = Eigen::AngleAxisf(curAngle[axis], Vector3f::Unit(axis)) * swing;
-				}
-				else //object in control
-				{
-					Vector3f other = Vector3f::Unit((axis + 1) % 3);
-					Vector3f rotated = twist * other;
-					curAngle[axis] = std::atan2(rotated[(axis + 2) % 3], rotated[(axis + 1) % 3]);
-				}
-			}
-
-			l.Pop();
-
-			//xfrm.rot.normalize(); //?
-
-			UI::DrawText("scale", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-			stopped |= scaleEdit.Draw(xfrm.scale);
-			moved |= scaleEdit.editing;
-
-			//track the position
-			if (moved)
-				position[selected].set(xfrm);
-
-			//save the object once we stop editing
-			return stopped;
-		},
-			[&]() {
-			position.Set(selected, {});
-		},
-			[&]() {});
-
-		renderEdit.Draw(persist, r, selected,
-			[&]() {
-
-			auto tup = r.Info(selected);
-			UI::AlignedBox2i title = l.PutSpace({ LB_WIDTH, UI::LINEH });
-			UI::AlignedBox2i name = l.PutSpace({ LB_WIDTH, UI::LINEH });
-
-			UI::DrawText("material", title);
-			UI::DrawText(std::get<0>(tup).Name(), name);
-			if (materialButton.Draw(title.extend(name)))
-				Toggle(AssetPicker::Materials);
-
-			title = l.PutSpace({ LB_WIDTH, UI::LINEH });
-			name = l.PutSpace({ LB_WIDTH, UI::LINEH });
-
-			UI::DrawText("mesh", title);
-			UI::DrawText(std::get<1>(tup).Name(), name);
-			if (meshButton.Draw(title.extend(name)))
-				Toggle(AssetPicker::Meshes);
-			
-			if (std::get<2>(tup) == Mobilty::Yes)
-				UI::DrawText("mobile", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-			else
-				UI::DrawText("not mobile", l.PutSpace({ LB_WIDTH, UI::LINEH }));
-
-			return false;
-		},
-			[&]() {
-			r.Create(selected, { "Default", { "assets/simple" }, { "assets/capsule.png" } },
-			{ "assets/capsule.obj" });
-		},
-			[&]() {});
-
+		posEdit.Draw(persist, selected);
+		renderEdit.Draw(persist, selected);
+		collEdit.Draw(persist, selected);
+		rbEdit.Draw(persist, selected);
 		l.PutSpace(UI::LINEH);
 	}
 
@@ -347,7 +183,7 @@ void Edit::PhysTick(Object camera)
 	{
 		selected = newSelect;
 
-		currentPicker = AssetPicker::None;
+		renderEdit.ClosePicker();
 
 		if (selected != Object::none)
 			curObjectName = objName[selected];

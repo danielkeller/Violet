@@ -166,6 +166,7 @@
     <ClInclude Include="Core\Resource.hpp" />
     <ClInclude Include="Core\Time.hpp" />
     <ClInclude Include="Editor\Assets.hpp" />
+    <ClInclude Include="Editor\ComponentEdit.hpp" />
     <ClInclude Include="Editor\Edit.hpp" />
     <ClInclude Include="Editor\MaterialEdit.hpp" />
     <ClInclude Include="Editor\Tool.hpp" />
@@ -223,6 +224,7 @@
     <ClCompile Include="Core\Object.cpp" />
     <ClCompile Include="Core\Time.cpp" />
     <ClCompile Include="Editor\Assets.cpp" />
+    <ClCompile Include="Editor\ComponentEdit.cpp" />
     <ClCompile Include="Editor\Edit.cpp" />
     <ClCompile Include="Editor\MaterialEdit.cpp" />
     <ClCompile Include="Editor\Thumbnail.cpp" />

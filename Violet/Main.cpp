@@ -37,10 +37,10 @@ try
 	Position position;
 	Render r(position);
 	RenderPasses passes(position, w, r);
-	Edit edit(r, passes, position, objName, mgr, persist);
-
 	NarrowPhase narrowPhase(position, passes);
 	RigidBody rigidBody(position, narrowPhase);
+
+	Edit edit(r, passes, position, objName, narrowPhase, rigidBody, mgr, persist);
 
 	mgr.Register(&position);
 	mgr.Register(&r);
