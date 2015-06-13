@@ -29,13 +29,13 @@ public:
 
 	void PhysTick(Object camera);
 
+private:
 	void Load(const Persist&);
 	void Unload(const Persist&);
 	bool Has(Object) const;
 	void Save(Object, Persist&) const;
 	void Remove(Object);
 
-private:
 	bool enabled;
 	RenderPasses& rp;
 	Render& r;

@@ -40,6 +40,15 @@
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{3f9527a0-372c-405e-a671-de944ec3eb48}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Script">
+      <UniqueIdentifier>{d957e865-52a6-4b2e-b492-7219e2db3b4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets">
+      <UniqueIdentifier>{840cb9cb-1bed-43ea-9ad8-c05aa49a366c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\scripts">
+      <UniqueIdentifier>{95228e52-f782-49db-b350-5f9938666342}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Rendering\Render.hpp">
@@ -198,6 +207,9 @@
     <ClInclude Include="Utils\Math.hpp">
       <Filter>Source Files\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Script\Scripting.hpp">
+      <Filter>Source Files\Script</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -329,81 +341,87 @@
     <ClCompile Include="Editor\ComponentEdit.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Script\Scripting.cpp">
+      <Filter>Source Files\Script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\simple.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\simple.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\color.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\color.vert">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="..\assets\blank.frag">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\assets</Filter>
     </None>
     <None Include="..\assets\blank.vert">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\assets</Filter>
     </None>
-    <None Include="..\assets\tool_arrow.frag">
-      <Filter>Resource Files</Filter>
+    <None Include="..\assets\color.frag">
+      <Filter>Resource Files\assets</Filter>
     </None>
-    <None Include="..\assets\tool_arrow.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\screen.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\screen.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\uibox.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\uibox.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\text.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\text.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\textured_uibox.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\textured_uibox.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\shaded.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\shaded.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\uishadow.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\assets\uishadow.frag">
-      <Filter>Resource Files</Filter>
+    <None Include="..\assets\color.vert">
+      <Filter>Resource Files\assets</Filter>
     </None>
     <None Include="..\assets\edit.svg">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\screen.frag">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\screen.vert">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\shaded.frag">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\shaded.vert">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\simple.frag">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\simple.vert">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\text.frag">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\text.vert">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\textured_uibox.frag">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\textured_uibox.vert">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\tool_arrow.frag">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\tool_arrow.vert">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\uibox.frag">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\uibox.vert">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\uishadow.frag">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\assets\uishadow.vert">
+      <Filter>Resource Files\assets</Filter>
+    </None>
+    <None Include="..\scripts\init.lua">
+      <Filter>Resource Files\scripts</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\capsule.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\assets</Filter>
     </Image>
     <Image Include="..\assets\cube.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\assets</Filter>
     </Image>
     <Image Include="..\assets\edit.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\assets</Filter>
     </Image>
   </ItemGroup>
 </Project>

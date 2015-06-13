@@ -12,6 +12,8 @@
 #include "Physics/NarrowPhase.hpp"
 #include "Physics/RigidBody.hpp"
 
+#include "Script/Scripting.hpp"
+
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
@@ -41,6 +43,8 @@ try
 	RigidBody rigidBody(position, narrowPhase);
 
 	Edit edit(r, passes, position, objName, narrowPhase, rigidBody, mgr, persist);
+
+	Scripting script;
 
 	mgr.Register(&position);
 	mgr.Register(&r);
@@ -99,6 +103,8 @@ try
 
 		//narrowPhase.Query(teapotObj, teapot2Obj);
 		rigidBody.PhysTick(t.SimTime());
+
+		script.PhysTick();
 
         return !w.ShouldClose();
     };

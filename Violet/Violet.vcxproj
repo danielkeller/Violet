@@ -89,7 +89,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)GLFW\$(Platform)\$(Configuration)\glfw.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)GLFW\$(Platform)\$(Configuration)\glfw.lib;$(SolutionDir)lua\$(Platform)\$(Configuration)\lua.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -108,7 +108,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)GLFW\$(Platform)\$(Configuration)\glfw.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)GLFW\$(Platform)\$(Configuration)\glfw.lib;$(SolutionDir)lua\$(Platform)\$(Configuration)\lua.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -129,7 +129,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)GLFW\$(Platform)\$(Configuration)\glfw.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)GLFW\$(Platform)\$(Configuration)\glfw.lib;$(SolutionDir)lua\$(Platform)\$(Configuration)\lua.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -150,7 +150,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)GLFW\$(Platform)\$(Configuration)\glfw.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)GLFW\$(Platform)\$(Configuration)\glfw.lib;$(SolutionDir)lua\$(Platform)\$(Configuration)\lua.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -195,6 +195,7 @@
     <ClInclude Include="Rendering\Texture_detail.hpp" />
     <ClInclude Include="Rendering\VAO.hpp" />
     <ClInclude Include="Rendering\VertexData.hpp" />
+    <ClInclude Include="Script\Scripting.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UI\Colorscheme.hpp" />
     <ClInclude Include="UI\Elements.hpp" />
@@ -252,6 +253,7 @@
     <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\VAO.cpp" />
     <ClCompile Include="Rendering\VertexData.cpp" />
+    <ClCompile Include="Script\Scripting.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -297,6 +299,7 @@
     <None Include="..\assets\uibox.vert" />
     <None Include="..\assets\uishadow.frag" />
     <None Include="..\assets\uishadow.vert" />
+    <None Include="..\scripts\init.lua" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\capsule.png" />

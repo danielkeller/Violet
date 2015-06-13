@@ -92,5 +92,5 @@ inline bool ends_with(std::string const & value, std::string const & ending)
 
 inline std::size_t operator "" _sz(unsigned long long int x)
 {
-	return x;
+	return static_cast<std::size_t>(x);
 }
