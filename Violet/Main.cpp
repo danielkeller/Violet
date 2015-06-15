@@ -44,7 +44,7 @@ try
 
 	Edit edit(r, passes, position, objName, narrowPhase, rigidBody, mgr, persist);
 
-	Scripting script;
+	Scripting script(mgr);
 
 	mgr.Register(&position);
 	mgr.Register(&r);

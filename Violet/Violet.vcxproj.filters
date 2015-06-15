@@ -210,6 +210,12 @@
     <ClInclude Include="Script\Scripting.hpp">
       <Filter>Source Files\Script</Filter>
     </ClInclude>
+    <ClInclude Include="Script\Utils.hpp">
+      <Filter>Source Files\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="Script\EigenLib.hpp">
+      <Filter>Source Files\Script</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -344,6 +350,12 @@
     <ClCompile Include="Script\Scripting.cpp">
       <Filter>Source Files\Script</Filter>
     </ClCompile>
+    <ClCompile Include="Script\EigenLib.cpp">
+      <Filter>Source Files\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="Script\Utils.cpp">
+      <Filter>Source Files\Script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\blank.frag">
@@ -410,6 +422,9 @@
       <Filter>Resource Files\assets</Filter>
     </None>
     <None Include="..\scripts\init.lua">
+      <Filter>Resource Files\scripts</Filter>
+    </None>
+    <None Include="..\scripts\testComponent.lua">
       <Filter>Resource Files\scripts</Filter>
     </None>
   </ItemGroup>

@@ -84,7 +84,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -103,7 +103,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -195,7 +195,9 @@
     <ClInclude Include="Rendering\Texture_detail.hpp" />
     <ClInclude Include="Rendering\VAO.hpp" />
     <ClInclude Include="Rendering\VertexData.hpp" />
+    <ClInclude Include="Script\EigenLib.hpp" />
     <ClInclude Include="Script\Scripting.hpp" />
+    <ClInclude Include="Script\Utils.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UI\Colorscheme.hpp" />
     <ClInclude Include="UI\Elements.hpp" />
@@ -253,7 +255,9 @@
     <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\VAO.cpp" />
     <ClCompile Include="Rendering\VertexData.cpp" />
+    <ClCompile Include="Script\EigenLib.cpp" />
     <ClCompile Include="Script\Scripting.cpp" />
+    <ClCompile Include="Script\Utils.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -300,6 +304,7 @@
     <None Include="..\assets\uishadow.frag" />
     <None Include="..\assets\uishadow.vert" />
     <None Include="..\scripts\init.lua" />
+    <None Include="..\scripts\testComponent.lua" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\capsule.png" />

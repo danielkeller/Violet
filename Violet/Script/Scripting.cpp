@@ -3,52 +3,8 @@
 
 #include "Utils/Profiling.hpp"
 
-#include "lua/src/lua.hpp"
-
-template<class Class, int (Class::* fn)(lua_State *)>
-int luaU_mem_fn(lua_State* L)
-{
-	void* classptr = lua_touserdata(L, lua_upvalueindex(1));
-	Class* c = reinterpret_cast<Class*>(classptr);
-	return (c->*fn)(L);
-}
-
-template<class Class, int (Class::* fn)(lua_State *)>
-void luaU_push_mem_fn(lua_State* L, Class* c)
-{
-	lua_pushlightuserdata(L, c);
-	lua_pushcclosure(L, &luaU_mem_fn<Class, fn>, 1);
-}
-
-// 'require's the function on top of the stack, and put it into global
-// leaves module on top of stack
-void luaU_require(lua_State* L, const char* modname, int glb)
-{
-	luaL_getsubtable(L, LUA_REGISTRYINDEX, "_LOADED");
-	lua_getfield(L, -1, modname);  /* _LOADED[modname] */
-	if (!lua_toboolean(L, -1))
-	{  /* package not already loaded? */
-		lua_pop(L, 1);  /* remove field */
-		lua_pushvalue(L, -2); /*push loader*/
-		lua_pushstring(L, modname);  /* argument to open function */
-		lua_call(L, 1, 1);  /* call loader to open module */
-		lua_pushvalue(L, -1);  /* make copy of module (call result) */
-		lua_setfield(L, -3, modname);  /* _LOADED[modname] = module */
-	}
-	lua_remove(L, -2);  /* remove _LOADED table */
-	if (glb)
-	{
-		lua_pushvalue(L, -1);  /* copy of module */
-		lua_setglobal(L, modname);  /* _G[modname] = module */
-	}
-}
-
-std::string luaU_checkstdstring(lua_State* L, int arg)
-{
-	size_t len;
-	const char* str = luaL_checklstring(L, arg, &len);
-	return{ str, str + len };
-}
+#include "EigenLib.hpp"
+#include "Utils.hpp"
 
 #define GAMELIBNAME "game"
 
@@ -58,6 +14,7 @@ static const luaL_Reg loadedlibs[] = {
 	{ LUA_LOADLIBNAME, luaopen_package },
 	{ LUA_TABLIBNAME, luaopen_table },
 	{ LUA_MATHLIBNAME, luaopen_math },
+	{ EIGENLIBNAME, open_eigen_lib },
 	{ NULL, NULL }
 };
 
@@ -128,5 +85,3 @@ void Scripting::PhysTick()
 	}
 	lua_pop(L, 1);
 }
-
-
