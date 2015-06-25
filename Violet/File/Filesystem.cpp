@@ -3,6 +3,12 @@
 #include "Filesystem.hpp"
 
 //common
+
+range<DirIter> Browse(std::string dir)
+{
+    return{ { dir }, {} };
+}
+
 MappedFile::MappedFile(const std::string& name)
 	: MappedFile()
 {
@@ -28,6 +34,9 @@ size_t MappedFile::Size()
 {
 	return length;
 }
+
+//need the return in case exceptions are off
+#define MAP_FILE_ERR(str) do {ThrowErrno(str); return;} while(false)
 
 #ifdef _WIN32
 #include "Windows.hpp"
@@ -77,11 +86,6 @@ DirIter& DirIter::operator++()
 	return *this;
 }
 
-range<DirIter> Browse(std::string dir)
-{
-	return{ { dir }, {} };
-}
-
 MappedFile& MappedFile::operator=(MappedFile f)
 {
 	auto other = std::tie(f.dothrow, f.ptr, f.length);
@@ -95,7 +99,7 @@ MappedFile::MappedFile(MappedFile&& f)
 }
 
 MappedFile::MappedFile()
-	: dothrow(false), length(0), ptr(nullptr, &::UnmapViewOfFile)
+	: dothrow(true), length(0), ptr(nullptr, &::UnmapViewOfFile)
 {}
 
 void MappedFile::ThrowErrno(const std::string& text)
@@ -104,8 +108,6 @@ void MappedFile::ThrowErrno(const std::string& text)
 		ThrowErrno(text);
 }
 
-//need the return in case exceptions are off
-#define MAP_FILE_ERR(str) do {ThrowErrno(str); return;} while(false)
 #define CHECKED_CLOSE(ptr, str) do { \
 	if(!ptr.get_deleter()(ptr.release())) MAP_FILE_ERR(str);} while(false)
 
@@ -201,86 +203,152 @@ bool CacheIsFresh(const std::string& file, const std::string& cache)
 #include <fcntl.h>
 #include <string.h>
 
-MappedFile::MappedFile()
-	: dothrow(false), ptr(nullptr), length(0)
-{}
+#include <dirent.h>
 
-MappedFile::~MappedFile()
+void ThrowErrno(const std::string& text)
 {
-	dothrow = false; //Close can throw
-	Close();
+    throw std::runtime_error(text + ": " + strerror(errno));
 }
+
+struct DirIterImpl
+{
+    DirIterImpl() : dir(nullptr, &closedir) {}
+    std::string dirName;
+    struct dirent entry;
+    std::unique_ptr<DIR, decltype(&closedir)> dir;
+    
+    bool CheckedClose() {return !dir || closedir(dir.release()) != 0;}
+};
+
+DirIter::DirIter(std::string path) //begin
+: impl(std::make_shared<DirIterImpl>())
+{
+    DIR* dir = opendir(path.c_str());
+    if (!dir) ThrowErrno(path);
+    impl->dir.reset(dir);
+    
+    operator++();
+    
+    impl->dirName = path;
+}
+
+std::string DirIter::operator*()
+{
+    return impl->dirName + '/' + impl->entry.d_name;
+}
+
+DirIter& DirIter::operator++()
+{
+    struct dirent* result;
+    if (readdir_r(impl->dir.get(), &impl->entry, &result) != 0)
+        throw std::runtime_error(impl->dirName + ": invalid directory");
+    
+    if (!result)
+    {
+        if (impl->CheckedClose())
+            ThrowErrno("closedir");
+        impl.reset();
+    }
+    
+    return *this;
+}
+
+MappedFile::MappedFile()
+	: dothrow(true), ptr(nullptr), length(0)
+{}
 
 MappedFile& MappedFile::operator=(MappedFile f)
 {
-	auto other = std::tie(f.dothrow, f.ptr, f.length, f.fd);
-	std::tie(dothrow, ptr, length, fd).swap(other);
+	auto other = std::tie(f.dothrow, f.ptr, f.length);
+	std::tie(dothrow, ptr, length).swap(other);
 	return *this;
 }
 
 MappedFile::MappedFile(MappedFile&& f)
 	: dothrow(f.dothrow), length(f.length), ptr(std::move(f.ptr))
-	, fd(f.fd)
 {
 }
 
 void MappedFile::ThrowErrno(const std::string& text)
 {
-	if (dothrow)
-		throw std::runtime_error(text + ": " + strerror(errno));
+    if (dothrow) ::ThrowErrno(text);
 }
+
+class FdRAII
+{
+public:
+    FdRAII(int fd) : fd(fd) {}
+    int get() {return fd;}
+    explicit operator bool() {return fd != -1;}
+    bool CheckedClose()
+    {
+        int toClose = -1; std::swap(toClose, fd); //clear fd first
+        return toClose == -1 || close(toClose) != -1;
+    }
+    ~FdRAII() {CheckedClose();}
+private:
+    int fd;
+};
 
 void MappedFile::Open(const std::string& name)
 {
+    EXCEPT_INFO_BEGIN
+    
 	Close();
 
-	fd = open(name.c_str(), O_RDONLY);
-	if (fd == -1)
-	{
-		ThrowErrno("open");
-		return;
-	}
+	FdRAII fd = open(name.c_str(), O_RDONLY);
+    if (!fd) MAP_FILE_ERR("open");
 
 	struct stat sb;
-	if (fstat(fd, &sb) == -1)
-	{
-		int temp = errno;
-		close(fd);
-		errno = temp;
-		ThrowErrno("fstat");
-		return;
-	}
+	if (fstat(fd.get(), &sb) == -1)
+        MAP_FILE_ERR("fstat");
 
 	length = sb.st_size;
-	ptr = mmap(nullptr, length, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (ptr == MAP_FAILED)
-	{
-		int temp = errno;
-		close(fd);
-		errno = temp;
-		ThrowErrno("mmap");
-		return;
-	}
-	isopen = true;
+	void* mapptr = mmap(nullptr, length, PROT_READ, MAP_PRIVATE, fd.get(), 0);
+	if (mapptr == MAP_FAILED)
+        MAP_FILE_ERR("mmap");
+    
+    ptr.reset(mapptr, [this](void* p)
+    {
+        return munmap(p, length);
+    });
+    
+    EXCEPT_INFO_END("MappedFile " + name)
 }
 
 void MappedFile::Close()
 {
-	if (!isopen)
+	if (!*this)
 		return;
-	auto ptr1 = ptr;
+    
+	auto ptr1 = ptr.get();
 	ptr = nullptr;
 
-	if (close(fd) == -1)
-	{
-		int temp = errno;
-		munmap(ptr1, length);
-		errno = temp;
-		ThrowErrno("close");
-	}
 	if (munmap(ptr1, length) == -1)
-	{
 		ThrowErrno("munmap");
-	}
 }
+
+bool CacheIsFresh(const std::string& file, const std::string& cache)
+{
+    struct stat fileStat, cacheStat;
+    
+    if (stat(cache.c_str(), &cacheStat) == -1)
+    {
+        if (errno == ENOENT) //no cache
+            return false;
+        else
+            ThrowErrno(cache);
+    }
+    
+    if (stat(file.c_str(), &fileStat) == -1)
+    {
+        if (errno == ENOENT) //no original (this is ok)
+            return true;
+        else
+            ThrowErrno(file);
+    }
+    
+    return cacheStat.st_mtime > fileStat.st_mtime;
+}
+
 #endif

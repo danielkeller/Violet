@@ -28,7 +28,14 @@ public:
 	//FIXME: broadphase
 	std::vector<Contact> QueryAll(Object a) const;
 
-	using TreeTy = OBBTree;
+    using TreeTy = OBBTree;
+    
+    //FIXME pending SO question
+    struct DebugInst
+    {
+        Matrix4f loc;
+        Vector3f color;
+    };
 
 private:
 	void Load(const Persist&);
@@ -39,12 +46,6 @@ private:
 
 	Position& position;
 	std::unordered_map<Object, TreeTy> data;
-
-	struct DebugInst
-	{
-		Matrix4f loc;
-		Vector3f color;
-	};
 
 	Object debugObj;
 	Material dbgMat;

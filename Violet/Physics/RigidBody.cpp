@@ -175,7 +175,7 @@ RigidBody::RigidBody(Position& position, NarrowPhase& narrowPhase)
 
 void RigidBody::Load(const Persist& persist)
 {
-	for (auto& dat : persist.GetAll<RigidBody>())
+	for (const auto& dat : persist.GetAll<RigidBody>())
 		Add(std::get<0>(dat), std::get<1>(dat), std::get<2>(dat));
 }
 

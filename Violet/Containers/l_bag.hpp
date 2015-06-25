@@ -14,7 +14,7 @@ private:
 	perma_ref(DiffT it) : it(it) {}
 	DiffT it;
 
-	template<class T, class Alloc>
+	template<class U, class Alloc>
 	friend class l_bag;
 };
 

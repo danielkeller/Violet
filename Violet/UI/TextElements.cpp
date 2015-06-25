@@ -59,7 +59,8 @@ bool LineEdit::Draw(std::string& text)
 
 	bool ret = focus.Draw(box);
 
-	bool selectedAll = state.select_start == 0 && state.select_end == lastText.size();
+	bool selectedAll = state.select_start == 0
+        && state.select_end == static_cast<int>(lastText.size());
 
 	if (ret || text != lastText)
 		stb_textedit_clear_state(&state, true);

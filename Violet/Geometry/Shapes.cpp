@@ -120,7 +120,6 @@ OBB::OBB(const AlignedBox3f& aabb, const Matrix4f& xfrm)
 //newAxes must be orthogonal
 OBB::OBB(const OBB& l, const OBB& r, const Matrix3f& newAxes)
 {
-	Matrix3f invAxes = newAxes.transpose();
 	Matrix3f ourl = newAxes.transpose() * l.axes;
 	Matrix3f ourr = newAxes.transpose() * r.axes;
 	Vector3f lOrig = newAxes.transpose() * l.origin;

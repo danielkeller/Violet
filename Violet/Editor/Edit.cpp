@@ -27,7 +27,7 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position,
 
 void Edit::Editable(Object o)
 {
-	auto& name = objName[o];
+    std::string name = objName[o];
 	auto it = std::lower_bound(objectSelect.items.begin(),
 		objectSelect.items.end(), name,
 		[](std::pair<Object, std::string>& l, const std::string& r)

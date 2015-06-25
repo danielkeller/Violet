@@ -93,7 +93,7 @@ namespace Persist_detail
 		friend class Database;
 		PreparedStmt(Persist* persist, sqlite3* db, const std::string& sql);
 
-		template<typename... Values, unsigned... Inds>
+		template<typename... Values, size_t... Inds>
 		void BindImpl(seq<0, Inds...>, const Values&... vs)
 		{
 			std::make_tuple((Bind1(Inds, vs), 0)...);
@@ -142,7 +142,7 @@ namespace Persist_detail
 			return val.Key();
 		}
 
-		template<typename... Values, unsigned... Inds>
+		template<typename... Values, size_t... Inds>
 		std::tuple<Values...> GetImpl(seq<Inds...>)
 		{
 			return std::make_tuple(Get1<Values>(Inds)...);
@@ -157,7 +157,7 @@ namespace Persist_detail
 		template<typename Vector>
 		Vector Get1(int num, VectorPersistTag)
 		{
-			using Other = Vector::value_type;
+			using Other = typename Vector::value_type;
 			auto strs = Get1<std::vector<std::string>>(num);
 			/*auto vals = MapRange(strs, [this](std::string name)
 				{return Decode<Other>(name, cat_t<Other>()); });
@@ -229,7 +229,6 @@ namespace Persist_detail
 			value_type* operator->() { return &temp; }
 		};
 	public:
-		using value_type = std::tuple<Types...>;
 
 		DataIterator() = default;
 		DataIterator(const DataIterator&) = default;

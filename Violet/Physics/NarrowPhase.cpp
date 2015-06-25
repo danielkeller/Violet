@@ -140,13 +140,15 @@ NarrowPhase::NarrowPhase(Position& position, RenderPasses& passes)
 
 void NarrowPhase::Add(Object obj, std::string mesh)
 {
-	data.try_emplace(obj, mesh);
+    if (!data.count(obj))
+        data.emplace(obj, mesh);
 }
 
 void NarrowPhase::Load(const Persist& persist)
 {
-	for (auto& dat : persist.GetAll<NarrowPhase>())
-		data.try_emplace(std::get<0>(dat), std::get<1>(dat));
+	for (const auto& dat : persist.GetAll<NarrowPhase>())
+        if (!data.count(std::get<0>(dat)))
+            data.emplace(std::get<0>(dat), std::get<1>(dat));
 }
 
 void NarrowPhase::Save(Object obj, Persist& persist) const

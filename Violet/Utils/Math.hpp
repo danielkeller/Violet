@@ -12,9 +12,9 @@ auto RotationScaleInverse(const Eigen::MatrixBase<Derived>& mat)
 template<class Derived>
 Matrix4f AffineInverse(const Eigen::MatrixBase<Derived>& mat)
 {
-	Matrix3f RotSclInv = RotationScaleInverse(mat.block<3, 3>(0, 0));
+	Matrix3f RotSclInv = RotationScaleInverse(mat.template block<3, 3>(0, 0));
 	return (Matrix4f(4, 4) << RotSclInv
-		, -RotSclInv * mat.block<3, 1>(0, 3) //translation
+		, -RotSclInv * mat.template block<3, 1>(0, 3) //translation
 		, 0, 0, 0, 1).finished();
 }
 

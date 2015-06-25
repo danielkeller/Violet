@@ -46,12 +46,14 @@ struct UniformBlock
 	}
 };
 
+class ShaderProgram;
+
 //Uniform Buffer Object
 class UBO
 {
 	struct Proxy;
 	friend struct Proxy;
-	friend class ShaderProgram;
+    friend class ShaderProgram;
 	enum Type
 	{
 		Common,
@@ -148,7 +150,7 @@ struct UBO::Proxy
 	template<typename Derived>
 	Proxy& operator=(const Eigen::MatrixBase<Derived>& data)
 	{
-		Map<Derived::Scalar>(data.rows(), data.cols()) = data;
+		Map<typename Derived::Scalar>(data.rows(), data.cols()) = data;
 		ubo.Sync();
 		return *this;
 	}

@@ -6,13 +6,11 @@
 
 struct DirIterImpl;
 
-class DirIter
+class DirIter : public std::iterator<std::input_iterator_tag, std::string>
 {
 public:
 	DirIter() = default; //end
 	DirIter(std::string path); //begin
-	using iterator_category = std::input_iterator_tag;
-	using value_type = std::string;
 	BASIC_EQUALITY(DirIter, impl);
 
 	std::string operator*();
@@ -32,11 +30,6 @@ public:
 	MappedFile(MappedFile&&);
 	MappedFile& operator=(MappedFile f);
 
-#ifdef _WIN32
-#else //todo: get rid of this
-	~MappedFile();
-#endif
-
 	void Throws(bool dothrow_);
 
 	void Open(const std::string& name);
@@ -47,7 +40,7 @@ public:
 
 	template<class T>
 	const T* Data()
-	{
+    {
 		return static_cast<T*>(ptr.get());
 	}
 	size_t Size();
@@ -59,8 +52,7 @@ private:
 	typedef int __stdcall deleter(const void*);
 	std::unique_ptr<void, deleter*> ptr;
 #else
-	void* ptr;
-	int fd; //TODO: this isn't actually needed
+    std::shared_ptr<void> ptr;
 #endif
 
 	void ThrowErrno(const std::string& text);

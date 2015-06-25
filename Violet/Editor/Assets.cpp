@@ -140,7 +140,7 @@ bool MaterialAssets::Draw(Material& cur, Persist& persist)
 	if (editorOn && edit.Draw(persist))
 	{
 		//update the thumbnail
-		Material& edited = edit.Current();
+		const Material& edited = edit.Current();
 		auto& editedAsset = a.assets[edited.GetId()];
 		editedAsset.thumb = Thumb(edited);
 		editedAsset.name = edited.Name();

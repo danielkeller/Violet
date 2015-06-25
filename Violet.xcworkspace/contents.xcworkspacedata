@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:lua/Lua.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:GLFW/GLFW.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "container:Violet.xcodeproj">
+   </FileRef>
+</Workspace>

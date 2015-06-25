@@ -146,6 +146,17 @@
 */
 
 /*
+ @@ LUA_DIRSEP is the directory separator (for submodules).
+ ** CHANGE it if your machine does not use "/" as the directory separator
+ ** and is not Windows. (On Windows Lua automatically uses "\".)
+ */
+#if defined(_WIN32)
+#define LUA_DIRSEP	"\\"
+#else
+#define LUA_DIRSEP	"/"
+#endif
+
+/*
 @@ LUA_PATH_DEFAULT is the default path that Lua uses to look for
 ** Lua libraries.
 @@ LUA_CPATH_DEFAULT is the default path that Lua uses to look for
@@ -155,12 +166,14 @@
 ** non-conventional directories.
 */
 #define LUA_VDIR	LUA_VERSION_MAJOR "." LUA_VERSION_MINOR
+
+#if 0
 #if defined(_WIN32) 	/* { */
 /*
 ** In Windows, any exclamation mark ('!') in the path is replaced by the
 ** path of the directory of the executable file of the current process.
 */
-/*
+
 #define LUA_LDIR	"!\\lua\\"
 #define LUA_CDIR	"!\\"
 #define LUA_SHRDIR	"!\\..\\share\\lua\\" LUA_VDIR "\\"
@@ -173,16 +186,12 @@
 		LUA_CDIR"?.dll;" \
 		LUA_CDIR"..\\lib\\lua\\" LUA_VDIR "\\?.dll;" \
 		LUA_CDIR"loadall.dll;" ".\\?.dll"
-		*/
-
-#define LUA_PATH_DEFAULT ".\\scripts\\?.lua"
-#define LUA_CPATH_DEFAULT ""
 
 #else			/* }{ */
 
 #define LUA_ROOT	"/usr/local/"
 #define LUA_LDIR	LUA_ROOT "share/lua/" LUA_VDIR "/"
-#define LUA_CDIR	LUA_ROOT "lib/lua/" LUA_VDIR "/"*/
+#define LUA_CDIR	LUA_ROOT "lib/lua/" LUA_VDIR "/"
 #define LUA_PATH_DEFAULT  \
 		LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
 		LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua;" \
@@ -190,18 +199,10 @@
 #define LUA_CPATH_DEFAULT \
 		LUA_CDIR"?.so;" LUA_CDIR"loadall.so;" "./?.so"
 #endif			/* } */
-
-
-/*
-@@ LUA_DIRSEP is the directory separator (for submodules).
-** CHANGE it if your machine does not use "/" as the directory separator
-** and is not Windows. (On Windows Lua automatically uses "\".)
-*/
-#if defined(_WIN32)
-#define LUA_DIRSEP	"\\"
-#else
-#define LUA_DIRSEP	"/"
 #endif
+
+#define LUA_PATH_DEFAULT "." LUA_DIRSEP "scripts" LUA_DIRSEP "?.lua"
+#define LUA_CPATH_DEFAULT ""
 
 /* }================================================================== */
 

@@ -37,9 +37,13 @@
 // Define this to 1 if building GLFW for X11
 /* #undef _GLFW_X11 */
 // Define this to 1 if building GLFW for Win32
-#define _GLFW_WIN32
+#ifdef _WIN32
+#define _GLFW_WIN32 1
+#endif
 // Define this to 1 if building GLFW for Cocoa
-/* #undef _GLFW_COCOA */
+#ifdef __APPLE__
+#define _GLFW_COCOA 1
+#endif
 // Define this to 1 if building GLFW for Wayland
 /* #undef _GLFW_WAYLAND */
 // Define this to 1 if building GLFW for Mir
@@ -50,9 +54,13 @@
 // Define this to 1 if building GLFW for GLX
 /* #undef _GLFW_GLX */
 // Define this to 1 if building GLFW for WGL
+#ifdef _WIN32
 #define _GLFW_WGL
+#endif
 // Define this to 1 if building GLFW for NSGL
-/* #undef _GLFW_NSGL */
+#ifdef __APPLE__
+#define _GLFW_NSGL
+#endif
 
 // Define this to 1 if building as a shared library / dynamic library / DLL
 /* #undef _GLFW_BUILD_DLL */

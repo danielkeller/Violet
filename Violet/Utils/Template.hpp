@@ -19,21 +19,21 @@ struct integer_sequence
 // using aliases for cleaner syntax
 template<class T> using Invoke = typename T::type;
 
-template<unsigned...> struct seq{ using type = seq; };
+template<size_t...> struct seq{ using type = seq; };
 
 template<class S1, class S2> struct concat;
 
-template<unsigned... I1, unsigned... I2>
+template<size_t... I1, size_t... I2>
 struct concat<seq<I1...>, seq<I2...>>
 	: seq<I1..., (sizeof...(I1)+I2)...>{};
 
 template<class S1, class S2>
 using Concat = Invoke<concat<S1, S2>>;
 
-template<unsigned N> struct gen_seq;
-template<unsigned N> using GenSeq = Invoke<gen_seq<N>>;
+template<size_t N> struct gen_seq;
+template<size_t N> using GenSeq = Invoke<gen_seq<N>>;
 
-template<unsigned N>
+template<size_t N>
 struct gen_seq : Concat<GenSeq<N / 2>, GenSeq<N - N / 2>>{};
 
 template<> struct gen_seq<0> : seq<>{};
@@ -81,7 +81,7 @@ inline std::size_t hash_combine()
 template <class... Args>
 inline std::size_t hash_combine(std::size_t& first, Args... args)
 {
-	return seed ^ hash_combine(args...) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+	return first ^ hash_combine(args...) + 0x9e3779b9 + (first << 6) + (first >> 2);
 }
 
 template<class... Types>

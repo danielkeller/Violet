@@ -6,7 +6,7 @@
 
 template<class Key, class T,
     class Compare = std::less<Key>,
-    class Alloc = std::allocator<std::pair<const Key, T>>>
+    class Alloc = std::allocator<std::pair<Key, T>>>
 class l_map
 {
 public:

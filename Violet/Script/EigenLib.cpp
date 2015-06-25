@@ -34,7 +34,7 @@ static int vector_ctor(lua_State *L)
 	LuaVector::Index dim = 0;
 	if (nargs > 0) dim = luaL_checkinteger(L, 1);
 	luaL_getmetatable(L, LUAVECTOR_TNAME);
-	auto& vec = luaU_new<LuaVector>(L, dim);
+	luaU_new<LuaVector>(L, dim);
 	return 1;
 }
 

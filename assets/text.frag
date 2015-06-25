@@ -8,8 +8,8 @@ void main()
 {
 	//assume rgb pixels
 	vec2 subPixOffs = vec2(1./512., 0);
-	float ra = texture(tex, texCoordFrag - subPixOffs);
-	float ga = texture(tex, texCoordFrag);
-	float ba = texture(tex, texCoordFrag + subPixOffs);
+	float ra = texture(tex, texCoordFrag - subPixOffs).r;
+	float ga = texture(tex, texCoordFrag).r;
+	float ba = texture(tex, texCoordFrag + subPixOffs).r;
 	outputColor = vec4(ra, ga, ba, 1);
 }

@@ -57,7 +57,7 @@ OBBTree::Resource::Resource(std::string file)
 			axInd = (axInd + 1) % 3;
 
 			//If one side has the whole mesh, split it differently
-			if (left.size() != 0 && right.size() != 0 //nondegenerate split
+			if ((left.size() != 0 && right.size() != 0) //nondegenerate split
 				|| axInd == longestAxisIndex) //no more axes to try
 				break;
 

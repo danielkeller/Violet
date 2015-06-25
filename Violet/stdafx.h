@@ -6,7 +6,14 @@
 #define _ITERATOR_DEBUG_LEVEL 1
 #endif
 
+#ifdef _WIN32
 #define APIENTRY __stdcall
+#endif
+
+#ifndef _WIN32
+#define _POSIX_C_SOURCE 200112L
+#endif
+
 #include "GL/gl_core_3_3.h"
 #include "Eigen/Core"
 #include "Eigen/Geometry"
@@ -22,7 +29,6 @@ using Eigen::Vector3f;
 using Eigen::Vector4f;
 using Eigen::Quaternionf;
 
-#define PI 3.141592653589793238463
 #define PI_F 3.14159265358979f
 
 //#define _GLIBCXX_DEBUG
@@ -66,7 +72,7 @@ using Eigen::Quaternionf;
 	template<class Subsystem> struct PersistTraits;\
 	template<> struct PersistTraits<Class> { \
 		using key = Key; \
-		using data = std::tuple<Key, __VA_ARGS__>; };
+		using data = std::tuple<Key, ##__VA_ARGS__>; };
 
 #define EXCEPT_INFO_BEGIN try {
 #define EXCEPT_INFO_END(str) } catch (std::runtime_error& err) { \

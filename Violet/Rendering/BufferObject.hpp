@@ -195,7 +195,7 @@ private:
 	//returns a buffer with our data in it, and resizes us to size
 	BufferObject<T, GL_COPY_READ_BUFFER, usage> CopySteal(size_t size)
 	{
-		static_assert(target != GL_COPY_READ_BUFFER);
+		static_assert(target != GL_COPY_READ_BUFFER, "Can't copy the GL_COPY_READ_BUFFER");
 		BufferObject newbuf(size);
 		//now steal the data
 		swap(*this, newbuf);

@@ -127,7 +127,7 @@ public:
 
 	void erase(perma_refs_t refs)
 	{
-		erase<0>(refs);
+        erase(std::integral_constant<size_t, 0>(), refs);
 	}
 	
 	template<size_t Level>
@@ -171,7 +171,7 @@ private:
 
 	//return value = erase happened
 	template<size_t Level>
-	bool erase(perma_refs_t refs)
+    bool erase(std::integral_constant<size_t, Level>, perma_refs_t refs)
 	{
 		auto& level = std::get<Level>(data);
 		auto it = level.find(std::get<Level>(refs));
@@ -181,7 +181,7 @@ private:
 		auto lower_next = lower.get_perma(lower.find(it->second) + 1);
 		bool last = range_of<Level>(it).size() == 1;
 
-		bool erased = erase<Level + 1>(refs);
+        bool erased = erase(std::integral_constant<size_t, Level+1>(), refs);
 
 		if (erased)
 		{
@@ -198,8 +198,7 @@ private:
 		return false;
 	}
 
-	template<>
-	bool erase<bottom>(perma_refs_t refs)
+	bool erase(std::integral_constant<size_t, bottom>, perma_refs_t refs)
 	{
 		auto& level = std::get<bottom>(data);
 		level.erase(level.find(std::get<bottom>(refs)));

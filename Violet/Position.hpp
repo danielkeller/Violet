@@ -60,7 +60,7 @@ private:
 	};
 
 	std::unordered_map<Object, ObjData, std::hash<Object>, std::equal_to<Object>,
-		Eigen::aligned_allocator<std::pair<Object, ObjData>>> data;
+		Eigen::aligned_allocator<std::pair<const Object, ObjData>>> data;
 
 	accessor<Transform, Object> acc;
 };

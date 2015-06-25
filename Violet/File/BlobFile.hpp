@@ -75,7 +75,7 @@ public:
 	template<typename T, typename Alloc = std::allocator<T>>
 	std::vector<T, Alloc> ReadVector()
 	{
-		auto size = static_cast<std::vector<T, Alloc>::size_type>(Read<BlobSizeType>());
+		auto size = static_cast<typename std::vector<T, Alloc>::size_type>(Read<BlobSizeType>());
 		std::vector<T, Alloc> ret(size);
 		str.read(reinterpret_cast<char*>(ret.data()), sizeof(T)*size);
 		CheckAndThrow();

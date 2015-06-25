@@ -213,7 +213,7 @@ public:
 	magic_ptr()
 	{
 		//clear out the key
-		new (&key) nullptr_t(nullptr);
+		new (&key) std::nullptr_t(nullptr);
 	}
 	
 	magic_ptr(accessor<T> acc)
@@ -224,7 +224,7 @@ public:
 	magic_ptr(accessor<T, Key> acc, const Key& k)
 		: acc(acc.eraseType())
 	{
-		new (&key) nullptr_t(nullptr);
+		new (&key) std::nullptr_t(nullptr);
 		static_assert(sizeof(k) <= sizeof(key),// || __alignof(k) <= __alignof(key),
 			"Key type does not fit size and alignment requirements");
 		static_assert(std::is_trivially_copyable<Key>::value
@@ -245,9 +245,9 @@ public:
 
 	//converting magic_ptr
 	template<class U, typename = typename std::enable_if_t<
-		std::is_convertible<T, U>::value && std::is_convertible<U, T>::value >>
+		std::is_convertible<T, U>::value && std::is_convertible<U, T>::value>>
 		magic_ptr(magic_ptr<U> other)
-		: accessor([other]() -> T { return *other; },
+		: acc([other]() -> T { return *other; },
 		[other](const T& v) mutable { *other = v; })
 	{}
 

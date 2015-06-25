@@ -67,22 +67,22 @@ private:
 	void PreDrawBase();
 
 	template<typename... Colors>
-	void Clear(int n, const Vector4f& color, const Colors&... colors)
+	void Clear(GLint n, const Vector4f& color, const Colors&... colors)
 	{
 		glClearBufferfv(GL_COLOR, n, color.data());
 		Clear(n + 1, colors...);
 	}
 
 	template<typename... Colors>
-	void Clear(int n, const Eigen::Matrix<GLuint, 4, 1>& color, const Colors&... colors)
+	void Clear(GLint n, const Eigen::Matrix<GLuint, 4, 1>& color, const Colors&... colors)
 	{
 		glClearBufferuiv(GL_COLOR, n, color.data());
 		Clear(n + 1, colors...);
 	}
 
-	void Clear(int n)
+	void Clear(GLint n)
 	{
-		if (n != texes.size())
+		if (n != static_cast<GLint>(texes.size()))
 			throw std::domain_error("Wrong number of clear colors");
 	}
 

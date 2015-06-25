@@ -72,7 +72,7 @@ struct ShaderProgram::ShaderResource : public Resource<ShaderResource>
 
 	//the actual GL program reference
 	GLuint program;
-	void init(const char* vert, const char* frag, const std::string& vertName, const std::string& fragName);
+	void init(const std::string& vertName, const std::string& fragName);
 
 	Uniforms uniforms;
 };
@@ -89,10 +89,7 @@ std::map<std::string, GLint> standardAttribs = {
 ShaderProgram::ShaderResource::ShaderResource(std::string path)
 	: ResourceTy(path)
 {
-    MappedFile vert(path + ".vert");
-	MappedFile frag(path + ".frag");
-	//TODO: null terminated?
-    init(vert.Data<char>(), frag.Data<char>(), path + ".vert", path + ".frag");
+    init(path + ".vert", path + ".frag");
 }
 
 ShaderProgram::ShaderResource::ShaderResource(ShaderResource &&other)
@@ -157,29 +154,31 @@ void ShaderProgram::TextureOrder(const std::vector<std::string>& order)
 	}
 }
 
-GLuint CreateShader(GLenum eShaderType, const char* t, const std::string& name)
+GLuint CreateShader(GLenum eShaderType, const std::string& name)
 {
-    if (!t)
-        throw std::runtime_error("Shader file '" + name + "'not found");
-
+    MappedFile shaderFile{name};
+    
+    //create the shader object
+    GLuint shader = glCreateShader(eShaderType);
+    
+    //attach and compile the source
+    
 	static const std::string versionString =
 #ifdef __APPLE__
 		"#version 330\n"
-		"#line 0 ";
+		"#line 1\n";
 #else
 		"#version 130\n"
 		"#extension GL_ARB_uniform_buffer_object : require\n"
-		"#line 0 ";
+		"#line 0\n";
 #endif
-
-	std::string buffer = versionString + '"' + name + "\"\n" + t;
-
-    //create the shader object
-    GLuint shader = glCreateShader(eShaderType);
-
-    //attach and compile the source
-    const GLchar *strFileData = buffer.c_str();
-    glShaderSource(shader, 1, &strFileData, NULL);
+    
+    GLint lens[2] = {
+        static_cast<GLint>(versionString.size()),
+        static_cast<GLint>(shaderFile.Size()) };
+    const GLchar* srcs[2] = { versionString.c_str(), shaderFile.Data<GLchar>() };
+    
+    glShaderSource(shader, 2, srcs, lens);
     glCompileShader(shader);
     
     GLint status;
@@ -192,20 +191,19 @@ GLuint CreateShader(GLenum eShaderType, const char* t, const std::string& name)
 
         //print error message
         glGetShaderInfoLog(shader, infoLogLength, NULL, infoLog.data());
-        throw std::runtime_error(infoLog.data());
+        throw std::runtime_error(name + ":\n" + infoLog.data());
     }
 
     return shader;
 }
 
-void ShaderProgram::ShaderResource::init(const char* vert, const char* frag,
-    const std::string& vertName, const std::string& fragName)
+void ShaderProgram::ShaderResource::init(const std::string& vertName, const std::string& fragName)
 {
     //create our empty program Render
     program = glCreateProgram();
 
-    GLuint vertShdr = CreateShader(GL_VERTEX_SHADER, vert, vertName);
-    GLuint fragShdr = CreateShader(GL_FRAGMENT_SHADER, frag, fragName);
+    GLuint vertShdr = CreateShader(GL_VERTEX_SHADER, vertName);
+    GLuint fragShdr = CreateShader(GL_FRAGMENT_SHADER, fragName);
 
     //attach vertex and fragment shaders
     glAttachShader(program, vertShdr);
@@ -232,7 +230,7 @@ void ShaderProgram::ShaderResource::init(const char* vert, const char* frag,
 
         glGetProgramInfoLog(program, infoLogLength, NULL, infoLog.data());
         //FIXME: leaks shaders
-        throw std::runtime_error("Linker failure: " + Name() + infoLog.data());
+        throw std::runtime_error("Linker failure: " + Name() + "\n" + infoLog.data());
     }
 	
     uniforms = Uniforms(program);

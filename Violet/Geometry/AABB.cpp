@@ -81,7 +81,7 @@ AABBTree::Resource::Resource(std::string file)
 			ax = (ax + 1) % 3;
 
 			//If one side has the whole mesh, split it differently
-			if (left.size() != 0 && right.size() != 0 //nondegenerate split
+			if ((left.size() != 0 && right.size() != 0) //nondegenerate split
 				|| ax == longestAxis) //no more axes to try
 				break;
 
@@ -206,7 +206,6 @@ void AABBTree::Resource::LoadCache(std::string cacheFile)
 {
 	BlobInFile file{ cacheFile, { 'a','a','b','b' }, 1 };
 
-	auto it = tree.cbegin();
 	auto height = file.Read<size_t, BlobSizeType>();
 	auto root = file.Read<AlignedBox3f>();
 	

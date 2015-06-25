@@ -151,7 +151,7 @@ float Animation::Continue() const
 		return 1.f;
 
 	//1d cubic bezier control points (the curve is from 0 to 1)
-	float x1, x2;
+	float x1 = 0.f, x2 = 0.f;
 	if (ease == Ease::In) std::tie(x1, x2) = std::make_tuple(.4f, 1.f);
 	if (ease == Ease::Out) std::tie(x1, x2) = std::make_tuple(0.f, .6f);
 	if (ease == Ease::InOut) std::tie(x1, x2) = std::make_tuple(.4f, .6f);
@@ -190,7 +190,6 @@ ModalBox::ModalBox()
 ModalBox::RAII ModalBox::Draw(UI::Layout::Dir dir, AlignedBox2i initBox)
 {
 	UI::PushModal();
-	Events& e = UI::FrameEvents();
 
 	UI::LayoutStack& l = UI::CurLayout();
 	l.PushLayer(dir);

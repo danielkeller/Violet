@@ -58,7 +58,7 @@ public:
 	bool Exists(key_t<Subsystem> k) const
 	{
 		Track<Subsystem>();
-		return database.MakeExistsStmt(PersistSchema<Subsystem>::name).Eval1<bool>(k);
+		return database.MakeExistsStmt(PersistSchema<Subsystem>::name).template Eval1<bool>(k);
 	}
 
 	template<class Subsystem>

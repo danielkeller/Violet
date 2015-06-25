@@ -52,7 +52,7 @@ void Render::InternalCreateStatic(Object obj, Material mat, VertexData vertData)
 	static accessor<Transform, InstPermaRef> locaccesor = 
 		[this](InstPermaRef ref, const Transform& v) mutable
 		{
-			auto& it = sBucket.data.find<InstanceLevel>(ref);
+			auto it = sBucket.data.find<InstanceLevel>(ref);
 			it->mat = v.ToMatrix();
 			size_t offset = it - sBucket.data.begin<InstanceLevel>();
 			sBucket.instances.Assign(offset, *it);
