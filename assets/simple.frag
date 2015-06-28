@@ -21,6 +21,7 @@ uniform Material
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+    vec4 objColor;
 	float specExp;
 };
 
@@ -37,8 +38,8 @@ void main()
    if (lambert == 0.0)
       spec = 0.0;
 
-   color = (texture(tex, texCoordFrag) + vec4(ambient, 1)) *
-      vec4(lambert * diffuse + spec*specular, 1);
+   color = (texture(tex, texCoordFrag) + objColor) *
+      vec4(ambient + lambert * diffuse + spec * specular, 1);
    
    //color = vec4(refl, 1);
 

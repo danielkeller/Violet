@@ -344,8 +344,11 @@ UBO::UBO(UniformBlock block, BufferTy data_)
 	, block(block)
 {
 	if (block.byte_size != data.size())
+    {
 		std::cerr << "Warning: Shader wants " << block.byte_size << " bytes for '"
 			<< block.name << "' but there are " << data.size() << '\n';
+        data.resize(block.byte_size);
+    }
 
 	Sync();
 }
