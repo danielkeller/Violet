@@ -10,13 +10,15 @@ class NarrowPhase;
 
 //TODO: "physics mesh" component
 
+//generalized coordinates, stores 3 linear components and 3 rotation components
+using GenCoord = Eigen::Matrix<float, 6, 1>;
+
 struct State
 {
-	Vector3f position, momentum;
-	float mass;
-
-	Vector3f orientation, angularMomentum;
-	float inertia;
+	GenCoord position, momentum;
+	//these shouldn't be here
+	Eigen::DiagonalMatrix<float, 6> inverseIntertia;
+	float mass, inertia;
 };
 
 class RigidBody : public Component
