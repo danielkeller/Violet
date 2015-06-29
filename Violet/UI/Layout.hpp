@@ -10,6 +10,8 @@ namespace UI
 	static const int BASELINE_HEIGHT = 4;
 	//distance from side of container to edge of text
 	static const int TEXT_PADDING = 4;
+    //size of checkbox
+    static const int CHECK_SIZE = 8;
 
 	struct Layout
 	{

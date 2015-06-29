@@ -195,12 +195,19 @@ void RenderEditor::add(Object selected)
 
 CollisionEditor::CollisionEditor(NarrowPhase& narrowPhase, Render& render)
 	: ComponentEditor("collision", narrowPhase), narrowPhase(narrowPhase), render(render)
+    , debug("debug view", LB_WIDTH/2)
 {}
 
 void CollisionEditor::add(Object selected)
 {
 	auto tup = render.Info(selected);
 	narrowPhase.Add(selected, std::get<1>(tup).Name());
+}
+
+bool CollisionEditor::edit(Object selected)
+{
+    debug.Draw(narrowPhase.debug);
+    return false;
 }
 
 RigidBodyEditor::RigidBodyEditor(RigidBody& rigidBody)

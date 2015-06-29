@@ -49,6 +49,15 @@ namespace UI
 		Button button;
 		bool Draw();
 	};
+    
+    struct CheckBox
+    {
+        CheckBox(std::string text, int width = 80);
+        int width;
+        std::string text;
+        Button button;
+        void Draw(bool& checked);
+    };
 
 	struct LineEdit
 	{

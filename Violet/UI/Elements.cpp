@@ -100,7 +100,7 @@ bool Button::Behavior(AlignedBox2i box)
 	if (!FrameEvents().MouseButton(GLFW_MOUSE_BUTTON_LEFT))
 		hovered = box.contains(mouse);
 
-	//the button is active if it's clicked and hovered
+	//the button is active if it's hovered and the mouse is down on it
 	active = hovered && box.contains(mouse) && FrameEvents().MouseButton(GLFW_MOUSE_BUTTON_LEFT);
 
 	//while hovered we handle mouse events
@@ -118,6 +118,45 @@ bool TextButton::Draw()
 {
 	Layout l = CurLayout().PutSpace({ width, LINEH });
 	return button.Draw(l, text);
+}
+
+CheckBox::CheckBox(std::string text, int width)
+    : width(width), text(text)
+{}
+
+void CheckBox::Draw(bool& checked)
+{
+    LayoutStack& l = CurLayout();
+    l.PushNext(Layout::Dir::Right); //whole area
+    l.EnsureWidth(LINEH);
+    
+    int pad = (LINEH - CHECK_SIZE)/2;
+    l.PutSpace(pad); //left pad
+    l.PushNext(Layout::Dir::Down);
+    l.PutSpace(pad); //top pad
+    Layout checkArea = l.PutSpace({CHECK_SIZE, CHECK_SIZE});
+    
+    PushZ();
+    if (checked)
+        DrawBox(checkArea, Colors::selection, Colors::selection);
+    else
+        DrawBox(checkArea, 0, Colors::divider);
+    PopZ();
+    
+    l.Pop();
+    l.PutSpace(pad); //right pad
+    
+    Layout textArea = l.PutSpace(width - LINEH);
+    DrawText(text, textArea);
+    
+    Layout mainArea = l.Current();
+    mainArea.maxFill = width; //shrink it down to the actual width
+    DrawBox(mainArea, button.GetColor(), 0);
+    
+    l.Pop();
+    
+    if (button.Behavior(mainArea))
+        checked = !checked;
 }
 
 Animation::Animation(Ease ease, Time::clock::duration time)

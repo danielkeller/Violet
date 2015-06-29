@@ -36,6 +36,8 @@ public:
         Matrix4f loc;
         Vector3f color;
     };
+    
+    bool debug;
 
 private:
 	void Load(const Persist&);

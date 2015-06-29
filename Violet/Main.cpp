@@ -104,8 +104,7 @@ try
 		mainView = w.view.get().SubView(UI::CurLayout().Pop().Box());
 
         //physics step
-        //position[teapotObj]->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
-
+        
 		//narrowPhase.Query(teapotObj, teapot2Obj);
 		rigidBody.PhysTick(t.SimTime());
 

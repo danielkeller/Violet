@@ -25,6 +25,7 @@ protected:
 	std::string name;
 
 	Component& c;
+    //return true if the component should save
 	virtual bool edit(Object selected) { return false; };
 	virtual void add(Object selected) {};
 	virtual void remove(Object selected) {};
@@ -83,10 +84,14 @@ class CollisionEditor : public ComponentEditor
 {
 public:
 	CollisionEditor(NarrowPhase& narrowPhase, Render& render);
+    
 private:
-	void add(Object selected);
+    void add(Object selected);
+    bool edit(Object selected);
+    
 	NarrowPhase& narrowPhase;
-	Render& render;
+    Render& render;
+    UI::CheckBox debug;
 };
 
 class RigidBody;
