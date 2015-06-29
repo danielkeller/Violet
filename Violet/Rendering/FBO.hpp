@@ -53,12 +53,12 @@ public:
     void CheckStatus() const; //throws on error
 
 	template<typename Pixel>
-	Pixel ReadPixel(GLuint texNum, Vector2f windowPos) const
+	Pixel ReadPixel(GLuint texNum, Vector2f texCoord) const
 	{
 		auto bound = Bind(GL_READ_FRAMEBUFFER);
 		Pixel ret;
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + texNum);
-		glReadPixels(GLint(dim.x()*windowPos.x()), GLint(dim.y()*windowPos.y()), 1, 1,
+		glReadPixels(GLint(dim.x()*texCoord.x()), GLint(dim.y()*texCoord.y()), 1, 1,
 			PixelTraits<Pixel>::format, PixelTraits<Pixel>::type, &ret);
 		return ret;
 	}

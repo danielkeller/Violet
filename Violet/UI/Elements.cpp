@@ -16,7 +16,7 @@ bool Focusable::anyFocused = false;
 bool Focusable::Draw(AlignedBox2i box)
 {
 	auto& events = FrameEvents();
-	Vector2i mouse = events.MousePosPxl().cast<int>();
+	Vector2i mouse = events.MousePosSc().cast<int>();
 	bool ret = false;
 	tabbedIn = false;
 
@@ -86,7 +86,7 @@ bool Button::Draw(AlignedBox2i box, const std::string& text, Color color)
 
 bool Button::Behavior(AlignedBox2i box)
 {
-	Vector2i mouse = FrameEvents().MousePosPxl().cast<int>();
+	Vector2i mouse = FrameEvents().MousePosSc().cast<int>();
 
 	//the button is clicked if it was active last frame and the mouse was released
 	if (active && FrameEvents().MouseRelease(GLFW_MOUSE_BUTTON_LEFT))

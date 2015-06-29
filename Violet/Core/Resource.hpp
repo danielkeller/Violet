@@ -1,15 +1,15 @@
 #ifndef RESOURCE_HPP
 #define RESOURCE_HPP
-#include <map>
+#include <unordered_map>
 
 //uses CRTP
 template<class T, class K = std::string>
 class Resource
 {
 private:
-	static std::map<K, std::weak_ptr<T>>& Cache()
+	static std::unordered_map<K, std::weak_ptr<T>>& Cache()
 	{
-		static std::map<K, std::weak_ptr<T>> cache;
+		static std::unordered_map<K, std::weak_ptr<T>> cache;
 		return cache;
 	}
 
@@ -27,10 +27,16 @@ protected:
 		: key(key)
 	{}
 
+    //Removing this is a hack to allow resource holders to have static storage duration.
+    //FindResource will still return null if there is no cached object, but the
+    //map entry will hang around, causing a slight performace degradation. The real
+    //fix here is to make the UI stuff non-static
+    /*
 	~Resource()
 	{
 		Cache().erase(key);
 	}
+     */
 
 	typedef Resource<T, K> ResourceTy;
 

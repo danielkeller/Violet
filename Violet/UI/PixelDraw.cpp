@@ -46,7 +46,7 @@ struct UI::Settings
 	TypedTex<DepthPx> screenTex;
 	FBO fbo;
 	UBO pixelUBO;
-	Vector2i winSize;
+	Vector2i winSizePx;
 };
 
 Settings& GetSettings()
@@ -142,13 +142,12 @@ void UI::PopModal()
 	GetUIEvents().inModal = false;
 }
 
-void UI::BeginFrame(Window& w, Events e)
+void UI::BeginFrame(const Window& w, Events e)
 {
 	FrameVisuals() = {};
-	CurLayout() = LayoutStack(*w.dim);
+	CurLayout() = LayoutStack(w.view->ScreenSize());
 	GetUIEvents().events = e;
 	//set the stuff that matters in dummy
-	GetUIEvents().dummy.dimVec = e.dimVec;
 	GetUIEvents().dummy.view = e.view;
 	GetUIEvents().dummy.simTime = e.simTime;
 
@@ -166,7 +165,7 @@ LayoutStack& UI::CurLayout()
 void UI::SetViewport()
 {
 	//is this stored per-framebuffer?
-	glViewport(0, 0, GetSettings().winSize.x(), GetSettings().winSize.y());
+	glViewport(0, 0, GetSettings().winSizePx.x(), GetSettings().winSizePx.y());
 }
 
 void UI::EndFrame()
@@ -345,16 +344,20 @@ const Schema AttribTraits<TextQuad>::schema = {
 	AttribProperties{ "z",         GL_INT,   true,  8 * sizeof(float), { 1, 1 } }
 };
 
-static void WinResize(Vector2i sz)
+static void WinResize(Viewport view)
 {
 	auto& s = GetSettings();
-	s.screenTex = TypedTex<DepthPx>(sz);
-	s.fbo.AttachDepth(s.screenTex);
-	s.fbo.CheckStatus();
+    
+    if (s.screenTex.Dim() != view.PixelSize())
+    {
+        s.screenTex = TypedTex<DepthPx>(view.PixelSize());
+        s.fbo.AttachDepth(s.screenTex);
+        s.fbo.CheckStatus();
+    }
 
-	s.pixelUBO["pixelMat"] = PixelMat(sz);
-
-	s.winSize = sz;
+	s.pixelUBO["pixelMat"] = PixelMat(view.ScreenSize());
+    s.font = Font("assets/DroidSansMono.ttf", view.Scaling());
+    s.winSizePx = view.PixelSize();
 }
 
 void UI::Init(Window& w)
@@ -362,8 +365,8 @@ void UI::Init(Window& w)
 	//init styles
 	TextStyle({});
 
-	w.dim += make_magic(accessor<Vector2i>(&WinResize));
-	WinResize(*w.dim);
+	w.view += make_magic(accessor<Viewport>(&WinResize));
+	WinResize(*w.view);
 }
 
 void UI::BindPixelUBO()

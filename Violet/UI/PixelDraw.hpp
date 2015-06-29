@@ -50,7 +50,7 @@ namespace UI
 	void PopModal();
 
 	//fixme: thread safety
-	void BeginFrame(Window& w, Events e);
+	void BeginFrame(const Window& w, Events e);
 	Events& FrameEvents();
 
 	LayoutStack& CurLayout();

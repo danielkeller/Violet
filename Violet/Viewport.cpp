@@ -32,15 +32,21 @@ inline Matrix4f ortho(float width, float aspect, float zNear, float zFar)
 	return res;
 }
 
-Viewport::Viewport(Eigen::AlignedBox2i sb)
-	: screenBox(sb) {}
+Viewport::Viewport()
+    : pixelBox(Vector2i{0, 0}, Vector2i{0, 0})
+    , screenBox(Vector2i{0, 0}, Vector2i{0, 0})
+{}
+
+Viewport::Viewport(Eigen::AlignedBox2i pixelBox, Eigen::AlignedBox2i screenBox)
+	: pixelBox(pixelBox), screenBox(screenBox)
+{}
 
 //FIXME?
-Vector3f Viewport::ApparentPos(Vector2f posPixel, const Matrix4f& modelview) const
+Vector3f Viewport::ApparentPos(Vector2f posSc, const Matrix4f& modelview) const
 {
 	Matrix4f screenAxes = PerspMat() * modelview;
 	Vector4f screenVec;
-	screenVec << Pixel2Scr(posPixel)*screenAxes(3, 3), screenAxes(2, 3), screenAxes(3, 3);
+	screenVec << Sc2Ndc(posSc)*screenAxes(3, 3), screenAxes(2, 3), screenAxes(3, 3);
 	Vector4f worldVec(screenAxes.householderQr().solve(screenVec));
 	return worldVec.block<3, 1>(0, 0) / worldVec[3];
 }
@@ -57,20 +63,25 @@ Matrix4f Viewport::OrthoMat() const
 	return ortho(2.f, dim.x() / dim.y(), .1f, 100.f);
 }
 
-Vector2f Viewport::Pixel2View(Vector2f posPixel) const
+Vector2f Viewport::Sc2Tex(Vector2f posSc) const
 {
-	Eigen::AlignedBox2f vp = screenBox.cast<float>();
-	Eigen::Array2f posView = (posPixel - vp.min()).cwiseQuotient(vp.sizes());
-
-	return posView;
+    Eigen::AlignedBox2f vp = screenBox.cast<float>();
+    return (posSc - vp.min()).cwiseQuotient(vp.sizes());
 }
 
-Vector2f Viewport::Pixel2Scr(Vector2f posPixel) const
+Vector2f Viewport::Sc2Ndc(Vector2f posSc) const
 {
-	return Pixel2View(posPixel).array() * 2.f - 1.f;
+	return Sc2Tex(posSc).array() * 2.f - 1.f;
+}
+
+Viewport Viewport::SubView(Eigen::AlignedBox2i newScreenBox) const
+{
+    return{ {Scaling().array() * newScreenBox.min().array(),
+        Scaling().array() * newScreenBox.max().array()},
+        newScreenBox };
 }
 
 void Viewport::GlViewport() const
 {
-	glViewport(screenBox.min().x(), screenBox.min().y(), screenBox.sizes().x(), screenBox.sizes().y());
+	glViewport(pixelBox.min().x(), pixelBox.min().y(), pixelBox.sizes().x(), pixelBox.sizes().y());
 }

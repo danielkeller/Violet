@@ -109,7 +109,7 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		State& state = obj.second;
 
 		//wrap the rotation vector around to prevent loss of significance
-		auto& rot = state.position.block<3, 1>(3, 0);
+		auto rot = state.position.block<3, 1>(3, 0);
 		float angle = rot.norm() / PI_F;
 		if (angle > 1.f)
 			rot *= (1.f - 2.f / angle);

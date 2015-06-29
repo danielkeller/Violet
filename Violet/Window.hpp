@@ -36,15 +36,12 @@ struct Events
 	bool MouseClick(int num) const;
 	bool MouseRelease(int num) const;
 
-	//values are in Opengl screen coordinates
-	Vector2f MouseDeltaScr() const;
-	Vector2f MousePosScr() const;
-	//values are in Opengl viewport coordinates
-	Vector2f MouseDeltaView() const;
-	Vector2f MousePosView() const;
-	//values are in 0,0=left,top coordinates in pixel units
-	Vector2f MouseDeltaPxl() const;
-	Vector2f MousePosPxl() const;
+	//values are in Opengl Normalized Device coordinates
+	Vector2f MouseDeltaNdc() const;
+	Vector2f MousePosNdc() const;
+	//values are in 0,0=left,top coordinates in GLFW screen coordinates
+	Vector2f MouseDeltaSc() const;
+	Vector2f MousePosSc() const;
 
 	Vector2f ScrollDelta() const;
 
@@ -57,12 +54,8 @@ struct Events
 	bool PopKeyEvent(KeyEvent key);
 	bool PopKey(Key key); //RELEASE_OR_REPEAT event
 
-	Viewport View() { return view; }
-
-	//viewport we're drawing into
+	//Full window
 	Viewport view;
-	//size of the actual window
-	Vector2i dimVec;
 
 	using MouseButtons = std::array<bool, 5>;
 
@@ -88,15 +81,13 @@ public:
     Window();
     ~Window();
 
-	void SetView(Viewport view);
 	void SetTime(Time::clock::duration simTime);
 	Events GetInput();
 	void PreDraw();
 	void PostDraw();
-
-    magic_ptr<Vector2i> dim;
     
     bool ShouldClose() const;
+    magic_ptr<Viewport> view;
 
 private:
     GLFWwindow* window;
@@ -106,7 +97,8 @@ private:
 	friend void cursor_enter_callback(GLFWwindow* window, int entered);
 	friend void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 	friend void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-	friend void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+    friend void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+    friend void window_size_callback(GLFWwindow* window, int width, int height);
 	friend void character_callback(GLFWwindow* window, unsigned int codepoint);
 	friend void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 };

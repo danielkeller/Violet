@@ -77,7 +77,7 @@ void Edit::PhysTick(Object camera)
 		return;
 	}
 
-	Object picked = rp.Pick(e.MousePosPxl());
+	Object picked = rp.Pick(e.MousePosSc());
 	Object newSelect = selected;
 
 	if (e.MouseClick(GLFW_MOUSE_BUTTON_LEFT))
@@ -115,7 +115,7 @@ void Edit::PhysTick(Object camera)
 	//right mouse to rotate
     if (e.MouseButton(GLFW_MOUSE_BUTTON_RIGHT))
     {
-		auto mdelta = e.MouseDeltaScr();
+		auto mdelta = e.MouseDeltaNdc();
 		viewPitch -= mdelta.x();
 		viewYaw += mdelta.y();
 		position[camera]->rot = Eigen::AngleAxisf(viewYaw, Vector3f::UnitX())
@@ -124,7 +124,8 @@ void Edit::PhysTick(Object camera)
 
 	position[camera]->pos *= (1 - e.ScrollDelta().y()*.05f);
 	
-	UI::LayoutStack& l = UI::CurLayout() = UI::LayoutStack(e.dimVec, UI::Layout::Dir::Right);
+	UI::LayoutStack& l = UI::CurLayout()
+        = UI::LayoutStack(e.view.ScreenSize(), UI::Layout::Dir::Right);
 
 	enabled = !slide.Draw(LB_WIDTH);
 

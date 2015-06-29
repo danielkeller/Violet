@@ -11,14 +11,13 @@
 
 class Render;
 class Window;
-struct Events;
 
 class RenderPasses
 {
 public:
 	RenderPasses(Position& p, Window& w, Render& r);
 
-	void Draw(Events e, float alpha);
+	void Draw(const Viewport& view, float alpha);
 
 	using Custom = std::function<void(float alpha)>;
 	void CreateCustom(Object obj, Custom draw);
@@ -40,11 +39,11 @@ public:
 
 	//set the highlighted object
 	void Highlight(Object o, Highlights type);
-	Object Pick(Vector2f posPixel) const;
+	Object Pick(Vector2f posSc) const;
 	void Camera(Object camera);
 
 private:
-	void WindowResize(Eigen::Vector2i size);
+	void SetViewport(const Viewport& view);
 
 	Render& r;
 	Window& w;

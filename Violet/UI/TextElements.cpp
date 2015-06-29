@@ -51,7 +51,7 @@ bool LineEdit::Draw(std::string& text)
 	Vector2i origin = box.corner(AlignedBox2i::BottomLeft)
 		+ Vector2i{ TEXT_PADDING, BASELINE_HEIGHT };
 
-	Vector2i mouse = FrameEvents().MousePosPxl().cast<int>();
+	Vector2i mouse = FrameEvents().MousePosSc().cast<int>();
 	Vector2f mouseOffs = (mouse - origin).cast<float>();
 	//for a multi-line control we would flip y into stb's coordinates, but since
 	//this is one line, just stick it inside the line

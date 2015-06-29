@@ -2,13 +2,14 @@
 #include "Assets.hpp"
 
 #include "Rendering/Render.hpp"
+#include "Window.hpp"
 
 using namespace Asset_detail;
 
 Tex ObjAssets::Thumb(const std::string& path)
 {
 	static const TexDim dim{ THM_SIZE, THM_SIZE };
-	static Viewport view({ Vector2i::Zero(), dim });
+    Viewport view = UI::FrameEvents().view.SubView({ Vector2i::Zero(), dim });
 
 	static ShaderProgram shader{ "assets/shaded" };
 	static UBO mat{ shader, "Material" };
@@ -17,8 +18,9 @@ Tex ObjAssets::Thumb(const std::string& path)
 	{
 		mat["light"] = Vector3f{ -1, 1, 1 }.normalized();
 		cam["camera"] = Matrix4f::Identity();
-		cam["projection"] = view.PerspMat();
-	}
+    }
+    
+    cam["projection"] = view.PerspMat();
 
 	static InstData object{ Object::invalid,
 		Eigen::Affine3f{ Eigen::Translation3f{ 0, -3, 0 } }.matrix() };
@@ -32,10 +34,9 @@ Tex ObjAssets::Thumb(const std::string& path)
 
 	static FBO fbo;
 
-	STATIC
-		fbo.AttachDepth(RenderBuffer{ GL_DEPTH_COMPONENT, dim });
+    fbo.AttachDepth(RenderBuffer{ GL_DEPTH_COMPONENT, view.PixelSize() });
 
-	TypedTex<> ret{ dim };
+	TypedTex<> ret{ view.PixelSize() };
 	fbo.AttachTexes({ ret });
 	fbo.CheckStatus();
 
@@ -57,8 +58,8 @@ Tex ObjAssets::Thumb(const std::string& path)
 
 Tex MaterialAssets::Thumb(const Material& mat)
 {
-	static const TexDim dim{ THM_SIZE, THM_SIZE };
-	static Viewport view({ Vector2i::Zero(), dim });
+    static const TexDim dim{ THM_SIZE, THM_SIZE };
+    Viewport view = UI::FrameEvents().view.SubView({ Vector2i::Zero(), dim });
 
 	static UBO cam{ mat.Shader(), "Common" };
 	STATIC
@@ -78,11 +79,10 @@ Tex MaterialAssets::Thumb(const Material& mat)
 	vao.BindInstanceData(mat.Shader(), instances);
 
 	static FBO fbo;
+    
+    fbo.AttachDepth(RenderBuffer{ GL_DEPTH_COMPONENT, view.PixelSize() });
 
-	STATIC
-		fbo.AttachDepth(RenderBuffer{ GL_DEPTH_COMPONENT, dim });
-
-	TypedTex<> ret{ dim };
+	TypedTex<> ret{ view.PixelSize() };
 	fbo.AttachTexes({ ret });
 	fbo.CheckStatus();
 

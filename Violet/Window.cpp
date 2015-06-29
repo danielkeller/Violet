@@ -37,32 +37,22 @@ void APIENTRY glDebugProc(GLenum source, GLenum type, GLuint id, GLenum severity
 }
 #endif
 
-Vector2f Events::MouseDeltaScr() const
+Vector2f Events::MouseDeltaNdc() const
 {
-	return view.Pixel2Scr(mouseCur) - view.Pixel2Scr(mouseOld);
+	return view.Sc2Ndc(mouseCur) - view.Sc2Ndc(mouseOld);
 }
 
-Vector2f Events::MousePosScr() const
+Vector2f Events::MousePosNdc() const
 {
-	return view.Pixel2Scr(mouseCur);
+	return view.Sc2Ndc(mouseCur);
 }
 
-Vector2f Events::MouseDeltaView() const
-{
-	return view.Pixel2View(mouseCur) - view.Pixel2View(mouseOld);
-}
-
-Vector2f Events::MousePosView() const
-{
-	return view.Pixel2View(mouseCur);
-}
-
-Vector2f Events::MouseDeltaPxl() const
+Vector2f Events::MouseDeltaSc() const
 {
 	return mouseCur - mouseOld;
 }
 
-Vector2f Events::MousePosPxl() const
+Vector2f Events::MousePosSc() const
 {
 	return mouseCur;
 }
@@ -155,7 +145,7 @@ void cursor_enter_callback(GLFWwindow* window, int entered)
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	getWindow(window)->newEvents.mouseCur <<
-		float(xpos), float(getWindow(window)->newEvents.dimVec.y() - ypos);
+		float(xpos), float(getWindow(window)->newEvents.view.ScreenSize().y() - ypos);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -166,7 +156,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	if (width != 0 && height != 0)
-		getWindow(window)->dim.set(Eigen::Vector2i(width, height));
+		getWindow(window)->view->pixelBox.max() << width, height;
+}
+
+void window_size_callback(GLFWwindow* window, int width, int height)
+{
+    if (width != 0 && height != 0)
+        getWindow(window)->view->screenBox.max() << width, height;
 }
 
 void character_callback(GLFWwindow* window, unsigned int codepoint)
@@ -198,15 +194,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 Window::Window()
 {
-	newEvents.dimVec << 1024, 768;
-	newEvents.view.screenBox = { Vector2i::Zero(), newEvents.dimVec };
-
-	accessor<Eigen::Vector2i> dimAcc = {
-		[this]() { return newEvents.dimVec; },
-		[this](Eigen::Vector2i d) {newEvents.dimVec = d; }
-	};
-	dim = dimAcc;
-
     //set up glfw
     glfwSetErrorCallback(error_callback);
     if (!glfwInit()) 
@@ -224,12 +211,23 @@ Window::Window()
 #endif
 	//glfwWindowHint(GLFW_DECORATED, false);
 
+    newEvents.view.screenBox.max() << 1024, 768;
+    
     //create the window
-	window = glfwCreateWindow(newEvents.dimVec.x(), newEvents.dimVec.y(),
-		"Simple example", NULL, NULL);
+	window = glfwCreateWindow(newEvents.view.ScreenSize().x(), newEvents.view.ScreenSize().y(),
+        "Simple example", NULL, NULL);
     if (!window)
 		throw std::runtime_error("Could not create window");
-
+    
+    glfwGetFramebufferSize(window, &newEvents.view.pixelBox.max().x(),
+                           &newEvents.view.pixelBox.max().y());
+    
+    accessor<Viewport> viewAcc = {
+        [this]() { return newEvents.view; },
+        [this](const Viewport& v) { newEvents.view = v; }
+    };
+    view = viewAcc;
+    
 #ifdef MAGIC
 	HWND hWnd = glfwGetWin32Window(window);
 	DWORD style = ::GetWindowLong(hWnd, GWL_STYLE);
@@ -252,6 +250,7 @@ Window::Window()
 	glfwSetCharCallback(window, character_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetWindowSizeCallback(window, window_size_callback);
 
     //set the window as current. note that this won't work right with multiple windows.
     glfwMakeContextCurrent(window);
@@ -280,11 +279,6 @@ Window::~Window()
 {
     glfwDestroyWindow(window);
     glfwTerminate();
-}
-
-void Window::SetView(Viewport view)
-{
-	newEvents.view = view;
 }
 
 void Window::SetTime(Time::clock::duration simTime)

@@ -25,9 +25,9 @@ namespace UI
 	{
 		struct FontResource;
 	public:
-		//Default font
-		Font();
-		Font(std::string path);
+		//Invalid font
+		Font() = default;
+		Font(std::string path, Vector2i scaling);
 		std::string Name();
 
 		void Bind();

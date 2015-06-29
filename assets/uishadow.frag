@@ -7,12 +7,15 @@ uniform Common
 	mat4 pixelMat;
 };
 
-flat in ivec2 minBoxFrag;
-flat in ivec2 maxBoxFrag;
+flat in vec2 minBoxFrag;
+flat in vec2 maxBoxFrag;
 
 in float zFrag;
 
 float PI = 3.1415927;
+
+in vec2 positionFrag;
+in vec2 texCoordFrag;
 
 float shadow2(float zDiff, vec2 coord, float apparentSz)
 {
@@ -32,13 +35,12 @@ float shadow2(float zDiff, vec2 coord, float apparentSz)
 
 void main()
 {
-	vec2 texCoord = (pixelMat * gl_FragCoord).xy * .5 + .5;
-	float otherZ = texture(boxes, texCoord).a;
+	float otherZ = texture(boxes, texCoordFrag).a;
 
-	float zScale = 200; //FIXME
+	float zScale = .75; //FIXME
 	float zDiff = (otherZ - zFrag) * zScale;
 
-	float sh = shadow2(zDiff, gl_FragCoord.xy, 1)*.3
-		+ shadow2(zDiff, gl_FragCoord.xy + vec2(0, zDiff*.6), 2)*.5;
+	float sh = shadow2(zDiff, positionFrag, 1)*.3
+		+ shadow2(zDiff, positionFrag + vec2(0, zDiff*.6), 2)*.5;
 	outputColor = (1 - sh)*vec4(1);
 }

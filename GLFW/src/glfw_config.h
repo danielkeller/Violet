@@ -86,9 +86,9 @@
 // Define this to 1 if glfwInit should change the current directory
 /* #undef _GLFW_USE_CHDIR */
 // Define this to 1 if glfwCreateWindow should populate the menu bar
-/* #undef _GLFW_USE_MENUBAR */
+#define _GLFW_USE_MENUBAR
 // Define this to 1 if windows should use full resolution on Retina displays
-/* #undef _GLFW_USE_RETINA */
+#define _GLFW_USE_RETINA
 
 // Define this to 1 if using OpenGL as the client library
 #define _GLFW_USE_OPENGL

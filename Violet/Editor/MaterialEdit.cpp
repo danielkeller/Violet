@@ -42,7 +42,7 @@ bool MaterialEdit::Draw(Persist& persist)
 	UI::LayoutStack& l = UI::CurLayout();
 
 	//render the preview
-	Viewport view(l.PutSpace(WIDTH));
+    Viewport view = UI::FrameEvents().view.SubView(l.PutSpace(WIDTH));
 	cam["projection"] = view.OrthoMat();
 	cam["camera"] = Matrix4f::Identity();
 	UI::DrawSpecial([=]()

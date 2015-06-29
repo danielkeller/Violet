@@ -17,14 +17,15 @@ using namespace UI;
 
 struct Font::FontResource : public Resource<Font::FontResource>
 {
-	FontResource(std::string path);
+    FontResource(std::string key, std::string path, Vector2i scaling);
 
+    int scale;
 	TypedTex<std::uint8_t> texture;
 	stbtt_packedchar cdata[96]; // ASCII 32..126 is 95 glyphs
 };
 
-Font::FontResource::FontResource(std::string path)
-	: ResourceTy(path), texture(TexDim{512, 512})
+Font::FontResource::FontResource(std::string key, std::string path, Vector2i scaling)
+	: ResourceTy(key), scale(scaling.y()), texture(TexDim{512, 512})
 {
 	MappedFile ttf(path);
 	std::uint8_t temp_bitmap[512 * 512];
@@ -32,18 +33,17 @@ Font::FontResource::FontResource(std::string path)
 	stbtt_pack_context ctx;
 	stbtt_PackBegin(&ctx, temp_bitmap, 512, 512, 0, 1, nullptr);
 	stbtt_PackSetOversampling(&ctx, 3, 1);
-	stbtt_PackFontRange(&ctx, ttf.Data<unsigned char>(), 0, 14.f, 32, 96, cdata);
+	stbtt_PackFontRange(&ctx, ttf.Data<unsigned char>(), 0, 14.f*scale, 32, 96, cdata);
 	stbtt_PackEnd(&ctx);
 	texture.Image(temp_bitmap);
 }
 
-Font::Font(std::string path)
-	: resource(FontResource::FindOrMake(path))
-{}
-
-Font::Font()
-	: Font("assets/DroidSansMono.ttf")
-{}
+Font::Font(std::string path, Vector2i scaling)
+{
+    std::string key = path + '_' + to_string(scaling.x()) + 'x' + to_string(scaling.y());
+    if (!(resource = FontResource::FindResource(key)))
+        resource = FontResource::MakeShared(key, path, scaling);
+}
 
 std::string Font::Name()
 {
@@ -62,14 +62,15 @@ Vector2i UI::TextDim(const std::string& text)
 
 Vector2i UI::TextDim(std::string::const_iterator begin, std::string::const_iterator end)
 {
+    auto& font = *GetFont().resource;
 	Vector2f posf(0, 0);
 	for (; begin != end; ++begin)
 	{
-		auto& cdata = GetFont().resource->cdata[*begin - 32];
+		auto& cdata = font.cdata[*begin - 32];
 		posf.x() += cdata.xadvance;
 		posf.y() = std::max(posf.y(), cdata.yoff2 - cdata.yoff);
 	}
-	return posf.cast<int>();
+    return posf.cast<int>() / font.scale;
 }
 
 void UI::DrawText(const std::string& text, AlignedBox2i container, TextAlign align)
@@ -85,19 +86,24 @@ void UI::DrawText(const std::string& text, AlignedBox2i container, TextAlign ali
 
 void UI::DrawText(const std::string& text, Vector2i pos)
 {
-	Vector2f posf = pos.cast<float>();
+    Vector2f posf = Vector2f::Zero();
 	//the coordinate system is backwards wrt ours so use negative y coords
 	posf.y() *= -1;
-
-	auto& cdata = GetFont().resource->cdata;
+    
+    auto& font = *GetFont().resource;
+	auto& cdata = font.cdata;
 	for (int character : text)
 	{
 		stbtt_aligned_quad q;
 		stbtt_GetPackedQuad(cdata, 512, 512, character - 32,
 			&posf.x(), &posf.y(), &q, 0);
+        
+        Eigen::AlignedBox2f dispBox{
+            Vector2f{ q.x0, -q.y0 } / font.scale,
+            Vector2f{ q.x1, -q.y1 } / font.scale};
 
 		DrawChar(
-			{ Vector2f{ q.x0, -q.y0 }, Vector2f{ q.x1, -q.y1 } },
+			dispBox.translate(pos.cast<float>()),
 			{ Vector2f{ q.s0, q.t0 }, Vector2f{ q.s1, q.t1 } });
 	}
 }
@@ -107,11 +113,13 @@ void UI::DrawText(const std::string& text, Vector2i pos)
 
 float STB_TEXTEDIT_GETWIDTH(std::string* str, int n, int i)
 {
-	return GetFont().resource->cdata[str->at(i) - 32].xadvance;
+	return GetFont().resource->cdata[str->at(i) - 32].xadvance
+        / GetFont().resource->scale;
 }
 
 void STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::string* str, int n)
 {
+    int scale = GetFont().resource->scale;
 	auto& cdata = GetFont().resource->cdata;
 
 	r->baseline_y_delta = LINEH;
@@ -125,8 +133,8 @@ void STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::string* str, int n)
 		++it)
 	{
 		++r->num_chars;
-		r->ymin = std::min(r->ymin, cdata[*it - 32].yoff);
-		r->ymax = std::min(r->ymax, cdata[*it - 32].yoff2);
-		r->x1 += cdata[*it - 32].xadvance;
+		r->ymin = std::min(r->ymin, cdata[*it - 32].yoff / scale);
+		r->ymax = std::min(r->ymax, cdata[*it - 32].yoff2 / scale);
+		r->x1 += cdata[*it - 32].xadvance / scale;
 	}
 }

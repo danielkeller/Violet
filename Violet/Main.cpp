@@ -34,7 +34,12 @@ try
 	Persist persist;
 	Object::Init(persist);
 	ObjectName objName(persist);
-	Window w;
+    Window w;
+    
+    //FIXME: this has to be here because the thumbnails need the DPI, and lazy thumbnails
+    //aren't implmented yet
+    UI::Init(w);
+    UI::BeginFrame(w, w.GetInput());
 
 	Position position;
 	Render r(position);
@@ -52,8 +57,6 @@ try
 	mgr.Register(&narrowPhase);
 	mgr.Register(&rigidBody);
 	mgr.Load(persist);
-
-	UI::Init(w);
 
 	Object camera = objName["camera"];
 	passes.Camera(camera);
@@ -87,6 +90,8 @@ try
     
     Time t;
 	Events e;
+    
+    Viewport mainView = *w.view;
 
     auto physTick = [&]()
 	{
@@ -96,7 +101,7 @@ try
 
 		UI::BeginFrame(w, e);
 		edit.PhysTick(camera);
-		w.SetView(UI::CurLayout().Pop().Box());
+		mainView = w.view.get().SubView(UI::CurLayout().Pop().Box());
 
         //physics step
         //position[teapotObj]->rot *= Quaternionf{Eigen::AngleAxisf(0.04f, Vector3f::UnitY())};
@@ -115,7 +120,7 @@ try
 			auto p = Profile::Profile("rendering");
 
 			w.PreDraw();
-			passes.Draw(e, alpha);
+			passes.Draw(mainView, alpha);
 			UI::EndFrame();
 		}
         w.PostDraw();
