@@ -106,8 +106,6 @@ void Edit::PhysTick(Object camera)
 	else
 		tool.SetTarget({});
 
-	tool.Update(e, camera, focused);
-
 	rp.Highlight(picked, RenderPasses::Hovered);
 	rp.Highlight(focused, RenderPasses::Focused);
 	rp.Highlight(selected, RenderPasses::Selected);
@@ -191,7 +189,11 @@ void Edit::PhysTick(Object camera)
 	}
 
 	if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
-		slide.Close();
+        slide.Close();
+    
+    e.mainView = e.view.SubView(UI::CurLayout().Pop().Box());
+    
+    tool.Update(e, camera, focused);
 
 	//fixme
 	e.PopMouse();

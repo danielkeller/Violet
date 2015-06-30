@@ -222,6 +222,8 @@ Window::Window()
     glfwGetFramebufferSize(window, &newEvents.view.pixelBox.max().x(),
                            &newEvents.view.pixelBox.max().y());
     
+    newEvents.mainView = newEvents.view;
+    
     accessor<Viewport> viewAcc = {
         [this]() { return newEvents.view; },
         [this](const Viewport& v) { newEvents.view = v; }
@@ -295,6 +297,7 @@ Events Window::GetInput()
 		newEvents.mouseButtonsCur[b] = glfwGetMouseButton(window, int(b)) == GLFW_PRESS;
 	
 	newEvents.scrollPopped = newEvents.mousePopped = false;
+    newEvents.mainView = newEvents.view;
 
 	//make events that happened visible
 	Events ret = newEvents;

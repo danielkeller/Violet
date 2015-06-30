@@ -58,7 +58,7 @@ void Tool::Update(Events& e, Object camera, Object focused)
     else if (focused == z) dir = 2;
     else return;
 
-	float delta = e.view.ApparentPos(e.MousePosSc(),
+	float delta = e.mainView.ApparentPos(e.MousePosSc(),
 		position[camera]->ToMatrix() * move->ToMatrix())[dir];
 	move->pos[dir] += delta;
 	target->pos[dir] += delta;

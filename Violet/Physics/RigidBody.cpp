@@ -100,6 +100,10 @@ void integrate(State& state, Time::clock::duration t, F forces)
 
 void RigidBody::PhysTick(Time::clock::duration simTime)
 {
+    if (paused)
+        return;
+    
+    debug.Begin();
 	using Index = Eigen::MatrixXf::Index;
 	//number of rows, degrees of freeedom
 	Index m = 6;
@@ -196,9 +200,18 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 			;
 		}
 
-		Eigen::VectorXf normalForce = Eigen::VectorXf::Zero(6);
+		GenCoord normalForce = GenCoord::Zero();
 		for (Index j = 0; j < k; ++j)
-			normalForce += active[j] * x[j];
+        {
+            GenCoord normj = active[j] * x[j];
+			normalForce += normj;
+            
+            Vector3f lin = normj.block<3, 1>(0, 0);
+            Vector3f rot = lin.cross(normj.block<3, 1>(3, 0)).normalized() * 2.f;
+            debug.PushVector(state.position.block<3,1>(0,0), rot, {1, 1, 1});
+            debug.PushVector(state.position.block<3,1>(0,0) + rot,
+                lin, {1, 0, 0});
+        }
 
 		//if (k > 0)
 		//	std::cerr << "\n\n" << k << "\n\n" << x << "\n\n" << normalForce << "\n\n";
@@ -218,12 +231,13 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		xfrm.scale = 1; //FIXME
 		position[obj.first].set(xfrm);
 	}
+    debug.End();
 }
 
-RigidBody::RigidBody(Position& position, NarrowPhase& narrowPhase)
-	: position(position), narrowPhase(narrowPhase)
-{
-}
+RigidBody::RigidBody(Position& position, NarrowPhase& narrowPhase,
+    RenderPasses& passes)
+	: paused(false), position(position), narrowPhase(narrowPhase), debug(passes)
+{}
 
 void RigidBody::Load(const Persist& persist)
 {

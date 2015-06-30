@@ -113,7 +113,7 @@ Visuals& FrameVisuals()
 
 struct UIEvents
 {
-	Events events, dummy;
+	Events *events, dummy;
 	bool modalOpen, modalWasOpen, inModal;
 };
 
@@ -128,7 +128,7 @@ Events& UI::FrameEvents()
 	if (GetUIEvents().modalOpen && !GetUIEvents().inModal)
 		return GetUIEvents().dummy;
 	else
-		return GetUIEvents().events;
+		return *GetUIEvents().events;
 }
 
 void UI::PushModal()
@@ -142,11 +142,11 @@ void UI::PopModal()
 	GetUIEvents().inModal = false;
 }
 
-void UI::BeginFrame(const Window& w, Events e)
+void UI::BeginFrame(const Window& w, Events& e)
 {
 	FrameVisuals() = {};
 	CurLayout() = LayoutStack(w.view->ScreenSize());
-	GetUIEvents().events = e;
+	GetUIEvents().events = &e;
 	//set the stuff that matters in dummy
 	GetUIEvents().dummy.view = e.view;
 	GetUIEvents().dummy.simTime = e.simTime;

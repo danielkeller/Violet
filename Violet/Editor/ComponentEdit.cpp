@@ -195,7 +195,7 @@ void RenderEditor::add(Object selected)
 
 CollisionEditor::CollisionEditor(NarrowPhase& narrowPhase, Render& render)
 	: ComponentEditor("collision", narrowPhase), narrowPhase(narrowPhase), render(render)
-    , debug("debug view", LB_WIDTH/2)
+    , debug("debug view", LB_WIDTH)
 {}
 
 void CollisionEditor::add(Object selected)
@@ -206,16 +206,25 @@ void CollisionEditor::add(Object selected)
 
 bool CollisionEditor::edit(Object selected)
 {
-    debug.Draw(narrowPhase.debug);
+    debug.Draw(narrowPhase.Debug());
     return false;
 }
 
 RigidBodyEditor::RigidBodyEditor(RigidBody& rigidBody)
 	: ComponentEditor("rigid body", rigidBody), rigidBody(rigidBody)
-{
-}
+    , paused("pause", LB_WIDTH/2), debug("debug view", LB_WIDTH/2)
+{}
 
 void RigidBodyEditor::add(Object selected)
 {
 	rigidBody.Add(selected, 1, 1);
+}
+
+bool RigidBodyEditor::edit(Object selected)
+{
+    UI::CurLayout().PushNext(UI::Layout::Dir::Right);
+    debug.Draw(rigidBody.Debug());
+    paused.Draw(rigidBody.paused);
+    UI::CurLayout().Pop();
+    return false;
 }

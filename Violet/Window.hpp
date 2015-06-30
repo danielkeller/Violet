@@ -56,6 +56,8 @@ struct Events
 
 	//Full window
 	Viewport view;
+    //3D (non-ui) area
+    Viewport mainView;
 
 	using MouseButtons = std::array<bool, 5>;
 

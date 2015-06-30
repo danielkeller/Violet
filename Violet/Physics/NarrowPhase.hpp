@@ -6,7 +6,7 @@
 #include "Geometry/OBB.hpp"
 #include <unordered_map>
 
-#include "Rendering/Render.hpp"
+#include "Utils/DebugBoxes.hpp"
 
 class Position;
 class RenderPasses;
@@ -30,14 +30,7 @@ public:
 
     using TreeTy = OBBTree;
     
-    //FIXME pending SO question
-    struct DebugInst
-    {
-        Matrix4f loc;
-        Vector3f color;
-    };
-    
-    bool debug;
+    bool& Debug() { return debug.enabled; }
 
 private:
 	void Load(const Persist&);
@@ -49,11 +42,7 @@ private:
 	Position& position;
 	std::unordered_map<Object, TreeTy> data;
 
-	Object debugObj;
-	Material dbgMat;
-	mutable VAO dbgVao;
-	mutable std::vector<DebugInst> insts;
-	mutable BufferObject<DebugInst, GL_ARRAY_BUFFER, GL_STREAM_DRAW> instances;
+    mutable DebugBoxes debug;
 };
 
 MAKE_PERSIST_TRAITS(NarrowPhase, Object, NarrowPhase::TreeTy)

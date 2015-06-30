@@ -36,16 +36,18 @@ try
 	ObjectName objName(persist);
     Window w;
     
+    Events e = w.GetInput();
+    
     //FIXME: this has to be here because the thumbnails need the DPI, and lazy thumbnails
     //aren't implmented yet
     UI::Init(w);
-    UI::BeginFrame(w, w.GetInput());
+    UI::BeginFrame(w, e);
 
 	Position position;
 	Render r(position);
 	RenderPasses passes(position, w, r);
 	NarrowPhase narrowPhase(position, passes);
-	RigidBody rigidBody(position, narrowPhase);
+	RigidBody rigidBody(position, narrowPhase, passes);
 
 	Edit edit(r, passes, position, objName, narrowPhase, rigidBody, mgr, persist);
 
@@ -89,9 +91,6 @@ try
 	position[camera]->pos = {0, -3, 0};
     
     Time t;
-	Events e;
-    
-    Viewport mainView = *w.view;
 
     auto physTick = [&]()
 	{
@@ -101,7 +100,6 @@ try
 
 		UI::BeginFrame(w, e);
 		edit.PhysTick(camera);
-		mainView = w.view.get().SubView(UI::CurLayout().Pop().Box());
 
         //physics step
         
@@ -119,7 +117,7 @@ try
 			auto p = Profile::Profile("rendering");
 
 			w.PreDraw();
-			passes.Draw(mainView, alpha);
+			passes.Draw(e.mainView, alpha);
 			UI::EndFrame();
 		}
         w.PostDraw();

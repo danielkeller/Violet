@@ -70,11 +70,8 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 			{
 				leavesToCheck.push_back(pair);
 				
-                if (debug)
-                {
-                    insts.push_back({ apos * OBBMat(*pair.first),  Vector3f{ 1, .5f, 0 } });
-                    insts.push_back({ bpos * OBBMat(*pair.second), Vector3f{ 0, 1, 0 } });
-                }
+                debug.PushInst({ apos * OBBMat(*pair.first),  Vector3f{ 1, .5f, 0 } });
+                debug.PushInst({ bpos * OBBMat(*pair.second), Vector3f{ 0, 1, 0 } });
 			}
 		}
 	}
@@ -95,17 +92,8 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 					ret.push_back({ pair.first,
 						TriNormal(aWorld).normalized(), TriNormal(bWorld).normalized() });
 
-                    if (debug)
-                    {
-                        Matrix4f normVis = Matrix4f::Zero();
-                        normVis.block<3, 1>(0, 3) = pair.first;
-                        normVis(3, 3) = 1;
-
-                        normVis.block<3, 1>(0, 0) = ret.back().aNormal;
-                        insts.push_back({ normVis, { 1, .5f, 1 } });
-                        normVis.block<3, 1>(0, 0) = ret.back().bNormal;
-                        insts.push_back({ normVis, { 0, 1, 1 } });
-                    }
+                    debug.PushVector(pair.first, ret.back().aNormal, { 1, .5f, 1 });
+                    debug.PushVector(pair.first, ret.back().bNormal, { 0, 1, 1 });
 				}
 			}
 		}
@@ -116,8 +104,7 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 
 std::vector<Contact> NarrowPhase::QueryAll(Object a) const
 {
-    if (debug)
-        insts.clear();
+    debug.Begin();
 
 	std::vector<Contact> ret;
 	for (const auto& obj : data)
@@ -127,30 +114,14 @@ std::vector<Contact> NarrowPhase::QueryAll(Object a) const
 			ret.insert(ret.begin(), contacts.begin(), contacts.end());
 		}
 
-    if (debug)
-    {
-        instances.Data(insts);
-        dbgVao.NumInstances(static_cast<GLsizei>(insts.size()));
-    }
+    debug.End();
     
 	return ret;
 }
 
 NarrowPhase::NarrowPhase(Position& position, RenderPasses& passes)
-	: position(position), debug(false), dbgMat("NarrowPhaseDebug", "assets/color")
-	, dbgVao(dbgMat.Shader(), WireCube), instances(2)
-{
-	dbgVao.BindInstanceData(dbgMat.Shader(), instances);
-
-	passes.CreateCustom(debugObj, [&](float)
-	{
-        if (debug)
-        {
-            dbgMat.use();
-            dbgVao.Draw();
-        }
-	});
-}
+	: position(position), debug(passes)
+{}
 
 void NarrowPhase::Add(Object obj, std::string mesh)
 {
@@ -180,8 +151,3 @@ const char* PersistSchema<NarrowPhase>::name = "narrowphase";
 template<>
 Columns PersistSchema<NarrowPhase>::cols = { "object", "obb" };
 
-template<>
-const Schema AttribTraits<NarrowPhase::DebugInst>::schema = {
-	AttribProperties{ "transform", GL_FLOAT, false, 0,                 { 4, 4 }, 4 * sizeof(float) },
-	AttribProperties{ "color",     GL_FLOAT, false, 16 * sizeof(float),{ 3, 1 }, 0 },
-};

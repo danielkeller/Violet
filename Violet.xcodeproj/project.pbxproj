@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		373092881B41DBB000C832FE /* DebugBoxes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373092871B41DBB000C832FE /* DebugBoxes.cpp */; };
 		373FC7501B3AF8C100AEBB25 /* Assets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC7471B3AF8C100AEBB25 /* Assets.cpp */; };
 		373FC7511B3AF8C100AEBB25 /* ComponentEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC7491B3AF8C100AEBB25 /* ComponentEdit.cpp */; };
 		373FC7521B3AF8C100AEBB25 /* Edit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC74B1B3AF8C100AEBB25 /* Edit.cpp */; };
@@ -65,6 +66,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		373092861B41DA5600C832FE /* DebugBoxes.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DebugBoxes.hpp; path = Utils/DebugBoxes.hpp; sourceTree = "<group>"; };
+		373092871B41DBB000C832FE /* DebugBoxes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DebugBoxes.cpp; path = Utils/DebugBoxes.cpp; sourceTree = "<group>"; };
 		373FC7451B3AF8AF00AEBB25 /* l_unordered_map.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = l_unordered_map.hpp; sourceTree = "<group>"; };
 		373FC7461B3AF8AF00AEBB25 /* tuple_tree.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = tuple_tree.hpp; sourceTree = "<group>"; };
 		373FC7471B3AF8C100AEBB25 /* Assets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Assets.cpp; path = Editor/Assets.cpp; sourceTree = "<group>"; };
@@ -279,6 +282,8 @@
 				373FC76A1B3AF95E00AEBB25 /* Profiling.cpp */,
 				373FC76B1B3AF95E00AEBB25 /* Profiling.hpp */,
 				373FC76C1B3AF95E00AEBB25 /* Template.hpp */,
+				373092861B41DA5600C832FE /* DebugBoxes.hpp */,
+				373092871B41DBB000C832FE /* DebugBoxes.cpp */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -375,13 +380,13 @@
 		B9AA965E1A575DE00079F917 /* Geometry */ = {
 			isa = PBXGroup;
 			children = (
-				373FC7551B3AF8CE00AEBB25 /* Collide.cpp */,
 				373FC7561B3AF8CE00AEBB25 /* OBB.cpp */,
 				373FC7571B3AF8CE00AEBB25 /* OBB.hpp */,
 				373FC7581B3AF8CE00AEBB25 /* Shapes.cpp */,
 				B9AA965F1A575DE00079F917 /* AABB.cpp */,
 				B9AA96601A575DE00079F917 /* AABB.hpp */,
 				B9AA96611A575DE00079F917 /* Collide.hpp */,
+				373FC7551B3AF8CE00AEBB25 /* Collide.cpp */,
 				B9AA96621A575DE00079F917 /* Mesh.cpp */,
 				B9AA96631A575DE00079F917 /* Mesh.hpp */,
 				B9AA96641A575DE00079F917 /* Shapes.hpp */,
@@ -548,6 +553,7 @@
 				373FC7761B3AF99200AEBB25 /* Object.cpp in Sources */,
 				373FC7501B3AF8C100AEBB25 /* Assets.cpp in Sources */,
 				B9AA96CA1A5760CF0079F917 /* gl_core_3_3.c in Sources */,
+				373092881B41DBB000C832FE /* DebugBoxes.cpp in Sources */,
 				373FC7511B3AF8C100AEBB25 /* ComponentEdit.cpp in Sources */,
 				B9AA96A21A575DE00079F917 /* Mobile.cpp in Sources */,
 				373FC76D1B3AF95E00AEBB25 /* Profiling.cpp in Sources */,

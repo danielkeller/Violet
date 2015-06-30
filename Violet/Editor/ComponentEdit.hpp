@@ -100,9 +100,13 @@ class RigidBodyEditor : public ComponentEditor
 {
 public:
 	RigidBodyEditor(RigidBody& rigidBody);
+    
 private:
-	void add(Object selected);
+    void add(Object selected);
+    bool edit(Object selected);
+    
 	RigidBody& rigidBody;
+    UI::CheckBox paused, debug;
 };
 
 #endif

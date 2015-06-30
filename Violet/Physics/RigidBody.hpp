@@ -5,6 +5,8 @@
 #include "Containers/l_unordered_map.hpp"
 #include "Core/Time.hpp"
 
+#include "Utils/DebugBoxes.hpp"
+
 class Position;
 class NarrowPhase;
 
@@ -24,9 +26,12 @@ struct State
 class RigidBody : public Component
 {
 public:
-	RigidBody(Position&, NarrowPhase&);
+	RigidBody(Position&, NarrowPhase&, RenderPasses&);
 	void Add(Object o, float mass, float inertia);
 	void PhysTick(Time::clock::duration simTime);
+    
+    bool& Debug() { return debug.enabled; }
+    bool paused;
 
 private:
 	Position& position;
@@ -37,7 +42,9 @@ private:
 	void Unload(const Persist&);
 	bool Has(Object) const;
 	void Save(Object, Persist&) const;
-	void Remove(Object);
+    void Remove(Object);
+    
+    DebugBoxes debug;
 };
 
 MAKE_PERSIST_TRAITS(RigidBody, Object, float, float)
