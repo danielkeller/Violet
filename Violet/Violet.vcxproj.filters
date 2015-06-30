@@ -216,6 +216,9 @@
     <ClInclude Include="Script\EigenLib.hpp">
       <Filter>Source Files\Script</Filter>
     </ClInclude>
+    <ClInclude Include="Utils\DebugBoxes.hpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -355,6 +358,9 @@
     </ClCompile>
     <ClCompile Include="Script\Utils.cpp">
       <Filter>Source Files\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\DebugBoxes.cpp">
+      <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

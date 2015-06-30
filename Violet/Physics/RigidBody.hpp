@@ -17,7 +17,10 @@ using GenCoord = Eigen::Matrix<float, 6, 1>;
 
 struct State
 {
-	GenCoord position, momentum;
+	Vector3f position;
+	Quaternionf orientation;
+
+	GenCoord momentum;
 	//these shouldn't be here
 	Eigen::DiagonalMatrix<float, 6> inverseIntertia;
 	float mass, inertia;

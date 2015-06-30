@@ -204,6 +204,7 @@
     <ClInclude Include="UI\PixelDraw.hpp" />
     <ClInclude Include="UI\Layout.hpp" />
     <ClInclude Include="UI\Text.hpp" />
+    <ClInclude Include="Utils\DebugBoxes.hpp" />
     <ClInclude Include="Utils\Math.hpp" />
     <ClInclude Include="Utils\Profiling.hpp" />
     <ClInclude Include="Utils\Template.hpp" />
@@ -277,6 +278,7 @@
     <ClCompile Include="UI\PixelDraw.cpp" />
     <ClCompile Include="UI\Text.cpp" />
     <ClCompile Include="UI\TextElements.cpp" />
+    <ClCompile Include="Utils\DebugBoxes.cpp" />
     <ClCompile Include="Utils\Profiling.cpp" />
     <ClCompile Include="Viewport.cpp" />
     <ClCompile Include="Window.cpp" />

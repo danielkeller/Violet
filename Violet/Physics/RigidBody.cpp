@@ -9,18 +9,6 @@
 
 static const float simDt = std::chrono::duration<float>{ Time::dt }.count();
 
-Vector3f QuatToRot(const Quaternionf& quat)
-{
-	Eigen::AngleAxisf rot{ quat };
-	return rot.axis() * rot.angle();
-}
-
-Quaternionf RotToQuat(const Vector3f& vec)
-{
-	return vec.norm() == 0.f ? Quaternionf::Identity()
-		: Quaternionf{ Eigen::AngleAxisf{ vec.norm(), vec.normalized() } };
-}
-
 //The generalized contact normal is a translation and rotation that moves
 //the contact point perpendicularly away from the surface. In the case of
 //a collision between two free objects, it's the translation and rotation
@@ -38,10 +26,12 @@ GenCoord GenContact(const Contact& c, const Vector3f& objPos)
 
 struct Derivative
 {
-	GenCoord force, drag, velocity;
+	GenCoord force, drag;
+	Vector3f velocity;
+	Quaternionf spin;
 };
 
-Derivative zeroDeriv = { GenCoord::Zero(), GenCoord::Zero(), GenCoord::Zero() };
+Derivative zeroDeriv = { GenCoord::Zero(), GenCoord::Zero(), Vector3f::Zero(), Quaternionf{0, 0, 0, 0} };
 
 void advance(State& s, const Derivative& d, float dt)
 {
@@ -61,6 +51,7 @@ void advance(State& s, const Derivative& d, float dt)
 		s.momentum += dM;
 	}
 	s.position += d.velocity*dt;
+	s.orientation.coeffs() += d.spin.coeffs()*dt;
 }
 
 //RK4 step
@@ -76,7 +67,14 @@ Derivative step(const State& initial, float alpha, const Derivative& d,
 
 	Derivative ret;
 	std::tie(ret.force, ret.drag) = forces(s, newT);
-	ret.velocity = s.inverseIntertia * s.momentum;
+
+	GenCoord genVelocity = s.inverseIntertia * s.momentum;
+	ret.velocity = genVelocity.block<3, 1>(0, 0);
+	
+	//the angular velocity must be transformed into the tangent space of the orientation
+	ret.spin.coeffs() = (Quaternionf{0, genVelocity[3], genVelocity[4], genVelocity[5]}
+		* s.orientation).coeffs() * .5f;
+	
 	return ret;
 }
 
@@ -95,7 +93,9 @@ void integrate(State& state, Time::clock::duration t, F forces)
 	RKINTERP(force);
 	RKINTERP(drag);
 	RKINTERP(velocity);
+	RKINTERP(spin.coeffs());
 	advance(state, final, simDt);
+	state.orientation.normalize();
 }
 
 void RigidBody::PhysTick(Time::clock::duration simTime)
@@ -112,11 +112,11 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 	{
 		State& state = obj.second;
 
-		//wrap the rotation vector around to prevent loss of significance
-		auto rot = state.position.block<3, 1>(3, 0);
-		float angle = rot.norm() / PI_F;
-		if (angle > 1.f)
-			rot *= (1.f - 2.f / angle);
+		Transform xfrm = position[obj.first].get();
+		if (state.position != xfrm.pos) //someone is moving it
+			state.momentum = GenCoord::Zero(); //don't keep falling
+		state.position = xfrm.pos;
+		state.orientation = xfrm.rot;
 
 		auto contacts = narrowPhase.QueryAll(obj.first);
 
@@ -134,7 +134,7 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 			//should this be in the integrator?
 			GenCoord dM = c*badMomentum;
 			state.momentum += dM*(1.f + .8f); //restitution
-			state.position += state.inverseIntertia * dM * simDt;
+			//state.position += state.inverseIntertia * dM * simDt;
 		}
 
 		Eigen::VectorXf gravity = Eigen::VectorXf::Zero(m);
@@ -213,11 +213,16 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
                 lin, {1, 0, 0});
         }
 
+		Vector3f lin = normalForce.block<3, 1>(0, 0);
+		Vector3f rot = lin.cross(normalForce.block<3, 1>(3, 0));
+		debug.PushVector(state.position.block<3, 1>(0, 0), rot, { .7f, 1, .7f });
+		debug.PushVector(state.position.block<3, 1>(0, 0) + rot, lin, { 1, .7f, .7f });
+
 		//if (k > 0)
 		//	std::cerr << "\n\n" << k << "\n\n" << x << "\n\n" << normalForce << "\n\n";
-		float T = (.5f * state.inverseIntertia * state.momentum).dot(state.momentum);
-		float K = state.mass * 9.8f * state.position[2];
-		std::cerr << "H = " << T + K << "\n";
+		//float T = (.5f * state.inverseIntertia * state.momentum).dot(state.momentum);
+		//float K = state.mass * 9.8f * state.position[2];
+		//std::cerr << "H = " << T + K << "\n";
 
 		integrate(state, simTime,
 			[=](const State& state, Time::clock::duration t)
@@ -225,10 +230,8 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 			return std::make_tuple(gravity, normalForce);
 		});
 
-		Transform xfrm;
-		xfrm.pos = state.position.block<3,1>(0,0);
-		xfrm.rot = RotToQuat(state.position.block<3, 1>(3, 0));
-		xfrm.scale = 1; //FIXME
+		xfrm.pos = state.position;
+		xfrm.rot = state.orientation;
 		position[obj.first].set(xfrm);
 	}
     debug.End();
@@ -262,9 +265,6 @@ void RigidBody::Add(Object o, float mass, float inertia)
 		1.f/mass, 1.f / mass, 1.f / mass,
 		1.f/inertia, 1.f / inertia, 1.f / inertia;
 	init.mass = mass; init.inertia = inertia;
-
-	Transform xfrm = position[o].get();
-	init.position << xfrm.pos, QuatToRot(xfrm.rot);
 
 	data.try_emplace(o, init);
 }
