@@ -13,6 +13,7 @@ class NarrowPhase;
 //TODO: "physics mesh" component
 
 //generalized coordinates, stores 3 linear components and 3 rotation components
+//aka, a Screw
 using GenCoord = Eigen::Matrix<float, 6, 1>;
 
 struct State
@@ -24,6 +25,8 @@ struct State
 	//these shouldn't be here
 	Eigen::DiagonalMatrix<float, 6> inverseIntertia;
 	float mass, inertia;
+    
+    float badWork;
 };
 
 class RigidBody : public Component

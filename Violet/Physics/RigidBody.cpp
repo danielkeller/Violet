@@ -27,31 +27,21 @@ GenCoord GenContact(const Contact& c, const Vector3f& objPos)
 struct Derivative
 {
 	GenCoord force, drag;
-	Vector3f velocity;
+	GenCoord velocity;
 	Quaternionf spin;
 };
 
-Derivative zeroDeriv = { GenCoord::Zero(), GenCoord::Zero(), Vector3f::Zero(), Quaternionf{0, 0, 0, 0} };
+Derivative zeroDeriv = { GenCoord::Zero(), GenCoord::Zero(), GenCoord::Zero(), Quaternionf{0, 0, 0, 0} };
 
 void advance(State& s, const Derivative& d, float dt)
 {
-	s.momentum += d.force*dt;
-	//to prevent drift, drag force must come after regular force has been
-	//added to the momentum. This allows it to counteract forces that are
-	//applied at this evaluation
-	if (!s.momentum.isZero(.0001f)) //no drag without momentum
-	{
-		//Drag does no work, so F.ds <= 0
-		//parallel component
-		float parallelDrag = s.momentum.normalized().dot(d.drag);
-		GenCoord dM = s.momentum.normalized()*std::min(0.f, //can't make it faster
-			+ std::max(parallelDrag*dt, -s.momentum.norm())); //can't turn it around
-		//perpendicular component
-		dM += (d.drag - s.momentum.normalized()*parallelDrag)*dt;
-		s.momentum += dM;
-	}
-	s.position += d.velocity*dt;
+    s.momentum += d.force * dt;
+    s.momentum += d.drag * dt;
+    
+	s.position += d.velocity.block<3, 1>(0, 0)*dt;
 	s.orientation.coeffs() += d.spin.coeffs()*dt;
+    
+    s.badWork += d.drag.dot(d.velocity)*dt;
 }
 
 //RK4 step
@@ -66,13 +56,11 @@ Derivative step(const State& initial, float alpha, const Derivative& d,
 		std::chrono::duration_cast<Time::clock::duration>(Time::dt*alpha);
 
 	Derivative ret;
-	std::tie(ret.force, ret.drag) = forces(s, newT);
+    std::tie(ret.force, ret.drag) = forces(s, newT);
+    ret.velocity = s.inverseIntertia * s.momentum;
 
-	GenCoord genVelocity = s.inverseIntertia * s.momentum;
-	ret.velocity = genVelocity.block<3, 1>(0, 0);
-	
 	//the angular velocity must be transformed into the tangent space of the orientation
-	ret.spin.coeffs() = (Quaternionf{0, genVelocity[3], genVelocity[4], genVelocity[5]}
+	ret.spin.coeffs() = (Quaternionf{0, ret.velocity[3], ret.velocity[4], ret.velocity[5]}
 		* s.orientation).coeffs() * .5f;
 	
 	return ret;
@@ -82,7 +70,7 @@ Derivative step(const State& initial, float alpha, const Derivative& d,
 template<typename F>
 void integrate(State& state, Time::clock::duration t, F forces)
 {
-	Derivative a, b, c, d;
+    Derivative a, b, c, d;
 	a = step(state, 0.f, zeroDeriv, t, forces);
 	b = step(state, 5.f, a, t, forces);
 	c = step(state, 5.f, b, t, forces);
@@ -94,7 +82,7 @@ void integrate(State& state, Time::clock::duration t, F forces)
 	RKINTERP(drag);
 	RKINTERP(velocity);
 	RKINTERP(spin.coeffs());
-	advance(state, final, simDt);
+    advance(state, final, simDt);
 	state.orientation.normalize();
 }
 
@@ -133,9 +121,24 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 				continue;
 			//should this be in the integrator?
 			GenCoord dM = c*badMomentum;
-			state.momentum += dM*(1.f + .8f); //restitution
-			//state.position += state.inverseIntertia * dM * simDt;
+            state.momentum += dM*(1.f + .8f); //restitution
 		}
+        
+        //now handle free work penalty impulses
+        if (state.badWork > 0)
+        {
+            std::cerr << state.badWork << '\n';
+            
+            if (!state.momentum.isZero(.001f))
+                state.momentum = state.momentum.normalized() * std::sqrt(std::max(
+                state.momentum.squaredNorm()
+                - 2.f * state.mass * state.badWork, 0.f));
+            else
+                state.momentum = GenCoord::Zero();
+            
+            //try taking it out of potential energy too
+            state.badWork = 0;
+        }
 
 		Eigen::VectorXf gravity = Eigen::VectorXf::Zero(m);
 		gravity[2] = -9.8f * state.mass;
@@ -265,6 +268,8 @@ void RigidBody::Add(Object o, float mass, float inertia)
 		1.f/mass, 1.f / mass, 1.f / mass,
 		1.f/inertia, 1.f / inertia, 1.f / inertia;
 	init.mass = mass; init.inertia = inertia;
+    
+    init.badWork = 0;
 
 	data.try_emplace(o, init);
 }
