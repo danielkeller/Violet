@@ -195,7 +195,7 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
                              lin, {1, 0, 0});
         }
         
-        std::cerr << state.momentum.transpose() << '\n' << (gravity + normalForce).transpose() << '\n';
+        //std::cerr << state.momentum.transpose() << '\n' << (gravity + normalForce).transpose() << '\n';
 
         //first handle the contact impulses (since their force is infinite)
         for (const auto& c : genContacts)
@@ -219,7 +219,8 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		debug.PushVector(state.position.block<3, 1>(0, 0), rot, { .7f, 1, .7f });
 		debug.PushVector(state.position.block<3, 1>(0, 0) + rot, lin, { 1, .7f, .7f });
 
-        //this is only OK if it's done to all contact forces equally... I think
+        //this is only OK if it's done to all contact forces equally, since individual
+        //constraints can do work, but the total must be zero... I think
         if (!state.momentum.isZero(.0001f))
         {
             //Drag does no work, so F.ds <= 0
@@ -233,9 +234,9 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
         
 		//if (k > 0)
 		//	std::cerr << "\n\n" << k << "\n\n" << x << "\n\n" << normalForce << "\n\n";
-		float T = (.5f * state.inverseIntertia * state.momentum).dot(state.momentum);
-		float K = state.mass * 9.8f * state.position[2];
-		std::cerr << "H = " << T + K << "\n";
+		//float T = (.5f * state.inverseIntertia * state.momentum).dot(state.momentum);
+		//float K = state.mass * 9.8f * state.position[2];
+		//std::cerr << "H = " << T + K << "\n";
 
 		integrate(state, simTime,
 			[=](const State& s, Time::clock::duration t)
