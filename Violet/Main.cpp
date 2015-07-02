@@ -90,6 +90,8 @@ try
 	
 	position[camera]->pos = {0, -3, 0};
     
+    std::uint32_t slowmo = 0;
+    
     Time t;
 
     auto physTick = [&]()
@@ -104,7 +106,8 @@ try
         //physics step
         
 		//narrowPhase.Query(teapotObj, teapot2Obj);
-		rigidBody.PhysTick(t.SimTime());
+        //if (slowmo++ % 5 == 0)
+            rigidBody.PhysTick(t.SimTime());
 
 		script.PhysTick();
 

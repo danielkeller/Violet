@@ -36,20 +36,7 @@ Derivative zeroDeriv = { GenCoord::Zero(), GenCoord::Zero(), Vector3f::Zero(), Q
 void advance(State& s, const Derivative& d, float dt)
 {
 	s.momentum += d.force*dt;
-	//to prevent drift, drag force must come after regular force has been
-	//added to the momentum. This allows it to counteract forces that are
-	//applied at this evaluation
-	if (!s.momentum.isZero(.0001f)) //no drag without momentum
-	{
-		//Drag does no work, so F.ds <= 0
-		//parallel component
-		float parallelDrag = s.momentum.normalized().dot(d.drag);
-		GenCoord dM = s.momentum.normalized()*std::min(0.f, //can't make it faster
-			+ std::max(parallelDrag*dt, -s.momentum.norm())); //can't turn it around
-		//perpendicular component
-		dM += (d.drag - s.momentum.normalized()*parallelDrag)*dt;
-		s.momentum += dM;
-	}
+    s.momentum += d.drag*dt;
 	s.position += d.velocity*dt;
 	s.orientation.coeffs() += d.spin.coeffs()*dt;
 }
@@ -94,7 +81,14 @@ void integrate(State& state, Time::clock::duration t, F forces)
 	RKINTERP(drag);
 	RKINTERP(velocity);
 	RKINTERP(spin.coeffs());
-	advance(state, final, simDt);
+
+    if ((state.momentum + final.force*simDt + final.drag*simDt).dot(state.momentum) < 0.f)
+    {
+        state.momentum = GenCoord::Zero();
+    }
+    else
+        advance(state, final, simDt);
+    
 	state.orientation.normalize();
 }
 
@@ -125,18 +119,6 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		std::transform(contacts.begin(), contacts.end(), genContacts.begin(),
 			[&](Contact& c) {return GenContact(c, state.position.block<3,1>(0,0));});
 
-		//first handle the contact impulses (since their force is infinite)
-		for (const auto& c : genContacts)
-		{
-			float badMomentum = -state.momentum.dot(c);
-			if (badMomentum <= 0.f)
-				continue;
-			//should this be in the integrator?
-			GenCoord dM = c*badMomentum;
-			state.momentum += dM*(1.f + .8f); //restitution
-			//state.position += state.inverseIntertia * dM * simDt;
-		}
-
 		Eigen::VectorXf gravity = Eigen::VectorXf::Zero(m);
 		gravity[2] = -9.8f * state.mass;
 
@@ -155,7 +137,7 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		//First pass: forces that oppose gravity
 		for (auto& c : genContacts)
 		{
-			if (c.dot(gravity) < -.01f)
+            if (c.dot(gravity) < -.01f)
 			{
 				workspace = c;
 				for (Index j = 0; j < k; ++j)
@@ -199,33 +181,64 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		next:
 			;
 		}
-
-		GenCoord normalForce = GenCoord::Zero();
-		for (Index j = 0; j < k; ++j)
+        
+        GenCoord normalForce = GenCoord::Zero();
+        for (Index j = 0; j < k; ++j)
         {
             GenCoord normj = active[j] * x[j];
-			normalForce += normj;
+            normalForce += normj;
             
             Vector3f lin = normj.block<3, 1>(0, 0);
             Vector3f rot = lin.cross(normj.block<3, 1>(3, 0)).normalized() * 2.f;
             debug.PushVector(state.position.block<3,1>(0,0), rot, {1, 1, 1});
             debug.PushVector(state.position.block<3,1>(0,0) + rot,
-                lin, {1, 0, 0});
+                             lin, {1, 0, 0});
         }
+        
+        std::cerr << state.momentum.transpose() << '\n' << (gravity + normalForce).transpose() << '\n';
 
+        //first handle the contact impulses (since their force is infinite)
+        for (const auto& c : genContacts)
+        {
+            float badMomentum = -state.momentum.dot(c);
+            if (badMomentum <= 0.f)
+                continue;
+            //should this be in the integrator?
+            GenCoord dM = c*badMomentum;
+            state.momentum += dM*(1.f + .8f); //restitution
+            //state.position += state.inverseIntertia * dM * simDt;
+            Vector3f lin = dM.block<3, 1>(0, 0);
+            Vector3f rot = lin.cross(dM.block<3, 1>(3, 0)).normalized() * 2.f;
+            debug.PushVector(state.position.block<3,1>(0,0), rot, {1, 1, 1});
+            debug.PushVector(state.position.block<3,1>(0,0) + rot,
+                             lin, {1, 0, 0});
+        }
+        
 		Vector3f lin = normalForce.block<3, 1>(0, 0);
 		Vector3f rot = lin.cross(normalForce.block<3, 1>(3, 0));
 		debug.PushVector(state.position.block<3, 1>(0, 0), rot, { .7f, 1, .7f });
 		debug.PushVector(state.position.block<3, 1>(0, 0) + rot, lin, { 1, .7f, .7f });
 
+        //this is only OK if it's done to all contact forces equally... I think
+        if (!state.momentum.isZero(.0001f))
+        {
+            //Drag does no work, so F.ds <= 0
+            GenCoord dir = state.momentum.normalized();
+            float parallelDrag = dir.dot(normalForce);
+            //parallel component
+            GenCoord drag = dir*std::min(0.f, parallelDrag);
+            //perpendicular component
+            normalForce += drag - dir*parallelDrag;
+        }
+        
 		//if (k > 0)
 		//	std::cerr << "\n\n" << k << "\n\n" << x << "\n\n" << normalForce << "\n\n";
-		//float T = (.5f * state.inverseIntertia * state.momentum).dot(state.momentum);
-		//float K = state.mass * 9.8f * state.position[2];
-		//std::cerr << "H = " << T + K << "\n";
+		float T = (.5f * state.inverseIntertia * state.momentum).dot(state.momentum);
+		float K = state.mass * 9.8f * state.position[2];
+		std::cerr << "H = " << T + K << "\n";
 
 		integrate(state, simTime,
-			[=](const State& state, Time::clock::duration t)
+			[=](const State& s, Time::clock::duration t)
 		{
 			return std::make_tuple(gravity, normalForce);
 		});

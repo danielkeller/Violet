@@ -217,7 +217,7 @@ RigidBodyEditor::RigidBodyEditor(RigidBody& rigidBody)
 
 void RigidBodyEditor::add(Object selected)
 {
-	rigidBody.Add(selected, 1, 1);
+    rigidBody.Add(selected, 1, 1);
 }
 
 bool RigidBodyEditor::edit(Object selected)
