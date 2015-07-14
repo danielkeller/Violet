@@ -2,10 +2,10 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:lua/Lua.xcodeproj">
+      location = "group:Libs/GLFW/GLFW.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:GLFW/GLFW.xcodeproj">
+      location = "group:Libs/lua/Lua.xcodeproj">
    </FileRef>
    <FileRef
       location = "container:Violet.xcodeproj">

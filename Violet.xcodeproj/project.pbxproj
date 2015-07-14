@@ -37,7 +37,9 @@
 		373FC7A21B3AF9CC00AEBB25 /* PixelDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC79A1B3AF9CC00AEBB25 /* PixelDraw.cpp */; };
 		373FC7A31B3AF9CC00AEBB25 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC79C1B3AF9CC00AEBB25 /* Text.cpp */; };
 		373FC7A41B3AF9CC00AEBB25 /* TextElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC79E1B3AF9CC00AEBB25 /* TextElements.cpp */; };
-		373FC7A81B3AFA1C00AEBB25 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 373FC7A61B3AFA1C00AEBB25 /* sqlite3.c */; };
+		37C8E08A1B55BFA000713DAC /* gl_core_3_3.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E0881B55BFA000713DAC /* gl_core_3_3.c */; };
+		37C8E08D1B55BFB100713DAC /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E08B1B55BFB100713DAC /* sqlite3.c */; };
+		37C8E0901B55BFC600713DAC /* native_text.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E08E1B55BFC600713DAC /* native_text.c */; };
 		37D376CF1B3B4571001EAA62 /* Position.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37D376CB1B3B4571001EAA62 /* Position.cpp */; };
 		37D376D01B3B4571001EAA62 /* Viewport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37D376CD1B3B4571001EAA62 /* Viewport.cpp */; };
 		37D3776A1B3B4970001EAA62 /* libLua.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37D377691B3B4970001EAA62 /* libLua.a */; };
@@ -61,7 +63,6 @@
 		B9AA96BD1A5760770079F917 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9AA96BC1A5760770079F917 /* Cocoa.framework */; };
 		B9AA96BF1A57607E0079F917 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9AA96BE1A57607E0079F917 /* CoreVideo.framework */; };
 		B9AA96C11A5760860079F917 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9AA96C01A5760860079F917 /* IOKit.framework */; };
-		B9AA96CA1A5760CF0079F917 /* gl_core_3_3.c in Sources */ = {isa = PBXBuildFile; fileRef = B9AA96C41A5760CF0079F917 /* gl_core_3_3.c */; };
 		B9FEE5041A5C9ABA00489197 /* Tool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FEE5021A5C9ABA00489197 /* Tool.cpp */; };
 /* End PBXBuildFile section */
 
@@ -129,8 +130,12 @@
 		373FC79C1B3AF9CC00AEBB25 /* Text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Text.cpp; path = UI/Text.cpp; sourceTree = "<group>"; };
 		373FC79D1B3AF9CC00AEBB25 /* Text.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Text.hpp; path = UI/Text.hpp; sourceTree = "<group>"; };
 		373FC79E1B3AF9CC00AEBB25 /* TextElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextElements.cpp; path = UI/TextElements.cpp; sourceTree = "<group>"; };
-		373FC7A61B3AFA1C00AEBB25 /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3.c; path = sqlite/sqlite3.c; sourceTree = "<group>"; };
-		373FC7A71B3AFA1C00AEBB25 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = sqlite/sqlite3.h; sourceTree = "<group>"; };
+		37C8E0881B55BFA000713DAC /* gl_core_3_3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gl_core_3_3.c; path = Libs/GL/gl_core_3_3.c; sourceTree = SOURCE_ROOT; };
+		37C8E0891B55BFA000713DAC /* gl_core_3_3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl_core_3_3.h; path = Libs/GL/gl_core_3_3.h; sourceTree = SOURCE_ROOT; };
+		37C8E08B1B55BFB100713DAC /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3.c; path = Libs/sqlite/sqlite3.c; sourceTree = "<group>"; };
+		37C8E08C1B55BFB100713DAC /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = Libs/sqlite/sqlite3.h; sourceTree = "<group>"; };
+		37C8E08E1B55BFC600713DAC /* native_text.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = native_text.c; path = Libs/NativeText/native_text.c; sourceTree = "<group>"; };
+		37C8E08F1B55BFC600713DAC /* native_text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = native_text.h; path = Libs/NativeText/native_text.h; sourceTree = "<group>"; };
 		37D376CA1B3B4571001EAA62 /* magic_ptr.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = magic_ptr.hpp; sourceTree = "<group>"; };
 		37D376CB1B3B4571001EAA62 /* Position.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Position.cpp; sourceTree = "<group>"; };
 		37D376CC1B3B4571001EAA62 /* Position.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Position.hpp; sourceTree = "<group>"; };
@@ -179,7 +184,6 @@
 		B9AA96BC1A5760770079F917 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		B9AA96BE1A57607E0079F917 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		B9AA96C01A5760860079F917 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
-		B9AA96C41A5760CF0079F917 /* gl_core_3_3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gl_core_3_3.c; sourceTree = "<group>"; };
 		B9AA96D91A577D3E0079F917 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = "<group>"; };
 		B9FEE5021A5C9ABA00489197 /* Tool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Tool.cpp; path = Editor/Tool.cpp; sourceTree = "<group>"; };
 		B9FEE5031A5C9ABA00489197 /* Tool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Tool.hpp; path = Editor/Tool.hpp; sourceTree = "<group>"; };
@@ -291,26 +295,44 @@
 		373FC7A51B3AF9EA00AEBB25 /* sqlite */ = {
 			isa = PBXGroup;
 			children = (
-				373FC7A61B3AFA1C00AEBB25 /* sqlite3.c */,
-				373FC7A71B3AFA1C00AEBB25 /* sqlite3.h */,
+				37C8E08B1B55BFB100713DAC /* sqlite3.c */,
+				37C8E08C1B55BFB100713DAC /* sqlite3.h */,
 			);
 			name = sqlite;
 			sourceTree = "<group>";
 		};
-		B9AA96281A575CB40079F917 = {
+		37C8E0851B55BCE000713DAC /* Libs */ = {
 			isa = PBXGroup;
 			children = (
-				B9AA96D91A577D3E0079F917 /* assets */,
+				37C8E0871B55BDAC00713DAC /* NativeText */,
 				B9AA96C21A5760CF0079F917 /* GL */,
 				373FC7A51B3AF9EA00AEBB25 /* sqlite */,
-				B9AA96331A575CB40079F917 /* Violet */,
-				B9AA96321A575CB40079F917 /* Products */,
 				B9AA96BC1A5760770079F917 /* Cocoa.framework */,
 				B9AA96BA1A5760630079F917 /* OpenGL.framework */,
 				B9AA96BE1A57607E0079F917 /* CoreVideo.framework */,
 				B9AA96C01A5760860079F917 /* IOKit.framework */,
 				37D3776B1B3B4A0B001EAA62 /* libGLFW.a */,
 				37D377691B3B4970001EAA62 /* libLua.a */,
+			);
+			name = Libs;
+			sourceTree = "<group>";
+		};
+		37C8E0871B55BDAC00713DAC /* NativeText */ = {
+			isa = PBXGroup;
+			children = (
+				37C8E08E1B55BFC600713DAC /* native_text.c */,
+				37C8E08F1B55BFC600713DAC /* native_text.h */,
+			);
+			name = NativeText;
+			sourceTree = "<group>";
+		};
+		B9AA96281A575CB40079F917 = {
+			isa = PBXGroup;
+			children = (
+				B9AA96331A575CB40079F917 /* Violet */,
+				B9AA96D91A577D3E0079F917 /* assets */,
+				37C8E0851B55BCE000713DAC /* Libs */,
+				B9AA96321A575CB40079F917 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
@@ -422,7 +444,8 @@
 		B9AA96C21A5760CF0079F917 /* GL */ = {
 			isa = PBXGroup;
 			children = (
-				B9AA96C41A5760CF0079F917 /* gl_core_3_3.c */,
+				37C8E0881B55BFA000713DAC /* gl_core_3_3.c */,
+				37C8E0891B55BFA000713DAC /* gl_core_3_3.h */,
 			);
 			path = GL;
 			sourceTree = "<group>";
@@ -516,6 +539,7 @@
 			files = (
 				373FC7891B3AF9AB00AEBB25 /* NarrowPhase.cpp in Sources */,
 				B9AA96A81A575DE00079F917 /* Texture.cpp in Sources */,
+				37C8E0901B55BFC600713DAC /* native_text.c in Sources */,
 				373FC7841B3AF99E00AEBB25 /* Wavefront.cpp in Sources */,
 				B9AA969F1A575DE00079F917 /* Main.cpp in Sources */,
 				373FC7A21B3AF9CC00AEBB25 /* PixelDraw.cpp in Sources */,
@@ -526,7 +550,9 @@
 				B9AA96A71A575DE00079F917 /* Shader.cpp in Sources */,
 				373FC7831B3AF99E00AEBB25 /* Persist.cpp in Sources */,
 				37D376D01B3B4571001EAA62 /* Viewport.cpp in Sources */,
+				37C8E08D1B55BFB100713DAC /* sqlite3.c in Sources */,
 				B9AA969B1A575DE00079F917 /* AABB.cpp in Sources */,
+				37C8E08A1B55BFA000713DAC /* gl_core_3_3.c in Sources */,
 				B9AA96B41A575DE00079F917 /* Window.cpp in Sources */,
 				373FC78A1B3AF9AB00AEBB25 /* RigidBody.cpp in Sources */,
 				373FC7911B3AF9BA00AEBB25 /* EigenLib.cpp in Sources */,
@@ -534,7 +560,6 @@
 				373FC7921B3AF9BA00AEBB25 /* Scripting.cpp in Sources */,
 				B9AA96AB1A575DE00079F917 /* stdafx.cpp in Sources */,
 				373FC7591B3AF8CE00AEBB25 /* Collide.cpp in Sources */,
-				373FC7A81B3AFA1C00AEBB25 /* sqlite3.c in Sources */,
 				373FC7821B3AF99E00AEBB25 /* Filesystem.cpp in Sources */,
 				373FC7751B3AF99200AEBB25 /* Component.cpp in Sources */,
 				373FC7A31B3AF9CC00AEBB25 /* Text.cpp in Sources */,
@@ -552,7 +577,6 @@
 				373FC7A11B3AF9CC00AEBB25 /* Layout.cpp in Sources */,
 				373FC7761B3AF99200AEBB25 /* Object.cpp in Sources */,
 				373FC7501B3AF8C100AEBB25 /* Assets.cpp in Sources */,
-				B9AA96CA1A5760CF0079F917 /* gl_core_3_3.c in Sources */,
 				373092881B41DBB000C832FE /* DebugBoxes.cpp in Sources */,
 				373FC7511B3AF8C100AEBB25 /* ComponentEdit.cpp in Sources */,
 				B9AA96A21A575DE00079F917 /* Mobile.cpp in Sources */,
@@ -665,17 +689,16 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					.,
-					Violet,
+					"$(PROJECT_DIR)/Libs",
+					"$(PROJECT_DIR)/Violet",
 				);
 				INFOPLIST_FILE = Violet/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/GLFW",
-					"$(PROJECT_DIR)/GLFW/build/Debug",
+					"$(PROJECT_DIR)/Libs/GLFW/build/Debug",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Violet-ektknzihphkvveeijwugqfctgfmb/Build/Products/Debug",
-					"$(PROJECT_DIR)/lua/build/Debug",
+					"$(PROJECT_DIR)/Libs/lua/build/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -692,17 +715,16 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					.,
-					Violet,
+					"$(PROJECT_DIR)/Libs",
+					"$(PROJECT_DIR)/Violet",
 				);
 				INFOPLIST_FILE = Violet/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/GLFW",
-					"$(PROJECT_DIR)/GLFW/build/Debug",
+					"$(PROJECT_DIR)/Libs/GLFW/build/Debug",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Violet-ektknzihphkvveeijwugqfctgfmb/Build/Products/Debug",
-					"$(PROJECT_DIR)/lua/build/Debug",
+					"$(PROJECT_DIR)/Libs/lua/build/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
