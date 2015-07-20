@@ -78,7 +78,7 @@ try
 		edit.Editable(teapot2Obj);
 		narrowPhase.Add(teapotObj, "assets/teapot.obj");
 		narrowPhase.Add(teapot2Obj, "assets/triangle.obj");
-		rigidBody.Add(teapotObj, 1, 1);
+		//rigidBody.Add(teapotObj, 1, 1);
 
 		mgr.Save(teapotObj, persist); mgr.Save(teapot2Obj, persist);
 	}

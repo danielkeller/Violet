@@ -49,7 +49,7 @@ bool LineEdit::Draw(std::string& text)
 	auto box = l.Box();
 	//as far as stb_textedit is concerned
 	Vector2i origin = box.corner(AlignedBox2i::BottomLeft)
-		+ Vector2i{ TEXT_PADDING, BASELINE_HEIGHT };
+		+ Vector2i{ TEXT_PADDING, 0 };
 
 	Vector2i mouse = FrameEvents().MousePosSc().cast<int>();
 	Vector2f mouseOffs = (mouse - origin).cast<float>();
@@ -130,10 +130,12 @@ bool LineEdit::Draw(std::string& text)
 		if (timeHalfSec & 1)
 		{
 			stb_textedit_find_charpos(&find, &text, state.cursor, true);
-			//leave a pixel of daylight between the cursor and the underline
-			Vector2i cursStart{ ulStart + Vector2i{ find.x, 2 } };
+			//leave 2 pixels of daylight between the cursor and the underline
+			Vector2i cursStart{ ulStart + Vector2i{ find.x - 1, 2 } };
 			DrawBox({ cursStart, cursStart + Vector2i{ 0, LINEH - 2 } }, 0, UI::Colors::secondary);
-		}
+        }
+        
+        UI::PopZ();
 
 		if (state.select_start != state.select_end)
 		{
@@ -147,10 +149,13 @@ bool LineEdit::Draw(std::string& text)
 		}
 	}
 	else
+    {
 		DrawBox({ ulStart, ulStart + Vector2i{ width - 2 * TEXT_PADDING, 0 } },
 		0, UI::Colors::divider);
-
-	UI::PopZ();
+        
+        
+        UI::PopZ();
+    }
 
 	return ret;
 }

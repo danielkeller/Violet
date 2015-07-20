@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 typedef struct native_text
 {
@@ -14,6 +15,7 @@ typedef struct native_text
     
     float sX, sY;
     CTFontRef font;
+    CGColorRef color;
 } native_text;
 
 native_text* nt_init(void)
@@ -21,8 +23,9 @@ native_text* nt_init(void)
     native_text* ret = malloc(sizeof(native_text));
     ret->context = NULL;
     ret->sX = ret->sY = 1;
-    
+
     ret->font = CTFontCreateWithName(CFSTR("Helvetica Neue"), 12, NULL);
+    ret->color = CGColorCreateGenericRGB(0, 0, 0, 1);
     
     return ret;
 }
@@ -68,7 +71,7 @@ void nt_style(native_text* nt, int style)
             new = CTFontCreateCopyWithFamily(nt->font, 0.0, NULL, CFSTR("Baskerville"));
             break;
         case nt_mono:
-            new = CTFontCreateCopyWithFamily(nt->font, 0.0, NULL, CFSTR("Monaco"));
+            new = CTFontCreateCopyWithFamily(nt->font, 0.0, NULL, CFSTR("Menlo"));
             break;
         case nt_sans:
         default:
@@ -86,13 +89,20 @@ void nt_size(native_text* nt, int points)
     nt->font = new;
 }
 
+void nt_color(native_text* nt, float red, float green, float blue, float alpha)
+{
+    CFRelease(nt->color);
+    nt->color = CGColorCreateGenericRGB(red, green, blue, alpha);
+}
+
 //length < 0: null-terminated.
-CFMutableAttributedStringRef nt_str_len_to_attr_string(char* text, int length)
+CFMutableAttributedStringRef nt_str_len_to_attr_string(const char* text, ptrdiff_t length)
 {
     if (length < 0)
-        length = (int)strlen(text);
+        length = (ptrdiff_t)strlen(text);
     
     CFStringRef str = CFStringCreateWithBytes(NULL, (const unsigned char*)text, length, kCFStringEncodingUTF8, false);
+    assert(str && "String is not valid UTF8");
     CFMutableAttributedStringRef attrString = CFAttributedStringCreateMutable(NULL, 0);
     
     CFAttributedStringReplaceString(attrString, CFRangeMake(0, 0), str);
@@ -101,36 +111,34 @@ CFMutableAttributedStringRef nt_str_len_to_attr_string(char* text, int length)
     return attrString;
 }
 
-nt_extent nt_get_extent(native_text* nt, char* text, int length)
+nt_extent nt_get_extent(native_text* nt, const char* text, ptrdiff_t length)
 {
-    nt_extent ret = {0, 0};
-    
-    if (!nt->context)
-        return ret;
-    
     CFMutableAttributedStringRef attrString = nt_str_len_to_attr_string(text, length);
     CFAttributedStringSetAttribute(attrString, CFRangeMake(0, CFAttributedStringGetLength(attrString)), kCTFontAttributeName, nt->font);
     
     CTLineRef line = CTLineCreateWithAttributedString(attrString);
-    CGRect rect = CTLineGetImageBounds(line, nt->context);
+    CGFloat ascent, descent;
+    CGFloat width = CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
     
     CFRelease(attrString);
     CFRelease(line);
     
-    ret.w = rect.size.width;
-    ret.h = rect.size.height;
+    nt_extent ret = {0, 0};
+    ret.w = width + .5f;
+    ret.h = ascent + descent + .5f;
     return ret;
 }
 
-nt_extent nt_put_text(native_text* nt, char* text, int length, int x, int y, nt_extent* extent)
+nt_extent nt_put_text(native_text* nt, const char* text, ptrdiff_t length, int x, int y, nt_extent* extent)
 {
-    nt_extent ret = {0, 0};
-    
-    if (!nt->context)
-        return ret;
+    assert(nt->context);
     
     CFMutableAttributedStringRef attrString = nt_str_len_to_attr_string(text, length);
-    CFAttributedStringSetAttribute(attrString, CFRangeMake(0, CFAttributedStringGetLength(attrString)), kCTFontAttributeName, nt->font);
+    
+    CFRange wholeString = CFRangeMake(0, CFAttributedStringGetLength(attrString));
+    CFAttributedStringSetAttribute(attrString, wholeString, kCTFontAttributeName, nt->font);
+    CFAttributedStringSetAttribute(attrString, wholeString, kCTForegroundColorAttributeName, nt->color);
+    
     CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString(attrString);
     CFRelease(attrString);
     
@@ -152,9 +160,9 @@ nt_extent nt_put_text(native_text* nt, char* text, int length, int x, int y, nt_
     CTFrameDraw(frame, nt->context);
     CFRelease(frame);
     
+    nt_extent ret = {0, 0};
     ret.w = size.width;
     ret.h = size.height;
-    
     return ret;
 }
 

@@ -6,6 +6,7 @@
 struct ResourcePersistTag;
 
 using TexDim = Eigen::Matrix<GLsizei, 2, 1>;
+using TexBox = Eigen::AlignedBox<GLsizei, 2>;
 
 class Tex
 {
@@ -59,6 +60,13 @@ public:
 
 	//must be right amout of data
 	void Image(const Pixel* data);
+    
+    //Copy the entirety of 'data' into the portion of 'this' specified by 'box'
+    //void SubImage(const Pixel* data, TexBox box);
+    
+    //Copy the portion of 'data' specified by 'box' into the portion of 'this' specified by 'box'.
+    //'data' should be the same size as the texture itself.
+    void SubImageOf(const Pixel* data, TexBox box);
 
     HAS_HASH
 };

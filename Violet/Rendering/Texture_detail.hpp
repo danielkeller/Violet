@@ -48,3 +48,15 @@ void TypedTex<Pixel>::Image(const Pixel* data)
 	glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(PixelTraits<Pixel>::internalFormat),
 		dim.x(), dim.y(), 0, PixelTraits<Pixel>::format, PixelTraits<Pixel>::type, data);
 }
+
+template<class Pixel>
+void TypedTex<Pixel>::SubImageOf(const Pixel* data, TexBox box)
+{
+    auto dim = resource->dim;
+    glBindTexture(GL_TEXTURE_2D, textureObject);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, dim.x()); //unpack only the correct bytes
+    glTexSubImage2D(GL_TEXTURE_2D, 0, box.min().x(), box.min().y(), box.sizes().x(), box.sizes().y(),
+                    PixelTraits<Pixel>::format, PixelTraits<Pixel>::type,
+                    data + dim.x() * box.min().y() + box.min().x());
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+}

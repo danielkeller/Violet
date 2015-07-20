@@ -1,6 +1,12 @@
 #ifndef NativeText
 #define NativeText
 
+#include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct native_text native_text;
 
 typedef struct nt_extent
@@ -19,16 +25,24 @@ native_text* nt_init(void);
 void nt_free(native_text*);
 
 void nt_buffer(native_text*, char* buffer, int width, int height, int components);
+//scaling is the relationship between pixels in the buffer, and screen units used by the
+//text drawing functions.
 void nt_scaling(native_text*, float sX, float sY);
 
 void nt_size(native_text*, int points);
 void nt_style(native_text*, int style);
+void nt_color(native_text*, float red, float green, float blue, float alpha);
 
 //length < 0: null-terminated.
 
-nt_extent nt_get_extent(native_text*, char* text, int length);
+nt_extent nt_get_extent(native_text*, const char* text, ptrdiff_t length);
 
-//extent may be NULL, in which case the text will not be wrapped
-nt_extent nt_put_text(native_text*, char* text, int length, int x, int y, nt_extent* extent);
+//extent may be NULL, in which case the text will not be wrapped. return value is the same as get_extent
+nt_extent nt_put_text(native_text*, const char* text, ptrdiff_t length, int x, int y, nt_extent* extent);
+
+    
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -130,6 +130,9 @@
 		373FC79C1B3AF9CC00AEBB25 /* Text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Text.cpp; path = UI/Text.cpp; sourceTree = "<group>"; };
 		373FC79D1B3AF9CC00AEBB25 /* Text.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Text.hpp; path = UI/Text.hpp; sourceTree = "<group>"; };
 		373FC79E1B3AF9CC00AEBB25 /* TextElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextElements.cpp; path = UI/TextElements.cpp; sourceTree = "<group>"; };
+		37A8426E1B5D718A00908276 /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_image.h; path = Libs/stb/stb_image.h; sourceTree = "<group>"; };
+		37A8426F1B5D718A00908276 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = Libs/stb/stb_rect_pack.h; sourceTree = "<group>"; };
+		37A842701B5D718A00908276 /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = Libs/stb/stb_textedit.h; sourceTree = "<group>"; };
 		37C8E0881B55BFA000713DAC /* gl_core_3_3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gl_core_3_3.c; path = Libs/GL/gl_core_3_3.c; sourceTree = SOURCE_ROOT; };
 		37C8E0891B55BFA000713DAC /* gl_core_3_3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl_core_3_3.h; path = Libs/GL/gl_core_3_3.h; sourceTree = SOURCE_ROOT; };
 		37C8E08B1B55BFB100713DAC /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3.c; path = Libs/sqlite/sqlite3.c; sourceTree = "<group>"; };
@@ -301,9 +304,20 @@
 			name = sqlite;
 			sourceTree = "<group>";
 		};
+		37A8426D1B5D717900908276 /* stb */ = {
+			isa = PBXGroup;
+			children = (
+				37A8426E1B5D718A00908276 /* stb_image.h */,
+				37A8426F1B5D718A00908276 /* stb_rect_pack.h */,
+				37A842701B5D718A00908276 /* stb_textedit.h */,
+			);
+			name = stb;
+			sourceTree = "<group>";
+		};
 		37C8E0851B55BCE000713DAC /* Libs */ = {
 			isa = PBXGroup;
 			children = (
+				37A8426D1B5D717900908276 /* stb */,
 				37C8E0871B55BDAC00713DAC /* NativeText */,
 				B9AA96C21A5760CF0079F917 /* GL */,
 				373FC7A51B3AF9EA00AEBB25 /* sqlite */,

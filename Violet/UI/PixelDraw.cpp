@@ -41,7 +41,6 @@ struct UI::Settings
 		: screenTex(TexDim{ 0, 0 })
 		, pixelUBO({ "assets/uibox" }, "Common")
 	{}
-	Font font;
 	Vector3f textColor;
 	TypedTex<DepthPx> screenTex;
 	FBO fbo;
@@ -53,19 +52,6 @@ Settings& GetSettings()
 {
 	static Settings settings;
 	return settings;
-}
-
-Font UI::GetFont()
-{
-	return GetSettings().font;
-}
-
-void UI::TextStyle(Font font, Color color)
-{
-	GetSettings().font = font;
-	GetSettings().textColor.x() = float((color >> 24) & 0xFF) / 255.f;
-	GetSettings().textColor.y() = float((color >> 16) & 0xFF) / 255.f;
-	GetSettings().textColor.z() = float((color >>  8) & 0xFF) / 255.f;
 }
 
 struct Box2z
@@ -81,7 +67,7 @@ struct UIBox
 	int z;
 };
 
-struct TextQuad
+struct TexQuad
 {
 	Eigen::AlignedBox2f pos;
 	Eigen::AlignedBox2f tex;
@@ -91,13 +77,12 @@ struct TextQuad
 struct TextureQuad
 {
 	Tex tex;
-	TextQuad quad;
+	TexQuad quad;
 };
 
 struct UI::Visuals
 {
 	Visuals() : zStack({ 1 }) {}
-	std::vector<TextQuad> textInsts;
 	std::vector<UIBox> boxes;
 	std::vector<Box2z> shadows;
 	std::vector<TextureQuad> quads;
@@ -170,18 +155,22 @@ void UI::SetViewport()
 
 void UI::EndFrame()
 {
+    //transfer any undrawn text into quads
+    DrawAllText();
+    
 	SetViewport();
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
 	//Draw boxes
+
 	static ShaderProgram boxShdr("assets/uibox");
 	static VAO boxVAO(boxShdr, UnitBox);
 	static BufferObject<UIBox, GL_ARRAY_BUFFER, GL_STREAM_DRAW> boxInstances;
+    STATIC boxVAO.BindInstanceData(boxShdr, boxInstances);
 
 	boxInstances.Data(FrameVisuals().boxes);
-	//TODO: just set numInstances
-	boxVAO.BindInstanceData(boxShdr, boxInstances);
+    boxVAO.NumInstances(static_cast<GLsizei>(boxInstances.Size()));
 
 	boxShdr.use();
 	BindPixelUBO();
@@ -194,16 +183,17 @@ void UI::EndFrame()
 
 	boxVAO.Draw();
 
+    //Assume premultipled alpha
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 	//Draw textured quads
 	static ShaderProgram quadShdr{ "assets/textured_uibox" };
 	static VAO quadVAO(quadShdr, UnitBox);
-	static BufferObject<TextQuad, GL_ARRAY_BUFFER, GL_STREAM_DRAW> quadInstances(1);
+    static BufferObject<TexQuad, GL_ARRAY_BUFFER, GL_STREAM_DRAW> quadInstances(1);
+    STATIC quadVAO.BindInstanceData(quadShdr, quadInstances);
 
 	quadShdr.use();
-	quadVAO.BindInstanceData(quadShdr, quadInstances);
 	BindPixelUBO();
 
 	for (const auto& q : FrameVisuals().quads)
@@ -212,25 +202,6 @@ void UI::EndFrame()
 		q.tex.Bind(0);
 		quadVAO.Draw();
 	}
-
-	//Draw text
-	//blend from constant (text) color to dest color by source color (ie, subpixel alpha)
-	glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR);
-	auto textColor = GetSettings().textColor;
-	glBlendColor(textColor.x(), textColor.y(), textColor.z(), 1.f);
-
-	static ShaderProgram txtShdr{ "assets/text" };
-	static VAO txtVAO(txtShdr, UnitBox);
-	static BufferObject<TextQuad, GL_ARRAY_BUFFER, GL_STREAM_DRAW> charInstances;
-
-	GetSettings().font.Bind();
-	charInstances.Data(FrameVisuals().textInsts);
-	txtVAO.BindInstanceData(txtShdr, charInstances);
-
-	txtShdr.use();
-	BindPixelUBO();
-
-	txtVAO.Draw();
 
 	//Draw specials
 	glDisable(GL_BLEND);
@@ -273,12 +244,6 @@ void UI::PopZ()
 int UI::CurZ()
 {
 	return FrameVisuals().zStack.back();
-}
-
-void UI::DrawChar(Eigen::AlignedBox2f pos, Eigen::AlignedBox2f tex)
-{
-	TextQuad q{ pos, tex, CurZ() };
-	FrameVisuals().textInsts.push_back(q);
 }
 
 void UI::DrawBox(AlignedBox2i box, Color fill, Color stroke)
@@ -336,7 +301,7 @@ const Schema AttribTraits<UIBox>::schema = {
 };
 
 template<>
-const Schema AttribTraits<TextQuad>::schema = {
+const Schema AttribTraits<TexQuad>::schema = {
 	AttribProperties{ "minBox",    GL_FLOAT, false, 0,                 { 2, 1 } },
 	AttribProperties{ "maxBox",    GL_FLOAT, false, 2 * sizeof(float), { 2, 1 } },
 	AttribProperties{ "minBoxTex", GL_FLOAT, false, 4 * sizeof(float), { 2, 1 } },
@@ -356,15 +321,11 @@ static void WinResize(Viewport view)
     }
 
 	s.pixelUBO["pixelMat"] = PixelMat(view.ScreenSize());
-    s.font = Font("assets/DroidSansMono.ttf", view.Scaling());
     s.winSizePx = view.PixelSize();
 }
 
 void UI::Init(Window& w)
 {
-	//init styles
-	TextStyle({});
-
 	w.view += make_magic(accessor<Viewport>(&WinResize));
 	WinResize(*w.view);
 }

@@ -6,8 +6,5 @@ uniform sampler2D tex;
 
 void main()
 {
-	outputColor = texture(tex, texCoordFrag);
-
-	if (outputColor.a == 0)
-		discard;
+    outputColor = texture(tex, texCoordFrag);
 }

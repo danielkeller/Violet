@@ -5,54 +5,72 @@
 #include "File/Filesystem.hpp"
 #include "PixelDraw.hpp"
 #include "Layout.hpp"
+#include "Utils/Profiling.hpp"
 
+#include <array>
 #include <cstdint>
 
-#define STB_TRUETYPE_IMPLEMENTATION
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "stb/stb_rect_pack.h"
-#include "stb/stb_truetype.h"
+
+#include "NativeText/native_text.h"
+
+#include <iostream>
 
 using namespace UI;
 
-struct Font::FontResource : public Resource<Font::FontResource>
-{
-    FontResource(std::string key, std::string path, Vector2i scaling);
+static const int TEX_SIZE = 512;
 
-    int scale;
-	TypedTex<std::uint8_t> texture;
-	stbtt_packedchar cdata[96]; // ASCII 32..126 is 95 glyphs
+struct TextGen
+{
+    TextGen();
+    
+    TypedTex<RGBA8Px> tex;
+    std::unordered_map<std::string, Eigen::AlignedBox2f> locs;
+    
+    stbrp_context stbrp;
+    std::array<stbrp_node, TEX_SIZE> stbrp_temp;
+    
+    bool PackStrings(std::vector<std::string>& strs);
+    void Clear();
 };
 
-Font::FontResource::FontResource(std::string key, std::string path, Vector2i scaling)
-	: ResourceTy(key), scale(scaling.y()), texture(TexDim{512, 512})
+struct TextContext
 {
-	MappedFile ttf(path);
-	std::uint8_t temp_bitmap[512 * 512];
+    TextContext();
+    ~TextContext();
+    TextGen youngGen, oldGen;
+    std::unordered_map<std::string, std::vector<Vector2i>> toDraw;
+    native_text* nt;
+    RGBA8Px texBuf[TEX_SIZE * TEX_SIZE];
+};
 
-	stbtt_pack_context ctx;
-	stbtt_PackBegin(&ctx, temp_bitmap, 512, 512, 0, 1, nullptr);
-	stbtt_PackSetOversampling(&ctx, 3, 1);
-	stbtt_PackFontRange(&ctx, ttf.Data<unsigned char>(), 0, 14.f*scale, 32, 96, cdata);
-	stbtt_PackEnd(&ctx);
-	texture.Image(temp_bitmap);
+TextContext& GetTextContext()
+{
+    static TextContext ctx;
+    return ctx;
 }
 
-Font::Font(std::string path, Vector2i scaling)
+TextGen::TextGen()
+    : tex(TexDim{TEX_SIZE, TEX_SIZE})
 {
-    std::string key = path + '_' + to_string(scaling.x()) + 'x' + to_string(scaling.y());
-    if (!(resource = FontResource::FindResource(key)))
-        resource = FontResource::MakeShared(key, path, scaling);
+    Clear();
 }
 
-std::string Font::Name()
+TextContext::TextContext()
+    : nt(nt_init())
 {
-	return resource->Key();
+    nt_buffer(nt, (char*)texBuf, TEX_SIZE, TEX_SIZE, 4);
+    nt_color(nt,
+             float(Colors::fg >> 24 & 0xFF) / 255.f,
+             float(Colors::fg >> 16 & 0xFF) / 255.f,
+             float(Colors::fg >>  8 & 0xFF) / 255.f,
+             float(Colors::fg >>  0 & 0xFF) / 255.f);
 }
 
-void Font::Bind()
+TextContext::~TextContext()
 {
-	resource->texture.Bind(0);
+    nt_free(nt);
 }
 
 Vector2i UI::TextDim(const std::string& text)
@@ -62,22 +80,15 @@ Vector2i UI::TextDim(const std::string& text)
 
 Vector2i UI::TextDim(std::string::const_iterator begin, std::string::const_iterator end)
 {
-    auto& font = *GetFont().resource;
-	Vector2f posf(0, 0);
-	for (; begin != end; ++begin)
-	{
-		auto& cdata = font.cdata[*begin - 32];
-		posf.x() += cdata.xadvance;
-		posf.y() = std::max(posf.y(), cdata.yoff2 - cdata.yoff);
-	}
-    return posf.cast<int>() / font.scale;
+    nt_extent ext = nt_get_extent(GetTextContext().nt, &*begin, end - begin);
+    
+    return{ ext.w, ext.h };
 }
 
 void UI::DrawText(const std::string& text, AlignedBox2i container, TextAlign align)
 {
 	Vector2i dim{ TextDim(text).x(), LINEH }; //doesn't give useful y dimension
 	Vector2i space = (container.sizes() - dim) / 2;
-	space.y() += BASELINE_HEIGHT; //start at the correct point
 	if (align == TextAlign::Left) space.x() = TEXT_PADDING;
 	if (align == TextAlign::Right) space.x() = container.sizes().x() - dim.x() - TEXT_PADDING;
 	//UI::DrawBox(container);
@@ -86,55 +97,138 @@ void UI::DrawText(const std::string& text, AlignedBox2i container, TextAlign ali
 
 void UI::DrawText(const std::string& text, Vector2i pos)
 {
-    Vector2f posf = Vector2f::Zero();
-	//the coordinate system is backwards wrt ours so use negative y coords
-	posf.y() *= -1;
-    
-    auto& font = *GetFont().resource;
-	auto& cdata = font.cdata;
-	for (int character : text)
-	{
-		stbtt_aligned_quad q;
-		stbtt_GetPackedQuad(cdata, 512, 512, character - 32,
-			&posf.x(), &posf.y(), &q, 0);
-        
-        Eigen::AlignedBox2f dispBox{
-            Vector2f{ q.x0, -q.y0 } / font.scale,
-            Vector2f{ q.x1, -q.y1 } / font.scale};
+    GetTextContext().toDraw[text].push_back(pos);
+}
 
-		DrawChar(
-			dispBox.translate(pos.cast<float>()),
-			{ Vector2f{ q.s0, q.t0 }, Vector2f{ q.s1, q.t1 } });
-	}
+bool TextGen::PackStrings(std::vector<std::string>& strs)
+{
+    std::vector<stbrp_rect> toPack(strs.size());
+    for (size_t i = 0; i < strs.size(); ++i)
+    {
+        auto sz = TextDim(strs[i]);
+        toPack[i].w = sz.x();
+        toPack[i].h = sz.y();
+    }
+    
+    stbrp_pack_rects(&stbrp, &toPack[0], static_cast<int>(toPack.size()));
+    
+    for (const auto& rect : toPack)
+        if (!rect.was_packed)
+            return false;
+
+    for (auto& px : GetTextContext().texBuf) px = {0, 0, 0, 0};
+    
+    for (size_t i = 0; i < strs.size(); ++i)
+    {
+        nt_put_text(GetTextContext().nt, strs[i].c_str(), strs[i].size(), toPack[i].x, toPack[i].y, nullptr);
+        
+        TexBox box = {TexDim{toPack[i].x, toPack[i].y}, TexDim{toPack[i].x + toPack[i].w, toPack[i].y + toPack[i].h}};
+        
+        //set tex coords
+        locs[strs[i]] = {box.min().cast<float>() / float{TEX_SIZE}, box.max().cast<float>() / float{TEX_SIZE}};
+        
+        //do individual pixel transfers so as not to clobber existing data
+        tex.SubImageOf(GetTextContext().texBuf, box);
+    }
+        
+    return true;
+}
+
+void TextGen::Clear()
+{
+    locs.clear();
+    stbrp_init_target(&stbrp, TEX_SIZE, TEX_SIZE, &stbrp_temp[0], TEX_SIZE);
+}
+
+void UI::DrawAllText()
+{
+    auto p = Profile::Profile("text rendering");
+    
+    auto& toDraw = GetTextContext().toDraw;
+    auto& young = GetTextContext().youngGen;
+    auto& old = GetTextContext().oldGen;
+    
+    //Don't draw empty strings
+    toDraw.erase("");
+    
+    //Gather up the strings that we haven't drawn yet
+    std::vector<std::string> newStrs;
+    for (const auto& val : toDraw)
+        if (!young.locs.count(val.first)
+            && !old.locs.count(val.first))
+            newStrs.push_back(val.first);
+    
+    if (!young.PackStrings(newStrs))
+    {
+        //Texture is full, GC young. Put all the strings currently in young into old
+        std::vector<std::string> toOld;
+        for (const auto& p : young.locs)
+            if (toDraw.count(p.first)) //still needed?
+                toOld.push_back(p.first);
+        
+        //std::cerr << "Young GC, keeping " << toOld.size() << " of " << young.locs.size() << '\n';
+        
+        //now there should be a place in young for the new strings
+        young.Clear();
+        if (!young.PackStrings(newStrs))
+            throw std::runtime_error("Out of text space");
+        
+        if (!old.PackStrings(toOld))
+        {
+            //Texture is full, GC old.
+            for (const auto& p : old.locs)
+                if (toDraw.count(p.first))
+                    toOld.push_back(p.first);
+            
+            //std::cerr << "Old GC, keeping " << toOld.size() << " of " << old.locs.size() << '\n';
+            
+            //Repack everything
+            old.Clear();
+            if (!old.PackStrings(toOld))
+                throw std::runtime_error("Out of text space");
+        }
+    }
+    
+    //All the text is drawn, so render the quads now
+    for (const auto& str : toDraw)
+    {
+        Vector2i dim = TextDim(str.first);
+        auto it = young.locs.find(str.first);
+        if (it != young.locs.end())
+            for (const auto& loc : str.second)
+                DrawQuad(young.tex, {loc, loc + dim}, it->second);
+        else
+        {
+            it = old.locs.find(str.first);
+            for (const auto& loc : str.second)
+                DrawQuad(old.tex, {loc, loc + dim}, it->second);
+        }
+    }
+    
+    toDraw.clear();
 }
 
 #include "stb/stb_textedit.h"
-#include "Layout.hpp"
 
 float STB_TEXTEDIT_GETWIDTH(std::string* str, int n, int i)
 {
-	return GetFont().resource->cdata[str->at(i) - 32].xadvance
-        / GetFont().resource->scale;
+    auto nt = GetTextContext().nt;
+    //width of char is difference in line length with and without it
+    return nt_get_extent(nt, &(*str)[n], i + 1).w - nt_get_extent(nt, &(*str)[n], i).w;
 }
 
 void STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::string* str, int n)
 {
-    int scale = GetFont().resource->scale;
-	auto& cdata = GetFont().resource->cdata;
-
-	r->baseline_y_delta = LINEH;
+    r->baseline_y_delta = LINEH;
 	r->x1 = r->x0 = 0;
 
 	r->num_chars = 0;
 	r->ymin = r->ymax = 0.f;
-
-	for (auto it = str->begin() + n;
-		it != str->end() && *it != '\n';
-		++it)
-	{
-		++r->num_chars;
-		r->ymin = std::min(r->ymin, cdata[*it - 32].yoff / scale);
-		r->ymax = std::min(r->ymax, cdata[*it - 32].yoff2 / scale);
-		r->x1 += cdata[*it - 32].xadvance / scale;
-	}
+    
+    auto end = std::find(str->begin() + n, str->end(), '\n');
+    r->num_chars = static_cast<int>(end - str->begin()) - n;
+    
+    nt_extent ext = nt_get_extent(GetTextContext().nt, &(*str)[n], r->num_chars);
+    r->ymin = -ext.h;
+    r->x1 = ext.w;
 }

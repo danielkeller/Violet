@@ -20,27 +20,8 @@ namespace UI
 	void DrawText(const std::string& text, Vector2i pos);
 	void DrawText(const std::string& text, AlignedBox2i container,
 		TextAlign align = TextAlign::Center);
-
-	class Font
-	{
-		struct FontResource;
-	public:
-		//Invalid font
-		Font() = default;
-		Font(std::string path, Vector2i scaling);
-		std::string Name();
-
-		void Bind();
-
-		BASIC_EQUALITY(Font, resource);
-	private:
-		std::shared_ptr<FontResource> resource;
-
-		friend void DrawText(const std::string& text, Vector2i pos);
-		friend Vector2i TextDim(std::string::const_iterator begin, std::string::const_iterator end);
-		friend float ::STB_TEXTEDIT_GETWIDTH(std::string* str, int n, int i);
-		friend void ::STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::string* str, int n);
-	};
+    
+    void DrawAllText();
 }
 
 #endif
