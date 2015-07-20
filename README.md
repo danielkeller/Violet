@@ -7,5 +7,6 @@ Violet is a simple game engine. It is written with the goal of being concise and
 * Basic scene editor with instant saving
 * SQLite scene file format
 * Basic collision (OBB/AABB)
+* Unicode support (in progress)
 * Rigid body physics (in progress)
 * Lua scripting (in progress)
