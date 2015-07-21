@@ -9,6 +9,7 @@
 
 #include <array>
 #include <cstdint>
+#include <codecvt>
 
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "stb/stb_rect_pack.h"
@@ -234,14 +235,20 @@ void UI::TextScaling(float scaling)
 
 #include "stb/stb_textedit.h"
 
-float STB_TEXTEDIT_GETWIDTH(std::string* str, int n, int i)
+float STB_TEXTEDIT_GETWIDTH(std::u32string* str32, int n, int i)
 {
     auto nt = GetTextContext().nt;
+    u8_u32_convert u8_to_u32;
+    
     //width of char is difference in line length with and without it
-    return nt_get_extent(nt, &(*str)[n], i + 1).w - nt_get_extent(nt, &(*str)[n], i).w;
+    std::string strlong = u8_to_u32.to_bytes(&(*str32)[n], &(*str32)[n + i + 1]);
+    std::string strshort = u8_to_u32.to_bytes(&(*str32)[n], &(*str32)[n + i]);
+    
+    return nt_get_extent(nt, strlong.c_str(), strlong.size()).w
+        - nt_get_extent(nt, strshort.c_str(), strshort.size()).w;
 }
 
-void STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::string* str, int n)
+void STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::u32string* str32, int n)
 {
     r->baseline_y_delta = LINEH;
 	r->x1 = r->x0 = 0;
@@ -249,10 +256,12 @@ void STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::string* str, int n)
 	r->num_chars = 0;
 	r->ymin = r->ymax = 0.f;
     
-    auto end = std::find(str->begin() + n, str->end(), '\n');
-    r->num_chars = static_cast<int>(end - str->begin()) - n;
+    auto end = std::find(str32->begin() + n, str32->end(), U'\n');
+    r->num_chars = static_cast<int>(end - str32->begin()) - n;
     
-    nt_extent ext = nt_get_extent(GetTextContext().nt, &(*str)[n], r->num_chars);
+    u8_u32_convert u8_to_u32;
+    std::string str = u8_to_u32.to_bytes(&(*str32)[n], &(*end));
+    nt_extent ext = nt_get_extent(GetTextContext().nt, str.c_str(), str.size());
     r->ymin = -ext.h;
     r->x1 = ext.w;
 }

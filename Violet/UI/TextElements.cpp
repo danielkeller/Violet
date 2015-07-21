@@ -9,10 +9,14 @@
 
 using namespace UI;
 
-#define STB_TEXTEDIT_STRING std::string
+//We almost never need to individually address codepoints, except for here. So the solution is to use
+//UTF-32 here, and UTF-8 elsewhere. This may or may not prove to be a good idea. Also since codepoints
+//are not, strictly speaking, characters, this may produce some less-than-desirable results. But it
+//should be better than nothing.
+#define STB_TEXTEDIT_STRING std::u32string
 #define STB_TEXTEDIT_STRINGLEN(str) (static_cast<int>(str->size()))
 #define STB_TEXTEDIT_GETCHAR(str, i) ((*str)[i])
-#define STB_TEXTEDIT_NEWLINE '\n'
+#define STB_TEXTEDIT_NEWLINE U'\n'
 #define STB_TEXTEDIT_DELETECHARS(str, i, n) (str->erase(i, n))
 #define STB_TEXTEDIT_INSERTCHARS(str, i, cs, n) (str->insert(str->begin() + i, cs, cs+n), true)
 #define STB_TEXTEDIT_K_SHIFT (1<<31)
@@ -70,11 +74,15 @@ bool LineEdit::Draw(std::string& text)
 		state.select_start = 0;
 		state.select_end = int(text.size());
 	}
+    
+    //Convert to utf-32 to edit
+    u8_u32_convert u8_to_u32;
+    std::u32string text32 = u8_to_u32.from_bytes(text);
 
 	if (FrameEvents().MouseClick(GLFW_MOUSE_BUTTON_LEFT) && box.contains(mouse))
-		stb_textedit_click(&text, &state, mouseOffs.x(), mouseOffs.y());
+		stb_textedit_click(&text32, &state, mouseOffs.x(), mouseOffs.y());
 	else if (focus.focused && FrameEvents().MouseButton(GLFW_MOUSE_BUTTON_LEFT))
-		stb_textedit_drag(&text, &state, mouseOffs.x(), mouseOffs.y());
+		stb_textedit_drag(&text32, &state, mouseOffs.x(), mouseOffs.y());
 
 	if (focus.focused)
 	{
@@ -98,14 +106,17 @@ bool LineEdit::Draw(std::string& text)
 			if (key.key.mods & GLFW_MOD_SHIFT)
 				stb_key |= STB_TEXTEDIT_K_SHIFT;
 
-			stb_textedit_key(&text, &state, stb_key);
+			stb_textedit_key(&text32, &state, stb_key);
 		}
 		FrameEvents().keyEvents.clear();
 
 		for (auto ch : FrameEvents().charEvents)
-			stb_textedit_char(&text, &state, ch);
+			stb_textedit_char(&text32, &state, ch);
 		FrameEvents().charEvents.clear();
 	}
+    
+    //Now that editing is over, convert back to utf-8
+    text = u8_to_u32.to_bytes(text32);
 
 	UI::PushZ();
 	lastText = text;
@@ -127,7 +138,7 @@ bool LineEdit::Draw(std::string& text)
 
 		if (timeHalfSec & 1)
 		{
-			stb_textedit_find_charpos(&find, &text, state.cursor, true);
+			stb_textedit_find_charpos(&find, &text32, state.cursor, true);
 			//leave 2 pixels of daylight between the cursor and the underline
 			Vector2i cursStart{ ulStart + Vector2i{ find.x - 1, 2 } };
 			DrawBox({ cursStart, cursStart + Vector2i{ 0, LINEH - 2 } }, 0, UI::Colors::secondary);
@@ -135,10 +146,10 @@ bool LineEdit::Draw(std::string& text)
 
 		if (state.select_start != state.select_end)
 		{
-            stb_textedit_find_charpos(&find, &text, std::min(state.select_start, state.select_end), true);
+            stb_textedit_find_charpos(&find, &text32, std::min(state.select_start, state.select_end), true);
 			Vector2i selStart{ ulStart + Vector2i{ find.x - 1, 2 } };
 
-			stb_textedit_find_charpos(&find, &text, std::max(state.select_start, state.select_end), true);
+			stb_textedit_find_charpos(&find, &text32, std::max(state.select_start, state.select_end), true);
 			Vector2i selEnd{ ulStart + Vector2i{ find.x + 1, LINEH } };
 
             DrawBox({ selStart, selEnd }, UI::Colors::selection, 0);

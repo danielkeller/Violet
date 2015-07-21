@@ -7,7 +7,7 @@
 #include "Layout.hpp"
 #include "Core/Time.hpp"
 
-#define STB_TEXTEDIT_CHARTYPE unsigned int
+#define STB_TEXTEDIT_CHARTYPE char32_t
 #include "stb/stb_textedit.h"
 
 std::string to_upper(std::string str);
