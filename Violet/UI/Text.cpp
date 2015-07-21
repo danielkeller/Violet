@@ -235,6 +235,24 @@ void UI::TextScaling(float scaling)
 
 #include "stb/stb_textedit.h"
 
+float STB_TEXTEDIT_CHARPOS(std::u32string* str32, int n, int i)
+{
+    auto end = std::find(str32->begin() + n, str32->end(), U'\n');
+    
+    u8_u32_convert u8_to_u32;
+    std::string str = u8_to_u32.to_bytes(&(*str32)[n], &(*end));
+    return nt_visual_offset(GetTextContext().nt, str.c_str(), str.size(), i);
+}
+
+int STB_TEXTEDIT_HITTEST(std::u32string* str32, int n, float x)
+{
+    auto end = std::find(str32->begin() + n, str32->end(), U'\n');
+    
+    u8_u32_convert u8_to_u32;
+    std::string str = u8_to_u32.to_bytes(&(*str32)[n], &(*end));
+    return static_cast<int>(nt_hit_test(GetTextContext().nt, str.c_str(), str.size(), x));
+}
+
 float STB_TEXTEDIT_GETWIDTH(std::u32string* str32, int n, int i)
 {
     auto nt = GetTextContext().nt;

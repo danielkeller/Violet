@@ -110,10 +110,12 @@
 //    STB_TEXTEDIT_STRINGLEN(obj)       the length of the string (ideally O(1))
 //    STB_TEXTEDIT_LAYOUTROW(&r,obj,n)  returns the results of laying out a line of characters
 //                                        starting from character #n (see discussion below)
-//    STB_TEXTEDIT_GETWIDTH(obj,n,i)    returns the pixel delta from the xpos of the i'th character
-//                                        to the xpos of the i+1'th char for a line of characters
+//    STB_TEXTEDIT_CHARPOS(obj,n,i)    returns the pixel delta from the start of the line
+//                                        to the xpos of the i'th char for a line of characters
 //                                        starting at character #n (i.e. accounts for kerning
 //                                        with previous char)
+//    STB_TEXTEDIT_HITTEST(obj,n,x)    returns the offset of the character closest to the pixel
+//                                        position x in the line starting at character #n
 //    STB_TEXTEDIT_GETCHAR(obj,i)       returns the i'th character of obj, 0-based
 //    STB_TEXTEDIT_NEWLINE              the character returned by _GETCHAR() we recognize
 //                                        as manually wordwrapping for end-of-line positioning
@@ -370,8 +372,8 @@ static int stb_text_locate_coord(STB_TEXTEDIT_STRING *str, float x, float y)
 {
    StbTexteditRow r;
    int n = STB_TEXTEDIT_STRINGLEN(str);
-   float base_y = 0, prev_x;
-   int i=0, k;
+   float base_y = 0;
+   int i=0;
 
    r.x0 = r.x1 = 0;
    r.ymin = r.ymax = 0;
@@ -405,18 +407,7 @@ static int stb_text_locate_coord(STB_TEXTEDIT_STRING *str, float x, float y)
    // check if it's before the end of the line
    if (x < r.x1) {
       // search characters in row for one that straddles 'x'
-      k = i;
-      prev_x = r.x0;
-      for (i=0; i < r.num_chars; ++i) {
-         float w = STB_TEXTEDIT_GETWIDTH(str, k, i);
-         if (x < prev_x+w) {
-            if (x < prev_x+w/2)
-               return k+i;
-            else
-               return k+i+1;
-         }
-         prev_x += w;
-      }
+      return i + STB_TEXTEDIT_HITTEST(str, i, x - r.x0);
       // shouldn't happen, but if it does, fall through to end-of-line case
    }
 
@@ -517,9 +508,7 @@ static void stb_textedit_find_charpos(StbFindState *find, STB_TEXTEDIT_STRING *s
 
    // now scan to find xpos
    find->x = r.x0;
-   i = 0;
-   for (i=0; first+i < n; ++i)
-      find->x += STB_TEXTEDIT_GETWIDTH(str, first, i);
+   find->x += STB_TEXTEDIT_CHARPOS(str, first, n - first);
 }
 
 #define STB_TEXT_HAS_SELECTION(s)   ((s)->select_start != (s)->select_end)
@@ -797,8 +786,7 @@ retry:
       case STB_TEXTEDIT_K_DOWN:
       case STB_TEXTEDIT_K_DOWN | STB_TEXTEDIT_K_SHIFT: {
          StbFindState find;
-         StbTexteditRow row;
-         int i, sel = (key & STB_TEXTEDIT_K_SHIFT) != 0;
+         int sel = (key & STB_TEXTEDIT_K_SHIFT) != 0;
 
          if (state->single_line) {
             // on windows, up&down in single-line behave like left&right
@@ -818,22 +806,9 @@ retry:
          // now find character position down a row
          if (find.length) {
             float goal_x = state->has_preferred_x ? state->preferred_x : find.x;
-            float x;
             int start = find.first_char + find.length;
             state->cursor = start;
-            STB_TEXTEDIT_LAYOUTROW(&row, str, state->cursor);
-            x = row.x0;
-            for (i=0; i < row.num_chars; ++i) {
-               float dx = STB_TEXTEDIT_GETWIDTH(str, start, i);
-               #ifdef STB_TEXTEDIT_GETWIDTH_NEWLINE
-               if (dx == STB_TEXTEDIT_GETWIDTH_NEWLINE)
-                  break;
-               #endif
-               x += dx;
-               if (x > goal_x)
-                  break;
-               ++state->cursor;
-            }
+            state->cursor += STB_TEXTEDIT_HITTEST(str, start, goal_x);
             stb_textedit_clamp(str, state);
 
             state->has_preferred_x = 1;
@@ -848,8 +823,7 @@ retry:
       case STB_TEXTEDIT_K_UP:
       case STB_TEXTEDIT_K_UP | STB_TEXTEDIT_K_SHIFT: {
          StbFindState find;
-         StbTexteditRow row;
-         int i, sel = (key & STB_TEXTEDIT_K_SHIFT) != 0;
+         int sel = (key & STB_TEXTEDIT_K_SHIFT) != 0;
 
          if (state->single_line) {
             // on windows, up&down become left&right
@@ -870,21 +844,9 @@ retry:
          if (find.prev_first != find.first_char) {
             // now find character position up a row
             float goal_x = state->has_preferred_x ? state->preferred_x : find.x;
-            float x;
+            int start = find.first_char + find.length;
             state->cursor = find.prev_first;
-            STB_TEXTEDIT_LAYOUTROW(&row, str, state->cursor);
-            x = row.x0;
-            for (i=0; i < row.num_chars; ++i) {
-               float dx = STB_TEXTEDIT_GETWIDTH(str, find.prev_first, i);
-               #ifdef STB_TEXTEDIT_GETWIDTH_NEWLINE
-               if (dx == STB_TEXTEDIT_GETWIDTH_NEWLINE)
-                  break;
-               #endif
-               x += dx;
-               if (x > goal_x)
-                  break;
-               ++state->cursor;
-            }
+            state->cursor += STB_TEXTEDIT_HITTEST(str, start, goal_x);
             stb_textedit_clamp(str, state);
 
             state->has_preferred_x = 1;

@@ -5,7 +5,8 @@
 
 struct StbTexteditRow;
 
-float STB_TEXTEDIT_GETWIDTH(std::u32string* str, int n, int i);
+float STB_TEXTEDIT_CHARPOS(std::u32string* str, int n, int i);
+int STB_TEXTEDIT_HITTEST(std::u32string* str, int n, float x);
 void STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, std::u32string* str, int n);
 
 namespace UI

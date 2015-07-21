@@ -35,7 +35,12 @@ void nt_color(native_text*, float red, float green, float blue, float alpha);
 
 //length < 0: null-terminated.
 
+//metrics functions
 nt_extent nt_get_extent(native_text*, const char* text, ptrdiff_t length);
+//character offset corresponding to x-coordinate, clamped to [0, length]
+ptrdiff_t nt_hit_test(native_text*, const char* text, ptrdiff_t length, int x);
+//x-coordinate corresponding to character offset (range?)
+int nt_visual_offset(native_text*, const char* text, ptrdiff_t length, ptrdiff_t index);
 
 //extent may be NULL, in which case the text will not be wrapped. return value is the same as get_extent
 nt_extent nt_put_text(native_text*, const char* text, ptrdiff_t length, int x, int y, nt_extent* extent);

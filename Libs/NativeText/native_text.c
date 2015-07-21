@@ -100,7 +100,7 @@ void nt_color(native_text* nt, float red, float green, float blue, float alpha)
 }
 
 //length < 0: null-terminated.
-CFMutableAttributedStringRef nt_str_len_to_attr_string(const char* text, ptrdiff_t length)
+CFMutableAttributedStringRef nt_str_len_to_attr_string(native_text* nt, const char* text, ptrdiff_t length)
 {
     if (length < 0)
         length = (ptrdiff_t)strlen(text);
@@ -112,13 +112,16 @@ CFMutableAttributedStringRef nt_str_len_to_attr_string(const char* text, ptrdiff
     CFAttributedStringReplaceString(attrString, CFRangeMake(0, 0), str);
     CFRelease(str);
     
+    CFRange wholeString = CFRangeMake(0, CFAttributedStringGetLength(attrString));
+    CFAttributedStringSetAttribute(attrString, wholeString, kCTFontAttributeName, nt->font);
+    CFAttributedStringSetAttribute(attrString, wholeString, kCTForegroundColorAttributeName, nt->color);
+    
     return attrString;
 }
 
 nt_extent nt_get_extent(native_text* nt, const char* text, ptrdiff_t length)
 {
-    CFMutableAttributedStringRef attrString = nt_str_len_to_attr_string(text, length);
-    CFAttributedStringSetAttribute(attrString, CFRangeMake(0, CFAttributedStringGetLength(attrString)), kCTFontAttributeName, nt->font);
+    CFMutableAttributedStringRef attrString = nt_str_len_to_attr_string(nt, text, length);
     
     CTLineRef line = CTLineCreateWithAttributedString(attrString);
     CGFloat ascent, descent;
@@ -133,15 +136,37 @@ nt_extent nt_get_extent(native_text* nt, const char* text, ptrdiff_t length)
     return ret;
 }
 
+ptrdiff_t nt_hit_test(native_text* nt, const char* text, ptrdiff_t length, int x)
+{
+    CFMutableAttributedStringRef attrString = nt_str_len_to_attr_string(nt, text, length);
+    CTLineRef line = CTLineCreateWithAttributedString(attrString);
+    
+    CFIndex ind = CTLineGetStringIndexForPosition(line, CGPointMake(x, 0.f));
+    
+    CFRelease(attrString);
+    CFRelease(line);
+    
+    return ind;
+}
+
+int nt_visual_offset(native_text* nt, const char* text, ptrdiff_t length, ptrdiff_t index)
+{
+    CFMutableAttributedStringRef attrString = nt_str_len_to_attr_string(nt, text, length);
+    CTLineRef line = CTLineCreateWithAttributedString(attrString);
+    
+    CGFloat offs = CTLineGetOffsetForStringIndex(line, index, NULL);
+    
+    CFRelease(attrString);
+    CFRelease(line);
+    
+    return offs + .5f;
+}
+
 nt_extent nt_put_text(native_text* nt, const char* text, ptrdiff_t length, int x, int y, nt_extent* extent)
 {
     assert(nt->context);
     
-    CFMutableAttributedStringRef attrString = nt_str_len_to_attr_string(text, length);
-    
-    CFRange wholeString = CFRangeMake(0, CFAttributedStringGetLength(attrString));
-    CFAttributedStringSetAttribute(attrString, wholeString, kCTFontAttributeName, nt->font);
-    CFAttributedStringSetAttribute(attrString, wholeString, kCTForegroundColorAttributeName, nt->color);
+    CFMutableAttributedStringRef attrString = nt_str_len_to_attr_string(nt, text, length);
     
     CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString(attrString);
     CFRelease(attrString);
@@ -165,8 +190,8 @@ nt_extent nt_put_text(native_text* nt, const char* text, ptrdiff_t length, int x
     CFRelease(frame);
     
     nt_extent ret = {0, 0};
-    ret.w = size.width;
-    ret.h = size.height;
+    ret.w = size.width + .5f;
+    ret.h = size.height + .5f;
     return ret;
 }
 
