@@ -56,7 +56,11 @@ void nt_buffer(native_text* nt, char* buffer, int width, int height, int compone
 void nt_scaling(native_text* nt, float sX, float sY)
 {
     if (nt->context)
+    {
+        //remove the old scale first
+        CGContextScaleCTM(nt->context, 1.f / nt->sX, 1.f / nt->sY);
         CGContextScaleCTM(nt->context, sX, sY);
+    }
     
     nt->sX = sX;
     nt->sY = sY;

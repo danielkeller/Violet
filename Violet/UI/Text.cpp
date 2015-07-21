@@ -35,14 +35,21 @@ struct TextGen
     void Clear();
 };
 
+struct TextLoc
+{
+    Vector2i loc;
+    int z;
+};
+
 struct TextContext
 {
     TextContext();
     ~TextContext();
     TextGen youngGen, oldGen;
-    std::unordered_map<std::string, std::vector<Vector2i>> toDraw;
+    std::unordered_map<std::string, std::vector<TextLoc>> toDraw;
     native_text* nt;
     RGBA8Px texBuf[TEX_SIZE * TEX_SIZE];
+    float scaling;
 };
 
 TextContext& GetTextContext()
@@ -58,7 +65,7 @@ TextGen::TextGen()
 }
 
 TextContext::TextContext()
-    : nt(nt_init())
+    : nt(nt_init()), scaling(1)
 {
     nt_buffer(nt, (char*)texBuf, TEX_SIZE, TEX_SIZE, 4);
     nt_color(nt,
@@ -97,15 +104,17 @@ void UI::DrawText(const std::string& text, AlignedBox2i container, TextAlign ali
 
 void UI::DrawText(const std::string& text, Vector2i pos)
 {
-    GetTextContext().toDraw[text].push_back(pos);
+    GetTextContext().toDraw[text].push_back({pos, CurZ()});
 }
 
 bool TextGen::PackStrings(std::vector<std::string>& strs)
 {
+    float s = GetTextContext().scaling;
+    
     std::vector<stbrp_rect> toPack(strs.size());
     for (size_t i = 0; i < strs.size(); ++i)
     {
-        auto sz = TextDim(strs[i]);
+        auto sz = TextDim(strs[i]) * s; //do packing in pixel coords
         toPack[i].w = sz.x();
         toPack[i].h = sz.y();
     }
@@ -120,8 +129,9 @@ bool TextGen::PackStrings(std::vector<std::string>& strs)
     
     for (size_t i = 0; i < strs.size(); ++i)
     {
-        nt_put_text(GetTextContext().nt, strs[i].c_str(), strs[i].size(), toPack[i].x, toPack[i].y, nullptr);
+        nt_put_text(GetTextContext().nt, strs[i].c_str(), strs[i].size(), toPack[i].x / s, toPack[i].y / s, nullptr);
         
+        //scale the box into pixel coords from screen coords
         TexBox box = {TexDim{toPack[i].x, toPack[i].y}, TexDim{toPack[i].x + toPack[i].w, toPack[i].y + toPack[i].h}};
         
         //set tex coords
@@ -196,16 +206,30 @@ void UI::DrawAllText()
         auto it = young.locs.find(str.first);
         if (it != young.locs.end())
             for (const auto& loc : str.second)
-                DrawQuad(young.tex, {loc, loc + dim}, it->second);
+                DrawQuad(young.tex, {loc.loc, loc.loc + dim}, it->second, loc.z);
         else
         {
             it = old.locs.find(str.first);
             for (const auto& loc : str.second)
-                DrawQuad(old.tex, {loc, loc + dim}, it->second);
+                DrawQuad(old.tex, {loc.loc, loc.loc + dim}, it->second, loc.z);
         }
     }
     
+    //draw the whole texture for debugging
+    //DrawQuad(young.tex, {Vector2i{0, 0}, Vector2i{512, 512}});
+    
     toDraw.clear();
+}
+
+void UI::TextScaling(float scaling)
+{
+    if (scaling != GetTextContext().scaling)
+    {
+        GetTextContext().scaling = scaling;
+        nt_scaling(GetTextContext().nt, scaling, scaling);
+        GetTextContext().youngGen.Clear();
+        GetTextContext().oldGen.Clear();
+    }
 }
 
 #include "stb/stb_textedit.h"

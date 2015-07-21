@@ -41,7 +41,6 @@ struct UI::Settings
 		: screenTex(TexDim{ 0, 0 })
 		, pixelUBO({ "assets/uibox" }, "Common")
 	{}
-	Vector3f textColor;
 	TypedTex<DepthPx> screenTex;
 	FBO fbo;
 	UBO pixelUBO;
@@ -272,6 +271,11 @@ void UI::DrawQuad(Tex t, AlignedBox2i box, Eigen::AlignedBox2f tex)
 	FrameVisuals().quads.push_back({ t, { box.cast<float>(), tex, CurZ() } });
 }
 
+void UI::DrawQuad(Tex t, AlignedBox2i box, Eigen::AlignedBox2f tex, int z)
+{
+    FrameVisuals().quads.push_back({ t, { box.cast<float>(), tex, z } });
+}
+
 void UI::DrawDivider(AlignedBox2i box)
 {
 	DrawBox({ box.corner(AlignedBox2i::TopLeft),
@@ -322,6 +326,7 @@ static void WinResize(Viewport view)
 
 	s.pixelUBO["pixelMat"] = PixelMat(view.ScreenSize());
     s.winSizePx = view.PixelSize();
+    TextScaling(view.Scaling().x());
 }
 
 void UI::Init(Window& w)

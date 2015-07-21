@@ -21,7 +21,9 @@ namespace UI
 	void DrawText(const std::string& text, AlignedBox2i container,
 		TextAlign align = TextAlign::Center);
     
+    //Internal functions
     void DrawAllText();
+    void TextScaling(float scaling);
 }
 
 #endif

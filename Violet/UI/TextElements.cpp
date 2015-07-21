@@ -75,8 +75,6 @@ bool LineEdit::Draw(std::string& text)
 		stb_textedit_click(&text, &state, mouseOffs.x(), mouseOffs.y());
 	else if (focus.focused && FrameEvents().MouseButton(GLFW_MOUSE_BUTTON_LEFT))
 		stb_textedit_drag(&text, &state, mouseOffs.x(), mouseOffs.y());
-	else
-		stb_textedit_sortselection(&state); //fix the selection on mouseup
 
 	if (focus.focused)
 	{
@@ -134,28 +132,23 @@ bool LineEdit::Draw(std::string& text)
 			Vector2i cursStart{ ulStart + Vector2i{ find.x - 1, 2 } };
 			DrawBox({ cursStart, cursStart + Vector2i{ 0, LINEH - 2 } }, 0, UI::Colors::secondary);
         }
-        
-        UI::PopZ();
 
 		if (state.select_start != state.select_end)
 		{
-			stb_textedit_find_charpos(&find, &text, state.select_start, true);
+            stb_textedit_find_charpos(&find, &text, std::min(state.select_start, state.select_end), true);
 			Vector2i selStart{ ulStart + Vector2i{ find.x - 1, 2 } };
 
-			stb_textedit_find_charpos(&find, &text, state.select_end, true);
+			stb_textedit_find_charpos(&find, &text, std::max(state.select_start, state.select_end), true);
 			Vector2i selEnd{ ulStart + Vector2i{ find.x + 1, LINEH } };
 
-			DrawBox({ selStart, selEnd }, UI::Colors::selection, 0);
+            DrawBox({ selStart, selEnd }, UI::Colors::selection, 0);
 		}
 	}
 	else
-    {
 		DrawBox({ ulStart, ulStart + Vector2i{ width - 2 * TEXT_PADDING, 0 } },
-		0, UI::Colors::divider);
+		    0, UI::Colors::divider);
         
-        
-        UI::PopZ();
-    }
+    UI::PopZ();
 
 	return ret;
 }

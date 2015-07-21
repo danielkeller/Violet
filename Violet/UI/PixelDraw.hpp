@@ -28,6 +28,7 @@ namespace UI
 
 	void DrawQuad(Tex t, AlignedBox2i box, Eigen::AlignedBox2f tex =
 		{ Vector2f{ 0.f, 0.f }, Vector2f{ 1.f, 1.f } });
+    void DrawQuad(Tex t, AlignedBox2i box, Eigen::AlignedBox2f tex, int z); //hack for text
 	void DrawBox(AlignedBox2i box, Color fill, Color stroke);
 	void DrawShadow(AlignedBox2i box);
 	void DrawHlBox(AlignedBox2i box);
