@@ -169,7 +169,7 @@ void UI::DrawAllText()
             && !old.locs.count(val.first))
             newStrs.push_back(val.first);
     
-    if (!young.PackStrings(newStrs))
+    if (newStrs.size() && !young.PackStrings(newStrs))
     {
         //Texture is full, GC young. Put all the strings currently in young into old
         std::vector<std::string> toOld;
