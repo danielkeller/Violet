@@ -110,17 +110,12 @@ void Edit::PhysTick(Object camera)
 	rp.Highlight(focused, RenderPasses::Focused);
 	rp.Highlight(selected, RenderPasses::Selected);
     
-	//right mouse to rotate
-    if (e.MouseButton(GLFW_MOUSE_BUTTON_RIGHT))
-    {
-		auto mdelta = e.MouseDeltaNdc();
-		viewPitch += mdelta.x();
-		viewYaw -= mdelta.y();
-		position[camera]->rot = Eigen::AngleAxisf(viewYaw, Vector3f::UnitX())
-						      * Eigen::AngleAxisf(viewPitch, Vector3f::UnitZ());
-    }
+    viewPitch += e.UxPan().x();
+    viewYaw += e.UxPan().y();
+    position[camera]->rot = Eigen::AngleAxisf(viewYaw, Vector3f::UnitX())
+                          * Eigen::AngleAxisf(viewPitch, Vector3f::UnitZ());
 
-	position[camera]->pos *= (1 - e.ScrollDelta().y()*.05f);
+    position[camera]->pos *= (1 - e.UxZoom());
 	
 	UI::LayoutStack& l = UI::CurLayout()
         = UI::LayoutStack(e.view.ScreenSize(), UI::Layout::Dir::Right);

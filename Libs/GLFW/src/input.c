@@ -177,6 +177,12 @@ void _glfwInputScroll(_GLFWwindow* window, double xoffset, double yoffset)
         window->callbacks.scroll((GLFWwindow*) window, xoffset, yoffset);
 }
 
+void _glfwInputZoom(_GLFWwindow* window, double zoom)
+{
+    if (window->callbacks.zoom)
+        window->callbacks.zoom((GLFWwindow*) window, zoom);
+}
+
 void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods)
 {
     if (button < 0 || button > GLFW_MOUSE_BUTTON_LAST)
@@ -512,6 +518,15 @@ GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow* handle,
     _GLFWwindow* window = (_GLFWwindow*) handle;
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
     _GLFW_SWAP_POINTERS(window->callbacks.scroll, cbfun);
+    return cbfun;
+}
+
+GLFWAPI GLFWzoomfun glfwSetZoomCallback(GLFWwindow* handle,
+                                        GLFWzoomfun cbfun)
+{
+    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW_SWAP_POINTERS(window->callbacks.zoom, cbfun);
     return cbfun;
 }
 

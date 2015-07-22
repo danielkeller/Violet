@@ -77,6 +77,27 @@ bool Events::MouseRelease(int num) const
 	return !mouseButtonsCur[num] && mouseButtonsOld[num];
 }
 
+Vector2f Events::UxPan() const
+{
+#ifdef __APPLE__
+    return ScrollDelta() * .05f;
+#else
+    if (MouseButton(GLFW_MOUSE_BUTTON_RIGHT))
+        return MouseDeltaNdc() * Vector2f{1, -1};
+    else
+        return{ 0, 0 };
+#endif
+}
+
+float Events::UxZoom() const
+{
+#ifdef __APPLE__
+    return zoomAmt;
+#else
+    return ScrollDelta().y()*.05f;
+#endif
+}
+
 void Events::PopMouse()
 {
 	mouseCur << -1, -1;
@@ -88,6 +109,11 @@ void Events::PopMouse()
 void Events::PopScroll()
 {
 	scrollAmt << 0, 0;
+}
+
+void Events::PopZoom()
+{
+    zoomAmt = 0;
 }
 
 bool Events::HasKeyEvent(KeyEvent key)
@@ -121,6 +147,7 @@ void Events::Step()
 	keyEvents.clear();
 	charEvents.clear();
 	PopScroll();
+    PopZoom();
 
 	mouseButtonsOld = mouseButtonsCur;
 	mouseOld = mouseCur;
@@ -151,6 +178,11 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	getWindow(window)->newEvents.scrollAmt += Vector2f(xoffset, yoffset);
+}
+
+void zoom_callback(GLFWwindow* window, double zoffset)
+{
+    getWindow(window)->newEvents.zoomAmt += zoffset;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -251,6 +283,7 @@ Window::Window()
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCharCallback(window, character_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+    glfwSetZoomCallback(window, zoom_callback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetWindowSizeCallback(window, window_size_callback);
 

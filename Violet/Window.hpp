@@ -44,11 +44,16 @@ struct Events
 	Vector2f MousePosSc() const;
 
 	Vector2f ScrollDelta() const;
+    
+    //These events are derived from whichever raw event is appropriate for the platform
+    Vector2f UxPan() const;
+    float UxZoom() const;
 
 	//In the context of this structure, "popping" means indicating the event
 	//has been handled, and clearing it
 	void PopMouse();
 	void PopScroll();
+    void PopZoom();
 
 	bool HasKeyEvent(KeyEvent key);
 	bool PopKeyEvent(KeyEvent key);
@@ -63,6 +68,7 @@ struct Events
 
 	MouseButtons mouseButtonsOld, mouseButtonsCur;
 	Vector2f mouseOld, mouseCur, scrollAmt;
+    float zoomAmt;
 	bool mousePopped, scrollPopped;
 	
 	//std::vector<Key> heldKeys;
@@ -98,7 +104,8 @@ private:
 
 	friend void cursor_enter_callback(GLFWwindow* window, int entered);
 	friend void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
-	friend void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+    friend void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+    friend void zoom_callback(GLFWwindow* window, double zoffset);
     friend void framebuffer_size_callback(GLFWwindow* window, int width, int height);
     friend void window_size_callback(GLFWwindow* window, int width, int height);
 	friend void character_callback(GLFWwindow* window, unsigned int codepoint);

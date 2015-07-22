@@ -898,7 +898,20 @@ typedef void (* GLFWcursorenterfun)(GLFWwindow*,int);
  *  @ingroup input
  */
 typedef void (* GLFWscrollfun)(GLFWwindow*,double,double);
-
+    
+/*! @brief The function signature for zoom callbacks.
+ *
+ *  This is the function signature for zoom callback functions.
+ *
+ *  @param[in] window The window that received the event.
+ *  @param[in] zoom The zoom offset.
+ *
+ *  @sa glfwSetZoomCallback
+ *
+ *  @ingroup input
+ */
+typedef void (* GLFWzoomfun)(GLFWwindow*,double);
+    
 /*! @brief The function signature for keyboard key callbacks.
  *
  *  This is the function signature for keyboard key callback functions.
@@ -2908,6 +2921,26 @@ GLFWAPI GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow* window, GLFWcu
  *  @ingroup input
  */
 GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow* window, GLFWscrollfun cbfun);
+
+/*! @brief Sets the zoom callback.
+ *
+ *  This function sets the zoom callback of the specified window, which is called
+ *  when a zoom event happens, for instance on a trackpad.
+ *
+ *  @param[in] window The window whose callback to set.
+ *  @param[in] cbfun The new zoom callback, or `NULL` to remove the currently
+ *  set callback.
+ *  @return The previously set callback, or `NULL` if no callback was set or the
+ *  library had not been [initialized](@ref intro_init).
+ *
+ *  @par Thread Safety
+ *  This function may only be called from the main thread.
+ *
+ *  @since DK - 22 Jul 2015
+ *
+ *  @ingroup input
+ */
+GLFWAPI GLFWzoomfun glfwSetZoomCallback(GLFWwindow* window, GLFWzoomfun cbfun);
 
 /*! @brief Sets the file drop callback.
  *
