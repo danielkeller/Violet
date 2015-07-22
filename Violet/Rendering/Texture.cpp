@@ -36,13 +36,20 @@ Tex::TexResource::TexResource(std::string path)
 {
 	auto p = Profile::Profile("texture load");
 
+    const int rgba = 4;
+    
 	int width, height, components;
 	std::unique_ptr<unsigned char, decltype(&::stbi_image_free)> data
-		(stbi_load(path.c_str(), &width, &height, &components, 0), &::stbi_image_free);
+		(stbi_load(path.c_str(), &width, &height, &components, rgba), &::stbi_image_free);
 
 	if (!data)
 		throw std::runtime_error("Could not open texture '" + path + "', " + stbi_failure_reason());
 
+    //stbi loads the image upside down compared to what opengl wants, so flip it
+    for (int row = 0; row < height / 2; ++row)
+        for (int col = 0; col < width * rgba; ++col)
+            std::iter_swap(&*data + row * width * rgba + col, &*data + (height - row - 1) * width * rgba + col);
+    
 	dim << width, height;
 
 	glGenTextures(1, &textureObject);

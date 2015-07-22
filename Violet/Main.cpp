@@ -88,7 +88,7 @@ try
 	//ShowAABB aabb(teapotAabb);
 	//r.Create(aabbObj, { "aabb", aabb.shaderProgram }, aabb.vertData);
 	
-	position[camera]->pos = {0, -3, 0};
+	position[camera]->pos = {0, 3, 0};
     
     Time t;
 

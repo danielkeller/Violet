@@ -12,8 +12,8 @@ inline Matrix4f perspective(float fovx, float aspect, float zNear, float zFar)
 	Matrix4f res = Matrix4f::Zero();
 	res(0, 0) = 1.f / (tanHalfFovx);
 	res(1, 2) = aspect / tanHalfFovx;
-	res(2, 1) = -(zFar + zNear) / (zFar - zNear);
-	res(3, 1) = -1.f;
+	res(2, 1) = (zFar + zNear) / (zFar - zNear);
+	res(3, 1) = 1.f;
 	res(2, 3) = -(2.f * zFar * zNear) / (zFar - zNear);
 	return res;
 }

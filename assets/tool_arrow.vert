@@ -29,7 +29,7 @@ void main()
     //create transform
     mat4 realTransform = mat4(1);
     realTransform[0].xyz = dir3*size;
-    realTransform[1].xyz = cross(dir3, vec3(0,0,1))*size;
+    realTransform[1].xyz = -cross(dir3, vec3(0,0,1))*size;
     realTransform[2].z = size;
     realTransform[3].xyz = vec3((screenpos).xy, .01);
     gl_Position = realTransform * vec4(position, 1);

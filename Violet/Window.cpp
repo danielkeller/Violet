@@ -271,7 +271,7 @@ Window::Window()
 
 	//set and forget stuff
 	//glClearColor(1.f, 0.f, 1.f, 1.f);
-	glCullFace(GL_FRONT);
+	glCullFace(GL_BACK);
 	glDepthFunc(GL_LESS);
 
 	GetInput();

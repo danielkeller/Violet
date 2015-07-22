@@ -182,9 +182,8 @@ void UI::EndFrame()
 
 	boxVAO.Draw();
 
-    //Assume premultipled alpha
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//Draw textured quads
 	static ShaderProgram quadShdr{ "assets/textured_uibox" };

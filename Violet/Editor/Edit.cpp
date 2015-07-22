@@ -114,8 +114,8 @@ void Edit::PhysTick(Object camera)
     if (e.MouseButton(GLFW_MOUSE_BUTTON_RIGHT))
     {
 		auto mdelta = e.MouseDeltaNdc();
-		viewPitch -= mdelta.x();
-		viewYaw += mdelta.y();
+		viewPitch += mdelta.x();
+		viewYaw -= mdelta.y();
 		position[camera]->rot = Eigen::AngleAxisf(viewYaw, Vector3f::UnitX())
 						      * Eigen::AngleAxisf(viewPitch, Vector3f::UnitZ());
     }

@@ -16,14 +16,14 @@ Tex ObjAssets::Thumb(const std::string& path)
 	static UBO cam{ shader, "Common" };
 	STATIC
 	{
-		mat["light"] = Vector3f{ -1, 1, 1 }.normalized();
+		mat["light"] = Vector3f{ -1, -1, 1 }.normalized();
 		cam["camera"] = Matrix4f::Identity();
     }
     
     cam["projection"] = view.PerspMat();
 
 	static InstData object{ Object::invalid,
-		Eigen::Affine3f{ Eigen::Translation3f{ 0, -3, 0 } }.matrix() };
+		Eigen::Affine3f{ Eigen::Translation3f{ 0, 3, 0 } }.matrix() };
 	static BufferObject<InstData, GL_ARRAY_BUFFER, GL_STATIC_DRAW> instances(1);
 	STATIC
 		instances.Assign(0, object);

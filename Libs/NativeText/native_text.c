@@ -42,7 +42,7 @@ void nt_free(native_text* nt)
 void nt_buffer(native_text* nt, char* buffer, int width, int height, int components)
 {
     CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-    nt->context = CGBitmapContextCreate(buffer, width, height, 8, width*components, colorspace, kCGImageAlphaPremultipliedLast);
+    nt->context = CGBitmapContextCreate(buffer, width, height, 8, width*components, colorspace, kCGImageAlphaNoneSkipLast);
     
     //OpenGL coordinates
     CGContextTranslateCTM(nt->context, 0, height);
