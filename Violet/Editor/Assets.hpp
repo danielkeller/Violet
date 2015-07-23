@@ -40,7 +40,6 @@ class ObjAssets
 	Assets<std::string> a;
 public:
 	static Tex Thumb(const std::string& path);
-	ObjAssets();
 	//true if selection changed
 	bool Draw(VertexData& cur);
 };

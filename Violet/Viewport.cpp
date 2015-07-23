@@ -26,7 +26,7 @@ inline Matrix4f ortho(float width, float aspect, float zNear, float zFar)
 	Matrix4f res = Matrix4f::Zero();
 	res(0, 0) = 2.f / width;
 	res(1, 2) = 2.f * aspect / width;
-	res(2, 1) = -2.f / (zFar - zNear);
+	res(2, 1) = 2.f / (zFar - zNear);
 	res(2, 3) = (zFar + zNear) / (zFar - zNear);
 	res(3, 3) = 1.f;
 	return res;

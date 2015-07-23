@@ -14,23 +14,31 @@ public:
 	using duration = clock::duration;
 
 	Profile(const char * name)
-		: name(name), began(clock::now())
+		: name(name), running(true), began(clock::now())
 	{}
 
 	~Profile()
 	{
-		auto ended = clock::now();
-		int n = data[name].first;
-		//running average
-		data[name].second = ((ended - began) - comp + n*data[name].second)/(n+1);
-		data[name].first = n + 1;
+        Stop();
 	}
-
+    
+    void Stop()
+    {
+        auto ended = clock::now();
+        if (!running)
+            return;
+        int n = data[name].first;
+        //running average
+        data[name].second = ((ended - began) - comp + n*data[name].second)/(n+1);
+        data[name].first = n + 1;
+    }
+    
 	static void CalibrateProfiling();
 	static void Print();
 
 private:
 	const char* name;
+    bool running;
 	const clock::time_point began;
 
 	static duration comp;
@@ -41,14 +49,12 @@ private:
 
 inline void Profile::CalibrateProfiling()
 {
+    static const char* test = "test";
 	for (int i = 0; i<1000; ++i)
-	{
-		auto then = clock::now();
-		auto now = clock::now();
-		comp += now - then;
-	}
+        auto p = Profile(test);
 
-	comp /= 1000;
+    comp = data[test].second / 1000;
+    data.erase(test);
 }
 
 #else

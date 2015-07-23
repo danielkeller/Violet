@@ -153,7 +153,7 @@ void TextGen::Clear()
 
 void UI::DrawAllText()
 {
-    auto p = Profile::Profile("text rendering");
+    auto p = Profile("text rendering");
     
     auto& toDraw = GetTextContext().toDraw;
     auto& young = GetTextContext().youngGen;

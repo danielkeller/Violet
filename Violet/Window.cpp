@@ -348,7 +348,7 @@ void Window::PreDraw()
 
 void Window::PostDraw()
 {
-	auto p = Profile::Profile("waiting for vsync");
+	auto p = Profile("waiting for vsync");
 	//swap draw buffer and visible buffer
 	glfwSwapBuffers(window);
 #ifndef GL_DEBUG

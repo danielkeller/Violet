@@ -44,7 +44,7 @@ bool MaterialEdit::Draw(Persist& persist)
 	//render the preview
     Viewport view = UI::FrameEvents().view.SubView(l.PutSpace(WIDTH));
 	cam["projection"] = view.OrthoMat();
-	cam["camera"] = Matrix4f::Identity();
+    cam["camera"] = Eigen::Affine3f{ Eigen::Translation3f{ 0, -3, 0 } }.matrix();
 	UI::DrawSpecial([=]()
 	{
 		mat.use();

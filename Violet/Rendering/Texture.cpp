@@ -34,7 +34,7 @@ Tex::TexResource::TexResource(TexDim dim)
 Tex::TexResource::TexResource(std::string path)
 	: ResourceTy(path)
 {
-	auto p = Profile::Profile("texture load");
+	auto p = Profile("texture load");
 
     const int rgba = 4;
     

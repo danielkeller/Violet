@@ -102,21 +102,20 @@ done:
 	return ret;
 }
 
-ObjAssets::ObjAssets()
-{
-	for (auto path : Browse("assets"))
-	{
-		auto realPath = ends_with(path, ".cache") ? path.substr(0, path.size() - 6) : path;
-		if (IsWavefront(realPath))
-		{
-			auto it = a.assets.emplace(realPath, realPath).first;
-			it->second.thumb = Thumb(realPath);
-		}
-	}
-}
+template Assets<std::string>::Assets();
 
 bool ObjAssets::Draw(VertexData& cur)
 {
+    for (auto path : Browse("assets"))
+    {
+        auto realPath = ends_with(path, ".cache") ? path.substr(0, path.size() - 6) : path;
+        if (!a.assets.count(realPath) && IsWavefront(realPath))
+        {
+            auto it = a.assets.emplace(realPath, realPath).first;
+            it->second.thumb = Thumb(realPath);
+        }
+    }
+    
 	std::string curName = cur.Name();
 	bool ret = a.Draw(curName, {});
 	if (curName != cur.Name()) cur = curName;
@@ -125,18 +124,21 @@ bool ObjAssets::Draw(VertexData& cur)
 
 MaterialAssets::MaterialAssets(Persist& persist)
 	: editorOn(false)
-{
-	//TODO: ListAll?
-	for (auto matTup : persist.GetAll<Material>())
-	{
-		Material mat{ std::get<0>(matTup), persist };
-		auto it = a.assets.emplace(mat.Key(), mat.Name()).first;
-		it->second.thumb = Thumb(mat);
-	}
-}
+{}
 
 bool MaterialAssets::Draw(Material& cur, Persist& persist)
 {
+    //TODO: ListAll?
+    for (auto matTup : persist.GetAll<Material>())
+    {
+        if (!a.assets.count(std::get<0>(matTup)))
+        {
+            Material mat{ std::get<0>(matTup), persist };
+            auto it = a.assets.emplace(mat.Key(), mat.Name()).first;
+            it->second.thumb = Thumb(mat);
+        }
+    }
+    
 	if (editorOn && edit.Draw(persist))
 	{
 		//update the thumbnail

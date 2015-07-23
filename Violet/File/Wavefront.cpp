@@ -41,7 +41,7 @@ struct Wavefront
 
 Wavefront::Wavefront(std::string filename)
 {
-	auto p = Profile::Profile("wavefront load");
+	auto p = Profile("wavefront load");
 
 	std::ifstream obj(filename);
 	if (obj.fail())

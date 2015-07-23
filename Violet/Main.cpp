@@ -29,20 +29,16 @@ try
 	std::srand(static_cast<unsigned int>(std::time(nullptr)));
 	Profile::CalibrateProfiling();
 
+    auto initProf = Profile("init");
+    
 	ComponentManager mgr;
+    
 	//Components
 	Persist persist;
 	Object::Init(persist);
 	ObjectName objName(persist);
     Window w;
     
-    Events e = w.GetInput();
-    
-    //FIXME: this has to be here because the thumbnails need the DPI, and lazy thumbnails
-    //aren't implmented yet
-    UI::Init(w);
-    UI::BeginFrame(w, e);
-
 	Position position;
 	Render r(position);
 	RenderPasses passes(position, w, r);
@@ -58,43 +54,21 @@ try
 	mgr.Register(&edit);
 	mgr.Register(&narrowPhase);
 	mgr.Register(&rigidBody);
-	mgr.Load(persist);
+	mgr.Load(persist); //load the default file
 
 	Object camera = objName["camera"];
 	passes.Camera(camera);
-
-	Object teapotObj = objName["teapot"];
-	Object teapot2Obj = objName["teapot2"];
-
-	if (!persist.Exists<Render>(teapotObj) || !persist.Exists<Render>(teapot2Obj))
-	{
-		Material capsuleMat{ "capsule", { "assets/simple" }, { "assets/capsule.png" } };
-		capsuleMat.Save(persist);
-
-		r.Create(teapotObj, capsuleMat, "assets/teapot.obj", Mobilty::Yes);
-		r.Create(teapot2Obj, capsuleMat, "assets/triangle.obj", Mobilty::No);
-
-		edit.Editable(teapotObj);
-		edit.Editable(teapot2Obj);
-		narrowPhase.Add(teapotObj, "assets/teapot.obj");
-		narrowPhase.Add(teapot2Obj, "assets/triangle.obj");
-		//rigidBody.Add(teapotObj, 1, 1);
-
-		mgr.Save(teapotObj, persist); mgr.Save(teapot2Obj, persist);
-	}
-	
-	//AABBTree teapotAabb("assets/capsule.obj");
-	//Object aabbObj;
-	//ShowAABB aabb(teapotAabb);
-	//r.Create(aabbObj, { "aabb", aabb.shaderProgram }, aabb.vertData);
-	
-	position[camera]->pos = {0, 3, 0};
+    position[camera]->pos = {0, 3, 0};
+    
+    UI::Init(w);
+    
+    Events e = w.GetInput();
     
     Time t;
 
     auto physTick = [&]()
 	{
-		auto p = Profile::Profile("physics");
+		auto p = Profile("physics");
 		w.SetTime(t.SimTime());
 		e = w.GetInput();
 
@@ -102,10 +76,7 @@ try
 		edit.PhysTick(camera);
 
         //physics step
-        
-		//narrowPhase.Query(teapotObj, teapot2Obj);
 		rigidBody.PhysTick(t.SimTime());
-
 		script.PhysTick();
 
         return !w.ShouldClose();
@@ -113,15 +84,16 @@ try
     
     auto renderTick = [&](float alpha)
 	{
-		{
-			auto p = Profile::Profile("rendering");
-
-			w.PreDraw();
-			passes.Draw(e.mainView, alpha);
-			UI::EndFrame();
-		}
+        auto rprof = Profile("rendering");
+        w.PreDraw();
+        passes.Draw(e.mainView, alpha);
+        UI::EndFrame();
+        rprof.Stop();
+        
         w.PostDraw();
 	};
+    
+    initProf.Stop();
     
     t.MainLoop(physTick, renderTick);
     
@@ -138,3 +110,30 @@ catch (std::exception &ex)
 #endif
 	return EXIT_FAILURE;
 }
+
+/*
+	Object teapotObj = objName["teapot"];
+	Object teapot2Obj = objName["teapot2"];
+ 
+	if (!persist.Exists<Render>(teapotObj) || !persist.Exists<Render>(teapot2Obj))
+	{
+         Material capsuleMat{ "capsule", { "assets/simple" }, { "assets/capsule.png" } };
+         capsuleMat.Save(persist);
+         
+         r.Create(teapotObj, capsuleMat, "assets/teapot.obj", Mobilty::Yes);
+         r.Create(teapot2Obj, capsuleMat, "assets/triangle.obj", Mobilty::No);
+         
+         edit.Editable(teapotObj);
+         edit.Editable(teapot2Obj);
+         narrowPhase.Add(teapotObj, "assets/teapot.obj");
+         narrowPhase.Add(teapot2Obj, "assets/triangle.obj");
+         //rigidBody.Add(teapotObj, 1, 1);
+         
+         mgr.Save(teapotObj, persist); mgr.Save(teapot2Obj, persist);
+	}
+	
+	//AABBTree teapotAabb("assets/capsule.obj");
+	//Object aabbObj;
+	//ShowAABB aabb(teapotAabb);
+	//r.Create(aabbObj, { "aabb", aabb.shaderProgram }, aabb.vertData);
+*/

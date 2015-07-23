@@ -28,7 +28,7 @@ PreparedStmt::~PreparedStmt()
 PreparedStmt::PreparedStmt(Persist* persist, sqlite3* db, const std::string& sql)
 	: stmt(nullptr, &sqlite3_finalize), lastResult(-1), persist(persist)
 {
-	auto p = Profile::Profile("sql compilation");
+	auto p = Profile("sql compilation");
 
 	sqlite3_stmt *stmtPtr;
 	int result = sqlite3_prepare_v2(db, sql.c_str(), static_cast<int>(sql.size()), &stmtPtr, nullptr);
@@ -56,7 +56,7 @@ PreparedStmt& PreparedStmt::Step()
 {
 	if (stmt)
 	{
-		auto p = Profile::Profile("sql evaluation");
+		auto p = Profile("sql evaluation");
 
 		lastResult = sqlite3_step(stmt.get());
 		if (lastResult != SQLITE_DONE && lastResult != SQLITE_ROW)
@@ -333,7 +333,7 @@ Transaction::Transaction(Database* db)
 
 Transaction::~Transaction()
 {
-	auto p = Profile::Profile("sql commit");
+	auto p = Profile("sql commit");
 
 	if (--db->transactDepth == 0)
 		db->MakeStmt("end transaction").Step();
