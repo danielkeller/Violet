@@ -24,7 +24,7 @@ Asset::Asset(std::string name)
 {}
 
 template<typename Key>
-bool Assets<Key>::Draw(Key& cur, std::function<void(const Key&, UI::AlignedBox2i)> edit)
+bool Assets<Key>::Draw(Key& cur, std::function<void(const Key&, UI::AlignedBox2i, bool)> edit)
 {
 	UI::LayoutStack& l = UI::CurLayout();
 	bool ret = slide.Draw(WIDTH);
@@ -42,9 +42,15 @@ bool Assets<Key>::Draw(Key& cur, std::function<void(const Key&, UI::AlignedBox2i
 
 	auto it = assets.begin();
 	buttons.resize(assets.size());
-	if (edit) editButtons.resize(assets.size());
+	if (edit)
+    {
+        editButtons.resize(assets.size());
+        deleteButtons.resize(assets.size());
+    }
+    
 	auto button = buttons.begin();
 	auto editButton = editButtons.begin();
+    auto deleteButton = deleteButtons.begin();
 
 	UI::PushZ();
 	for (int y = THM_SPACE; y < height; y += THM_SIZE + THM_SPACE)
@@ -74,12 +80,20 @@ bool Assets<Key>::Draw(Key& cur, std::function<void(const Key&, UI::AlignedBox2i
 			if (edit)
 			{
 				UI::PushZ();
+                UI::AlignedBox2i deleteBox{ textBox.min(), textBox.min() + Vector2i{ UI::LINEH, UI::LINEH }};
+                static Tex delIcon{ "assets/delete.png" };
+                UI::DrawQuad(delIcon, deleteBox);
+                UI::DrawBox(deleteBox, deleteButton->GetColor(), deleteButton->GetColor());
+                if (deleteButton->Behavior(deleteBox))
+                    edit(it->first, box, true);
+                ++deleteButton;
+                
 				UI::AlignedBox2i editBox{ textBox.max() - Vector2i{ UI::LINEH, UI::LINEH }, textBox.max() };
 				static Tex editIcon{ "assets/edit.png" };
 				UI::DrawQuad(editIcon, editBox);
 				UI::DrawBox(editBox, editButton->GetColor(), editButton->GetColor());
 				if (editButton->Behavior(editBox))
-					edit(it->first, box);
+					edit(it->first, box, false);
 				++editButton;
 				UI::PopZ();
 			}
@@ -151,9 +165,14 @@ bool MaterialAssets::Draw(Material& cur, Persist& persist)
 	}
 
 	Material::Id curName = cur.GetId();
-	bool ret = a.Draw(curName, [&](const Material::Id& mat, UI::AlignedBox2i box){
-		editorOn = true;
-		edit.Edit(Material{ mat, persist }, box);
+	bool ret = a.Draw(curName, [&](const Material::Id& mat, UI::AlignedBox2i box, bool del){
+        if (del)
+            persist.Delete<Material>(mat);
+        else
+        {
+            editorOn = true;
+            edit.Edit(Material{ mat, persist }, box);
+        }
 	});
 	if (curName != cur.GetId()) cur = Material{ curName, persist };
 	return ret;

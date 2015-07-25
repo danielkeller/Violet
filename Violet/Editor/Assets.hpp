@@ -24,12 +24,12 @@ class Assets
 public:
 	Assets();
 	//true if selection changed
-	bool Draw(Key& cur, std::function<void(const Key&, UI::AlignedBox2i)> edit);
+	bool Draw(Key& cur, std::function<void(const Key&, UI::AlignedBox2i, bool)> edit);
 	std::map<Key, Asset> assets;
 
 private:
 	std::vector<UI::Button> buttons;
-	std::vector<UI::Button> editButtons;
+	std::vector<UI::Button> editButtons, deleteButtons;
 	UI::SlideInOut slide;
 };
 
