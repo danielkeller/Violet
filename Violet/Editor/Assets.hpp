@@ -9,60 +9,51 @@
 class Material;
 class VertexData;
 
-struct Asset
-{
-	Asset();
-	//This signature is to remind you not to load things just to take their pictures
-	Asset(std::string name);
-	Tex thumb;
-	std::string name;
-};
-
-template<typename Key>
-class Assets
+class AssetsBar
 {
 public:
-	Assets();
-	//true if selection changed
-	bool Draw(Key& cur, std::function<void(const Key&, UI::AlignedBox2i, bool)> edit);
-	std::map<Key, Asset> assets;
-
+    AssetsBar();
+    
+    //true if selection changed
+    bool DrawObj(VertexData& cur);
+    bool DrawMat(Material& cur, Persist&);
+    
+    void Close();
+    
 private:
-	std::vector<UI::Button> buttons;
-	std::vector<UI::Button> editButtons, deleteButtons;
-	UI::SlideInOut slide;
-};
-
-//FIXME: Both of these should rescan when sensible
-
-class ObjAssets
-{
-	Assets<std::string> a;
-public:
-	static Tex Thumb(const std::string& path);
-	//true if selection changed
-	bool Draw(VertexData& cur);
-};
-
-class MaterialAssets
-{
-	Assets<Material::Id> a;
-	bool editorOn;
-	MaterialEdit edit;
-public:
-	static Tex Thumb(const Material& mat);
-	MaterialAssets(Persist&);
-	//true if selection changed
-	bool Draw(Material& cur, Persist&);
+    UI::SlideInOut enter, change;
+    
+    struct ObjAsset
+    {
+        ObjAsset(const std::string& path);
+        Tex thumb;
+        UI::Button button;
+    };
+    std::unordered_map<std::string, ObjAsset> objAssets;
+    
+    struct MatAsset
+    {
+        MatAsset(const Material& mat);
+        Tex thumb;
+        std::string name;
+        UI::Button button;
+        UI::IconButton editButton, deleteButton;
+    };
+    std::unordered_map<Material::Id, MatAsset> matAssets;
+    
+    bool matEditorOn;
+    MaterialEdit matEdit;
 };
 
 namespace Asset_detail
 {
 	static const int THM_SIZE = 100;
 	static const int THM_CHARS = 13;
-	static const int THM_SPACE = 8;
 	static const int ROWS = 4;
-	static const int WIDTH = THM_SIZE*ROWS + THM_SPACE*(ROWS + 1);
+    static const int WIDTH = THM_SIZE*ROWS + UI::GRID_SPACING*(ROWS + 1);
+    
+    Tex ObjThumb(const std::string& path);
+    Tex MatThumb(const Material& mat);
 }
 
 #endif

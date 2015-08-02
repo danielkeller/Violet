@@ -38,7 +38,6 @@ private:
 
 	bool enabled;
 	RenderPasses& rp;
-	Render& r;
 	Position& position;
 	ObjectName& objName;
 	ComponentManager& mgr;

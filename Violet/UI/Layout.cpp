@@ -79,32 +79,38 @@ Layout Layout::getLast(Dir dir) const
 	return ret;
 }
 
-Layout Layout::Top(Vector2i box, Dir dir)
+Layout Layout::Top(AlignedBox2i box, Dir dir)
 {
+    Vector2i size = box.sizes();
 	switch (dir)
 	{
 	case Dir::Right:
-		return{ dir, Dir::Up, 0, box.x(), box.y(), { 0, 0 } };
+            return{ dir, Dir::Up, 0, size.x(), size.y(), box.corner(AlignedBox2i::BottomLeft) };
 	case Dir::Left:
-		return{ dir, Dir::Up, 0, box.x(), box.y(), { box.x(), 0 } };
+		return{ dir, Dir::Up, 0, size.x(), size.y(), box.corner(AlignedBox2i::BottomRight) };
 	case Dir::Down:
-		return{ dir, Dir::Right, 0, box.y(), box.x(), { 0, box.y() } };
+		return{ dir, Dir::Right, 0, size.y(), size.x(), box.corner(AlignedBox2i::TopLeft) };
 	case Dir::Up:
-		return{ dir, Dir::Right, 0, box.y(), box.x(), { 0, 0 } };
+		return{ dir, Dir::Right, 0, size.y(), size.x(), box.corner(AlignedBox2i::BottomLeft) };
 	default: assert(false && "Layout broken");
 		return{};
 	}
 
 }
 
-LayoutStack::LayoutStack(Vector2i box, Dir dir)
+LayoutStack::LayoutStack(AlignedBox2i box, Dir dir)
 {
-	stack.push_back(Layout::Top(box, dir));
+    stack.push_back(Layout::Top(box, dir));
+}
+
+void LayoutStack::PushLayer(AlignedBox2i box, Dir dir /*, int z*/)
+{
+    stack.push_back(Layout::Top(box, dir));
 }
 
 void LayoutStack::PushLayer(Dir dir /*, int z*/)
 {
-	stack.push_back(Layout::Top(stack[0].Box().sizes(), dir));
+    PushLayer(stack[0].Box(), dir);
 }
 
 void LayoutStack::PopLayer()
@@ -185,4 +191,38 @@ void LayoutStack::Inset(int amount)
 Layout LayoutStack::Current() const
 {
 	return stack.back();
+}
+
+GridLayout LayoutStack::StartGrid(int boxSize, Layout::Dir dir)
+{
+    GridLayout ret{ *this, boxSize };
+    PushLayer(dir); //dummy layer
+    ret.Next(dir); //start the first box
+    return ret;
+}
+
+GridLayout::GridLayout(LayoutStack& stack, int boxSize)
+    : x(GRID_SPACING), y(GRID_SPACING), box(stack.Current()), boxSize(boxSize)
+    , stack(stack)
+{}
+
+void GridLayout::Next(Layout::Dir dir)
+{
+    stack.PopLayer();
+    
+    Vector2i bottomLeft = box.corner(AlignedBox2i::TopLeft) + Vector2i{ x, -y - boxSize };
+    stack.PushLayer({bottomLeft, bottomLeft + Vector2i{ boxSize, boxSize }}, dir);
+    
+    x += boxSize + GRID_SPACING;
+    if (x > box.sizes().x())
+    {
+        x = GRID_SPACING;
+        y += boxSize + GRID_SPACING;
+        //if (y > box.sizes().y()) ???
+    }
+}
+
+GridLayout::~GridLayout()
+{
+    stack.PopLayer();
 }

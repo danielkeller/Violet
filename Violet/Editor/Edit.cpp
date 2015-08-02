@@ -12,13 +12,13 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position,
 	ObjectName& objName, NarrowPhase& narrowPhase, RigidBody& rigidBody,
 	ComponentManager& mgr, Persist& persist)
 	: enabled(true)
-	, rp(rp), r(r), position(position), objName(objName), persist(persist), mgr(mgr)
+	, rp(rp), position(position), objName(objName), mgr(mgr), persist(persist)
 	, tool(r, position)
 	, focused(Object::none), selected(Object::none)
 	, viewPitch(0), viewYaw(0)
 
 	, objectNameEdit(LB_WIDTH)
-	, posEdit(position), renderEdit(r, persist), collEdit(narrowPhase, r), rbEdit(rigidBody)
+	, posEdit(position), renderEdit(r), collEdit(narrowPhase, r), rbEdit(rigidBody)
 
 	, newObject("+", MOD_WIDTH), delObject("-", MOD_WIDTH)
 	, objectSelect(LB_WIDTH)
@@ -117,8 +117,7 @@ void Edit::PhysTick(Object camera)
 
     position[camera]->pos *= (1 - e.UxZoom());
 	
-	UI::LayoutStack& l = UI::CurLayout()
-        = UI::LayoutStack(e.view.ScreenSize(), UI::Layout::Dir::Right);
+	UI::LayoutStack& l = UI::CurLayout() = { e.view.screenBox, UI::Layout::Dir::Right };
 
 	enabled = !slide.Draw(LB_WIDTH);
 

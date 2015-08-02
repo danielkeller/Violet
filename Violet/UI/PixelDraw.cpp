@@ -129,7 +129,7 @@ void UI::PopModal()
 void UI::BeginFrame(const Window& w, Events& e)
 {
 	FrameVisuals() = {};
-	CurLayout() = LayoutStack(w.view->ScreenSize());
+	CurLayout() = LayoutStack(w.view->screenBox);
 	GetUIEvents().events = &e;
 	//set the stuff that matters in dummy
 	GetUIEvents().dummy.view = e.view;

@@ -50,6 +50,15 @@ namespace UI
 		bool Draw();
 	};
     
+    struct IconButton
+    {
+        IconButton(Tex tex, int width = LINEH);
+        int width;
+        Tex tex;
+        Button button;
+        bool Draw();
+    };
+    
     struct CheckBox
     {
         CheckBox(std::string text, int width = 80);

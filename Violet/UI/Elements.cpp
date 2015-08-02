@@ -120,6 +120,19 @@ bool TextButton::Draw()
 	return button.Draw(l, text);
 }
 
+IconButton::IconButton(Tex tex, int width)
+    : width(width), tex(tex)
+{}
+
+bool IconButton::Draw()
+{
+    Layout l = CurLayout().PutSpace({ width, LINEH });
+    DrawQuad(tex, l);
+    DrawBox(l, button.GetColor(), button.GetColor());
+    
+    return button.Behavior(l);
+}
+
 CheckBox::CheckBox(std::string text, int width)
     : width(width), text(text)
 {}

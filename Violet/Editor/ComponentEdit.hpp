@@ -54,7 +54,7 @@ class Render;
 class RenderEditor : public ComponentEditor
 {
 public:
-	RenderEditor(Render& render, Persist&);
+	RenderEditor(Render& render);
 
 	void DrawPicker(Object selected, Persist& persist);
 	void ClosePicker();
@@ -74,8 +74,7 @@ private:
 	AssetPicker currentPicker;
 	void Toggle(AssetPicker clicked);
 
-	ObjAssets meshes;
-	MaterialAssets materials;
+	AssetsBar assets;
 };
 
 class NarrowPhase;

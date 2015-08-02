@@ -12,6 +12,7 @@ class Tex
 {
 public:
 	Tex(std::string path);
+    Tex(const char* path) : Tex(std::string{path}) {}
 
 	void Bind(GLuint texUnit) const;
     GLuint Handle() const;

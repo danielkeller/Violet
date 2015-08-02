@@ -6,7 +6,7 @@
 
 using namespace Asset_detail;
 
-Tex ObjAssets::Thumb(const std::string& path)
+Tex Asset_detail::ObjThumb(const std::string& path)
 {
 	static const TexDim dim{ THM_SIZE, THM_SIZE };
     Viewport view = UI::FrameEvents().view.SubView({ Vector2i::Zero(), dim });
@@ -56,7 +56,7 @@ Tex ObjAssets::Thumb(const std::string& path)
 	return ret;
 }
 
-Tex MaterialAssets::Thumb(const Material& mat)
+Tex Asset_detail::MatThumb(const Material& mat)
 {
     static const TexDim dim{ THM_SIZE, THM_SIZE };
     Viewport view = UI::FrameEvents().view.SubView({ Vector2i::Zero(), dim });

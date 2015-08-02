@@ -118,10 +118,9 @@ void PositionEditor::add(Object selected)
 	position.Set(selected, {});
 }
 
-RenderEditor::RenderEditor(Render& render, Persist& persist)
+RenderEditor::RenderEditor(Render& render)
 	: ComponentEditor("rendering", render), render(render)
 	, currentPicker(AssetPicker::None)
-	, materials(persist)
 {}
 
 void RenderEditor::DrawPicker(Object selected, Persist& persist)
@@ -132,8 +131,8 @@ void RenderEditor::DrawPicker(Object selected, Persist& persist)
 		auto old = tup;
 
 		if (currentPicker == AssetPicker::Meshes
-			? meshes.Draw(std::get<1>(tup))
-			: materials.Draw(std::get<0>(tup), persist))
+			? assets.DrawObj(std::get<1>(tup))
+			: assets.DrawMat(std::get<0>(tup), persist))
 			currentPicker = AssetPicker::None;
 
 		if (old != tup)
@@ -147,13 +146,13 @@ void RenderEditor::DrawPicker(Object selected, Persist& persist)
 
 void RenderEditor::ClosePicker()
 {
-	currentPicker = AssetPicker::None;
+    assets.Close();
 }
 
 void RenderEditor::Toggle(AssetPicker clicked)
 {
 	if (currentPicker == clicked)
-		currentPicker = AssetPicker::None;
+		assets.Close();
 	else currentPicker = clicked;
 }
 
@@ -189,8 +188,8 @@ bool RenderEditor::edit(Object selected)
 void RenderEditor::add(Object selected)
 {
 	render.Create(selected,
-		{ "Default", { "assets/simple" }, { "assets/capsule.png" } },
-		{ "assets/capsule.obj" });
+		{ "Default", { "assets/simple" }, "assets/capsule.png" },
+		"assets/capsule.obj");
 }
 
 CollisionEditor::CollisionEditor(NarrowPhase& narrowPhase, Render& render)
@@ -204,7 +203,7 @@ void CollisionEditor::add(Object selected)
 	narrowPhase.Add(selected, std::get<1>(tup).Name());
 }
 
-bool CollisionEditor::edit(Object selected)
+bool CollisionEditor::edit(Object)
 {
     debug.Draw(narrowPhase.Debug());
     return false;
@@ -220,7 +219,7 @@ void RigidBodyEditor::add(Object selected)
 	rigidBody.Add(selected, 1, 1);
 }
 
-bool RigidBodyEditor::edit(Object selected)
+bool RigidBodyEditor::edit(Object)
 {
     UI::CurLayout().PushNext(UI::Layout::Dir::Right);
     debug.Draw(rigidBody.Debug());

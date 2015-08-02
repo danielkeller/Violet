@@ -2,8 +2,8 @@
 
 #if defined(__APPLE__)
 
-#import <CoreText/CoreText.h>
-#import <CoreGraphics/CGBitmapContext.h>
+#include <CoreText/CoreText.h>
+#include <CoreGraphics/CGBitmapContext.h>
 
 #include <stdlib.h>
 #include <string.h>
