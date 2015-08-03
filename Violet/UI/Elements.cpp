@@ -8,7 +8,7 @@
 using namespace UI;
 
 Focusable::Focusable()
-	: focused(false), tabbedIn(false)
+	: focused(false), stealing(false), tabbedIn(false)
 {}
 
 bool Focusable::anyFocused = false;
@@ -17,8 +17,22 @@ bool Focusable::Draw(AlignedBox2i box)
 {
 	auto& events = FrameEvents();
 	Vector2i mouse = events.MousePosSc().cast<int>();
-	bool ret = false;
-	tabbedIn = false;
+	bool lostFocus = false;
+    tabbedIn = false;
+
+    if (stealing && anyFocused && !focused) //need to steal focus
+        anyFocused = false;
+    else if (!stealing && !anyFocused) //focus has been stolen
+    {
+        lostFocus = focused;
+        focused = false;
+    }
+    else if (stealing && !anyFocused) //have stolen focus
+    {
+        focused = true;
+        tabbedIn = true;
+        stealing = false;
+    }
 
 	if (events.MouseClick(GLFW_MOUSE_BUTTON_LEFT))
 	{
@@ -26,34 +40,39 @@ bool Focusable::Draw(AlignedBox2i box)
 			focused = true;
 		else
 		{
-			ret = focused;
+			lostFocus = focused;
 			focused = false;
 		}
 	}
 
 	//throw focus (leave the event for the catching control)
-	if (focused && events.HasKeyEvent({ { GLFW_KEY_TAB, 0 }, RELEASE_OR_REPEAT }))
+	if (focused && events.HasKeyEvent({ { GLFW_KEY_TAB, 0 }, PRESS_OR_REPEAT }))
 	{
 		focused = false;
-		ret = true;
+		lostFocus = true;
 	}
 
 	//catch focus
-	if (!anyFocused && events.PopKeyEvent({ { GLFW_KEY_TAB, 0 }, RELEASE_OR_REPEAT }))
+	if (!anyFocused && events.PopKeyEvent({ { GLFW_KEY_TAB, 0 }, PRESS_OR_REPEAT }))
 	{
 		focused = true;
 		tabbedIn = true;
 	}
 
-	anyFocused |= focused;
-	anyFocused &= !ret;
+    anyFocused |= focused;
+    anyFocused &= !lostFocus;
 
-	return ret;
+	return lostFocus;
 }
 
 void Focusable::Unfocus()
 {
 	anyFocused = focused = false;
+}
+
+void Focusable::StealFocus()
+{
+    stealing = true;
 }
 
 Button::Button()

@@ -43,6 +43,7 @@ namespace UI
 		Layout getLast(Dir dir) const;
 
 		AlignedBox2i Box() const;
+        AlignedBox2i Filled() const;
 
 		operator AlignedBox2i() const { return Box(); }
 

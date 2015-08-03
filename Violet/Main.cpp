@@ -8,6 +8,7 @@
 #include "Rendering/RenderPasses.hpp"
 #include "File/Persist.hpp"
 #include "UI/PixelDraw.hpp"
+#include "Editor/Console.hpp"
 
 #include "Physics/NarrowPhase.hpp"
 #include "Physics/RigidBody.hpp"
@@ -46,6 +47,7 @@ try
 	RigidBody rigidBody(position, narrowPhase, passes);
 
 	Edit edit(r, passes, position, objName, narrowPhase, rigidBody, mgr, persist);
+    Console console;
 
 	Scripting script(mgr);
 
@@ -73,6 +75,7 @@ try
 		e = w.GetInput();
 
 		UI::BeginFrame(w, e);
+        console.Draw();
 		edit.PhysTick(camera);
 
         //physics step

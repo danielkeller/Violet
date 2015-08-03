@@ -69,6 +69,11 @@ AlignedBox2i Layout::Box() const
 	return FixBox({ pos, Scooch(Scooch(pos, fill, maxFill), grow, across) });
 }
 
+AlignedBox2i Layout::Filled() const
+{
+    return FixBox({ pos, Scooch(Scooch(pos, fill, filledSize), grow, across) });
+}
+
 Layout Layout::getLast(Dir dir) const
 {
 	Layout ret = getNext(dir);

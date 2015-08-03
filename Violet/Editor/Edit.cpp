@@ -72,7 +72,7 @@ void Edit::PhysTick(Object camera)
 
 	if (!enabled)
 	{
-		if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
+		if (e.PopKeyEvent({ { GLFW_KEY_E, UX_MOD_CTRL_CMD }, GLFW_PRESS }))
 			enabled = true;
 		return;
 	}
@@ -182,7 +182,7 @@ void Edit::PhysTick(Object camera)
 			curObjectName = objName[selected];
 	}
 
-	if (e.PopKeyEvent({ { GLFW_KEY_ESCAPE, 0 }, GLFW_PRESS }))
+	if (e.PopKeyEvent({ { GLFW_KEY_E, UX_MOD_CTRL_CMD }, GLFW_PRESS }))
         slide.Close();
     
     e.mainView = e.view.SubView(UI::CurLayout().Pop().Box());

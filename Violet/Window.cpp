@@ -118,8 +118,8 @@ void Events::PopZoom()
 
 bool Events::HasKeyEvent(KeyEvent key)
 {
-	if (key.action == RELEASE_OR_REPEAT)
-		return HasKeyEvent({ key.key, GLFW_REPEAT }) || HasKeyEvent({ key.key, GLFW_RELEASE });
+	if (key.action == PRESS_OR_REPEAT)
+		return HasKeyEvent({ key.key, GLFW_REPEAT }) || HasKeyEvent({ key.key, GLFW_PRESS });
 
 	return std::find(keyEvents.begin(), keyEvents.end(), key)
 		!= keyEvents.end();
@@ -127,8 +127,8 @@ bool Events::HasKeyEvent(KeyEvent key)
 
 bool Events::PopKeyEvent(KeyEvent key)
 {
-	if (key.action == RELEASE_OR_REPEAT) //only pop one of them
-		return PopKeyEvent({ key.key, GLFW_REPEAT }) || PopKeyEvent({ key.key, GLFW_RELEASE });
+	if (key.action == PRESS_OR_REPEAT) //only pop one of them
+		return PopKeyEvent({ key.key, GLFW_REPEAT }) || PopKeyEvent({ key.key, GLFW_PRESS });
 
 	auto ev = std::find(keyEvents.begin(), keyEvents.end(), key);
 	if (ev == keyEvents.end())
@@ -139,7 +139,7 @@ bool Events::PopKeyEvent(KeyEvent key)
 
 bool Events::PopKey(Key key)
 {
-	return PopKeyEvent({ key, RELEASE_OR_REPEAT });
+	return PopKeyEvent({ key, PRESS_OR_REPEAT });
 }
 
 void Events::Step()

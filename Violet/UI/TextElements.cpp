@@ -61,23 +61,23 @@ bool LineEdit::Draw(std::string& text)
 	//this is one line, just stick it inside the line
 	mouseOffs.y() = -3;// *= -1;
 
-	bool ret = focus.Draw(box);
+    bool ret = focus.Draw(box);
+    
+    //Convert to utf-32 to edit
+    u8_u32_convert u8_to_u32;
+    std::u32string text32 = u8_to_u32.from_bytes(text);
 
 	bool selectedAll = state.select_start == 0
         && state.select_end == static_cast<int>(lastText.size());
 
-	if (ret || text != lastText)
+	if (ret || text32 != lastText)
 		stb_textedit_clear_state(&state, true);
 
 	if (selectedAll || focus.tabbedIn) //auto select all
 	{
 		state.select_start = 0;
-		state.select_end = int(text.size());
+		state.select_end = int(text32.size());
 	}
-    
-    //Convert to utf-32 to edit
-    u8_u32_convert u8_to_u32;
-    std::u32string text32 = u8_to_u32.from_bytes(text);
 
 	if (FrameEvents().MouseClick(GLFW_MOUSE_BUTTON_LEFT) && box.contains(mouse))
 		stb_textedit_click(&text32, &state, mouseOffs.x(), mouseOffs.y());
@@ -96,8 +96,8 @@ bool LineEdit::Draw(std::string& text)
 
 		for (auto key : FrameEvents().keyEvents)
 		{
-			if (key.action == GLFW_PRESS)
-				continue; //wait for release or repeat
+			if (key.action == GLFW_RELEASE)
+				continue; //only press or repeat
 
 			//translate from glfw to stb
 			int stb_key = key.key.key; //lol
@@ -114,12 +114,12 @@ bool LineEdit::Draw(std::string& text)
 			stb_textedit_char(&text32, &state, ch);
 		FrameEvents().charEvents.clear();
 	}
+
+	UI::PushZ();
+    lastText = text32;
     
     //Now that editing is over, convert back to utf-8
     text = u8_to_u32.to_bytes(text32);
-
-	UI::PushZ();
-	lastText = text;
 	DrawText(text, origin);
 
 	//draw decorations

@@ -21,11 +21,12 @@ namespace UI
 	struct Focusable
 	{
 		Focusable();
-		bool focused, tabbedIn;
+		bool focused, stealing, tabbedIn;
 		static bool anyFocused;
 		//returns true if focus was just lost
 		bool Draw(AlignedBox2i box);
 		void Unfocus();
+        void StealFocus();
 	};
 
 	struct Button
@@ -74,7 +75,7 @@ namespace UI
 		int width;
 		Focusable focus;
 		STB_TexteditState state;
-		std::string lastText;
+		std::u32string lastText;
 
 		//returns true if the textedit just lost focus or enter is pressed
 		bool Draw(std::string& text);

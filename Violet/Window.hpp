@@ -13,6 +13,12 @@
 
 class Window;
 
+#ifdef __APPLE__
+#define UX_MOD_CTRL_CMD GLFW_MOD_SUPER
+#else
+#define UX_MOD_CTRL_CMD GLFW_MOD_COMMAND
+#endif
+
 struct Key
 {
 	int key;
@@ -21,7 +27,7 @@ struct Key
 };
 
 //key action for Events::PopKeyEvent
-#define RELEASE_OR_REPEAT 3
+#define PRESS_OR_REPEAT 3
 
 struct KeyEvent
 {
