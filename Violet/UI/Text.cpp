@@ -20,7 +20,8 @@
 
 using namespace UI;
 
-static const int TEX_SIZE = 1024;
+static const int TEX_SIZE_X = 4096;
+static const int TEX_SIZE_Y = 256;
 
 struct TextGen
 {
@@ -30,7 +31,7 @@ struct TextGen
     std::unordered_map<std::string, Eigen::AlignedBox2f> locs;
     
     stbrp_context stbrp;
-    std::array<stbrp_node, TEX_SIZE> stbrp_temp;
+    std::array<stbrp_node, TEX_SIZE_X> stbrp_temp;
     
     bool PackStrings(std::vector<std::string>& strs);
     void Clear();
@@ -49,7 +50,7 @@ struct TextContext
     TextGen youngGen, oldGen;
     std::unordered_map<std::string, std::vector<TextLoc>> toDraw;
     native_text* nt;
-    RGBA8Px texBuf[TEX_SIZE * TEX_SIZE];
+    RGBA8Px texBuf[TEX_SIZE_X * TEX_SIZE_Y];
     float scaling;
 };
 
@@ -60,7 +61,7 @@ TextContext& GetTextContext()
 }
 
 TextGen::TextGen()
-    : tex(TexDim{TEX_SIZE, TEX_SIZE})
+    : tex(TexDim{TEX_SIZE_X, TEX_SIZE_Y})
 {
     Clear();
 }
@@ -68,7 +69,7 @@ TextGen::TextGen()
 TextContext::TextContext()
     : nt(nt_init()), scaling(1)
 {
-    nt_buffer(nt, (char*)texBuf, TEX_SIZE, TEX_SIZE, 4);
+    nt_buffer(nt, (char*)texBuf, TEX_SIZE_X, TEX_SIZE_Y, 4);
     nt_color(nt,
              float(Colors::fg >> 24 & 0xFF) / 255.f,
              float(Colors::fg >> 16 & 0xFF) / 255.f,
@@ -115,9 +116,10 @@ bool TextGen::PackStrings(std::vector<std::string>& strs)
     std::vector<stbrp_rect> toPack(strs.size());
     for (size_t i = 0; i < strs.size(); ++i)
     {
-        auto sz = TextDim(strs[i]) * s; //do packing in pixel coords
+        Vector2i sz = TextDim(strs[i]) * s; //do packing in pixel coords
+        
         //FIXME: better indication when there's not enough room
-        toPack[i].w = std::min(sz.x(), TEX_SIZE);
+        toPack[i].w = std::min(sz.x(), TEX_SIZE_X);
         toPack[i].h = sz.y();
     }
     
@@ -137,7 +139,9 @@ bool TextGen::PackStrings(std::vector<std::string>& strs)
         TexBox box = {TexDim{toPack[i].x, toPack[i].y}, TexDim{toPack[i].x + toPack[i].w, toPack[i].y + toPack[i].h}};
         
         //set tex coords
-        locs[strs[i]] = {box.min().cast<float>() / float{TEX_SIZE}, box.max().cast<float>() / float{TEX_SIZE}};
+        Vector2f uvScale = {1 / float{TEX_SIZE_X}, 1 / float{TEX_SIZE_Y}};
+        locs[strs[i]] = {box.min().cast<float>().cwiseProduct(uvScale),
+            box.max().cast<float>().cwiseProduct(uvScale)};
         
         //do individual pixel transfers so as not to clobber existing data
         tex.SubImageOf(GetTextContext().texBuf, box);
@@ -149,7 +153,7 @@ bool TextGen::PackStrings(std::vector<std::string>& strs)
 void TextGen::Clear()
 {
     locs.clear();
-    stbrp_init_target(&stbrp, TEX_SIZE, TEX_SIZE, &stbrp_temp[0], TEX_SIZE);
+    stbrp_init_target(&stbrp, TEX_SIZE_X, TEX_SIZE_Y, &stbrp_temp[0], TEX_SIZE_X);
 }
 
 void UI::DrawAllText()

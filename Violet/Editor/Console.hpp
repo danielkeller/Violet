@@ -27,6 +27,8 @@ private:
     
     static const int HISTORY = 100;
     std::deque<std::string> lines;
+    std::deque<std::string> commands;
+    size_t browseCur;
 };
 
 #endif

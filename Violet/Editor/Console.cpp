@@ -9,7 +9,7 @@
 #include "Script/Scripting.hpp"
 
 Console::Console(Scripting& script)
-    : script(script), on(false)
+    : script(script), on(false), commands({""}), browseCur()
 {}
 
 void Console::Draw()
@@ -37,15 +37,36 @@ void Console::Draw()
     if (anim.Draw(HEIGHT))
         on = false;
     
-    //before edit takes the event
-    if (edit.focus.focused && UI::FrameEvents().PopKey({ GLFW_KEY_ENTER, 0 }))
-        RunStr();
-    
     //a little bottom padding
     l.PutSpace(UI::TEXT_PADDING);
     
+    //before edit takes the events
+    if (edit.focus.focused)
+    {
+        if (UI::FrameEvents().PopKey({ GLFW_KEY_ENTER, 0 }))
+            RunStr();
+        
+        if (UI::FrameEvents().PopKey({ GLFW_KEY_UP, 0 }) && browseCur < commands.size() - 1)
+        {
+            ++browseCur;
+            current = commands[browseCur];
+        }
+        if (UI::FrameEvents().PopKey({ GLFW_KEY_DOWN, 0 }) && browseCur > 0)
+        {
+            --browseCur;
+            current = commands[browseCur];
+        }
+    }
+    
     edit.width = width;
     edit.Draw(current);
+    
+    //string was edited
+    if (current != commands[browseCur])
+    {
+        browseCur = 0;
+        commands[0] = current;
+    }
     
     auto it = lines.cbegin();
     for (int h = 0; h < HEIGHT; h += UI::LINEH)
@@ -69,6 +90,7 @@ void Console::RunStr()
     try {
         std::stringstream result{ script.RunStr(current) };
         
+        commands.emplace_front(current);
         lines.emplace_front(std::move(current));
         
         std::string line;
@@ -77,6 +99,8 @@ void Console::RunStr()
         
         if (lines.size() > HISTORY)
             lines.pop_back();
+        if (commands.size() > HISTORY)
+            commands.pop_back();
         
         current.clear();
     } catch (std::runtime_error& err) {

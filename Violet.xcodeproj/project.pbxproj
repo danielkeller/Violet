@@ -38,6 +38,7 @@
 		373FC7A31B3AF9CC00AEBB25 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC79C1B3AF9CC00AEBB25 /* Text.cpp */; };
 		373FC7A41B3AF9CC00AEBB25 /* TextElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC79E1B3AF9CC00AEBB25 /* TextElements.cpp */; };
 		37A842741B6E9F5E00908276 /* Console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37A842721B6E9F5E00908276 /* Console.cpp */; };
+		37A842761B70210100908276 /* scripts in Resources */ = {isa = PBXBuildFile; fileRef = 37A842751B70210100908276 /* scripts */; };
 		37C8E08A1B55BFA000713DAC /* gl_core_3_3.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E0881B55BFA000713DAC /* gl_core_3_3.c */; };
 		37C8E08D1B55BFB100713DAC /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E08B1B55BFB100713DAC /* sqlite3.c */; };
 		37C8E0901B55BFC600713DAC /* native_text.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E08E1B55BFC600713DAC /* native_text.c */; };
@@ -136,6 +137,7 @@
 		37A842701B5D718A00908276 /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = Libs/stb/stb_textedit.h; sourceTree = "<group>"; };
 		37A842721B6E9F5E00908276 /* Console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Console.cpp; path = Editor/Console.cpp; sourceTree = "<group>"; };
 		37A842731B6E9F5E00908276 /* Console.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Console.hpp; path = Editor/Console.hpp; sourceTree = "<group>"; };
+		37A842751B70210100908276 /* scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = scripts; sourceTree = SOURCE_ROOT; };
 		37C8E0881B55BFA000713DAC /* gl_core_3_3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gl_core_3_3.c; path = Libs/GL/gl_core_3_3.c; sourceTree = SOURCE_ROOT; };
 		37C8E0891B55BFA000713DAC /* gl_core_3_3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl_core_3_3.h; path = Libs/GL/gl_core_3_3.h; sourceTree = SOURCE_ROOT; };
 		37C8E08B1B55BFB100713DAC /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3.c; path = Libs/sqlite/sqlite3.c; sourceTree = "<group>"; };
@@ -347,6 +349,7 @@
 			isa = PBXGroup;
 			children = (
 				B9AA96331A575CB40079F917 /* Violet */,
+				37A842751B70210100908276 /* scripts */,
 				B9AA96D91A577D3E0079F917 /* assets */,
 				37C8E0851B55BCE000713DAC /* Libs */,
 				B9AA96321A575CB40079F917 /* Products */,
@@ -544,6 +547,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37A842761B70210100908276 /* scripts in Resources */,
 				B9AA963F1A575CB50079F917 /* MainMenu.xib in Resources */,
 				B9AA963C1A575CB40079F917 /* Images.xcassets in Resources */,
 			);

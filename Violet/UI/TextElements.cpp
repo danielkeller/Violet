@@ -67,11 +67,14 @@ bool LineEdit::Draw(std::string& text)
     u8_u32_convert u8_to_u32;
     std::u32string text32 = u8_to_u32.from_bytes(text);
 
-	bool selectedAll = state.select_start == 0
+	bool selectedAll = lastText.size() && state.select_start == 0
         && state.select_end == static_cast<int>(lastText.size());
 
 	if (ret || text32 != lastText)
+    {
 		stb_textedit_clear_state(&state, true);
+        state.cursor = static_cast<int>(text32.size());
+    }
 
 	if (selectedAll || focus.tabbedIn) //auto select all
 	{
