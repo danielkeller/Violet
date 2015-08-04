@@ -11,9 +11,9 @@ struct ScriptComponent : public Component
 	const std::string name;
 	void Load(const Persist&) {};
 	void Unload(const Persist&) {};
-	bool Has(Object obj) const { return false; };
-	void Save(Object obj, Persist&) const {};
-	void Remove(Object obj) {};
+	bool Has(Object) const { return false; };
+	void Save(Object, Persist&) const {};
+	void Remove(Object) {};
 };
 
 struct lua_State;
@@ -25,6 +25,8 @@ public:
 	~Scripting();
 
 	void PhysTick();
+    //throws std::runtime_error on error
+    std::string RunStr(const std::string& code);
 
 private:
 	Scripting(const Scripting&) = delete;

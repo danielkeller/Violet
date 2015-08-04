@@ -20,6 +20,7 @@ void luaU_require(lua_State* L, const char* modname, int glb)
 		lua_pushvalue(L, -1);  /* copy of module */
 		lua_setglobal(L, modname);  /* _G[modname] = module */
 	}
+    lua_pop(L, 1); /* remove module loader */
 }
 
 std::string luaU_checkstdstring(lua_State* L, int arg)

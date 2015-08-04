@@ -20,7 +20,7 @@
 
 using namespace UI;
 
-static const int TEX_SIZE = 512;
+static const int TEX_SIZE = 1024;
 
 struct TextGen
 {
@@ -116,7 +116,8 @@ bool TextGen::PackStrings(std::vector<std::string>& strs)
     for (size_t i = 0; i < strs.size(); ++i)
     {
         auto sz = TextDim(strs[i]) * s; //do packing in pixel coords
-        toPack[i].w = sz.x();
+        //FIXME: better indication when there's not enough room
+        toPack[i].w = std::min(sz.x(), TEX_SIZE);
         toPack[i].h = sz.y();
     }
     

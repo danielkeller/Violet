@@ -22,7 +22,7 @@ LuaVector& tovector(lua_State *L, int arg)
 static int vector_tostring(lua_State *L)
 {
 	std::stringstream ss;
-	ss << tovector(L, 1);
+	ss << tovector(L, 1).transpose();
 	lua_pop(L, 1);
 	lua_pushlstring(L, ss.str().c_str(), ss.str().size());
 	return 1;

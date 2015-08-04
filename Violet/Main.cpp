@@ -47,9 +47,9 @@ try
 	RigidBody rigidBody(position, narrowPhase, passes);
 
 	Edit edit(r, passes, position, objName, narrowPhase, rigidBody, mgr, persist);
-    Console console;
 
-	Scripting script(mgr);
+    Scripting script(mgr);
+    Console console(script);
 
 	mgr.Register(&position);
 	mgr.Register(&r);

@@ -13,6 +13,7 @@
 
 class Window;
 
+//'Apple' or 'Control' key
 #ifdef __APPLE__
 #define UX_MOD_CTRL_CMD GLFW_MOD_SUPER
 #else

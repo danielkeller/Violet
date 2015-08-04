@@ -6,6 +6,9 @@
 #include "EigenLib.hpp"
 #include "Utils.hpp"
 
+
+#include <iostream>
+
 #define GAMELIBNAME "game"
 
 //use a subset of lua's standard libs
@@ -31,12 +34,13 @@ Scripting::Scripting(ComponentManager& mgr)
 	//"require" functions from 'loadedlibs'
 	for (auto lib = loadedlibs; lib->func; lib++) {
 		luaL_requiref(L, lib->name, lib->func, 1);
-		lua_pop(L, 1);  /* remove lib */
+		lua_pop(L, 1);  // remove lib
 	}
-
-	luaU_push_mem_fn<Scripting, &Scripting::OpenLib>(L, this);
-	luaU_require(L, GAMELIBNAME, 1);
-
+    
+    luaU_push_mem_fn<Scripting, &Scripting::OpenLib>(L, this);
+    luaU_require(L, GAMELIBNAME, 1);
+    lua_pop(L, 1);  // remove lib
+    
 	if (luaL_dofile(L, "scripts/init.lua") != LUA_OK)
 	{
 		const char* msg = lua_tostring(L, -1);
@@ -84,4 +88,30 @@ void Scripting::PhysTick()
 		lua_pop(L, 1);
 	}
 	lua_pop(L, 1);
+}
+
+std::string Scripting::RunStr(const std::string& code)
+{
+    if (luaL_dostring(L, code.c_str()) != LUA_OK)
+    {
+        const char* msg = lua_tostring(L, -1);
+        lua_pop(L, 1);
+        throw std::runtime_error(msg);
+    }
+    
+    std::string ret;
+    while (lua_gettop(L))
+    {
+        lua_getglobal(L, "tostring");
+        lua_pushvalue(L, 1);
+        lua_call(L, 1, 1);
+        const char* text = lua_tostring(L, -1);
+        lua_pop(L, 1); //pop the string
+        lua_remove(L, 1); //remove the result
+        
+        if (ret.size()) ret += ", ";
+        ret += text;
+    }
+    
+    return ret;
 }
