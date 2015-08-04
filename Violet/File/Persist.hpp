@@ -103,6 +103,9 @@ public:
 		if (Exists<Subsystem>(k))
 			database.MakeDeleteStmt(PersistSchema<Subsystem>::name).Bind(k).Step();
 	}
+    
+    //?
+    Persist_detail::Database& Database() { return database; }
 
 private:
 	Persist_detail::Database database;

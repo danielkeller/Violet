@@ -7,10 +7,19 @@
 #include "UI/Layout.hpp"
 
 #include "Script/Scripting.hpp"
+#include "File/Persist.hpp"
 
-Console::Console(Scripting& script)
-    : script(script), on(false), commands({""}), browseCur()
-{}
+Console::Console(Scripting& script, Persist& persist)
+    : script(script), persist(persist), on(false)
+{
+    //run dummy query to create database
+    persist.Exists<Console>(0);
+    
+    std::tie(browseMin, browseMax) = persist.Database()
+        .MakeStmt("select min(id), max(id)+1 from console_history")
+        .Eval<std::int64_t, std::int64_t>();
+    browse = browseMax;
+}
 
 void Console::Draw()
 {
@@ -46,27 +55,31 @@ void Console::Draw()
         if (UI::FrameEvents().PopKey({ GLFW_KEY_ENTER, 0 }))
             RunStr();
         
-        if (UI::FrameEvents().PopKey({ GLFW_KEY_UP, 0 }) && browseCur < commands.size() - 1)
+        if (UI::FrameEvents().PopKey({ GLFW_KEY_UP, 0 }) && browse > browseMin)
         {
-            ++browseCur;
-            current = commands[browseCur];
+            //save off the edited line so it can be browsed back to
+            if (browse == browseMax)
+                latest = current;
+            --browse;
+            std::tie(std::ignore, current) = persist.Get<Console>(browse);
         }
-        if (UI::FrameEvents().PopKey({ GLFW_KEY_DOWN, 0 }) && browseCur > 0)
+        if (UI::FrameEvents().PopKey({ GLFW_KEY_DOWN, 0 }) && browse < browseMax)
         {
-            --browseCur;
-            current = commands[browseCur];
+            ++browse;
+            if (browse == browseMax)
+                current = latest;
+            else
+                std::tie(std::ignore, current) = persist.Get<Console>(browse);
         }
     }
     
     edit.width = width;
+    std::string old = current;
     edit.Draw(current);
     
     //string was edited
-    if (current != commands[browseCur])
-    {
-        browseCur = 0;
-        commands[0] = current;
-    }
+    if (current != old)
+        browse = browseMax;
     
     auto it = lines.cbegin();
     for (int h = 0; h < HEIGHT; h += UI::LINEH)
@@ -90,7 +103,11 @@ void Console::RunStr()
     try {
         std::stringstream result{ script.RunStr(current) };
         
-        commands.emplace_front(current);
+        //don't put in repeated or empty commands
+        if (browse != browseMax - 1 && current != "")
+            persist.Set<Console>(browseMax++, current);
+        
+        browse = browseMax;
         lines.emplace_front(std::move(current));
         
         std::string line;
@@ -99,11 +116,16 @@ void Console::RunStr()
         
         if (lines.size() > HISTORY)
             lines.pop_back();
-        if (commands.size() > HISTORY)
-            commands.pop_back();
+        if (browseMax - browseMin > HISTORY)
+            persist.Delete<Console>(browseMin++);
         
         current.clear();
     } catch (std::runtime_error& err) {
         lines.emplace_front(err.what());
     }
 }
+
+template<>
+const char* PersistSchema<Console>::name = "console_history";
+template<>
+Columns PersistSchema<Console>::cols = { "id", "command" };

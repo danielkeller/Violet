@@ -49,7 +49,7 @@ try
 	Edit edit(r, passes, position, objName, narrowPhase, rigidBody, mgr, persist);
 
     Scripting script(mgr);
-    Console console(script);
+    Console console(script, persist);
 
 	mgr.Register(&position);
 	mgr.Register(&r);
