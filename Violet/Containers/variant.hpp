@@ -141,13 +141,13 @@ public:
     template<class T>
     T& get()
     {
-        assert(which == var_get<T>(data));
+        var_get<T>(data);
         return *reinterpret_cast<T*>(&data);
     }
     template<class T>
     const T& get() const
     {
-        assert(which == var_get<T>(data));
+        var_get<T>(data);
         return *reinterpret_cast<const T*>(&data);
     }
     
