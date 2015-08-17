@@ -2,32 +2,49 @@
 #define BINTREE_HPP
 #include <array>
 #include <deque>
-#include "WrappedIterator.hpp"
+#include "variant.hpp"
 #include "Utils/Profiling.hpp"
+#include "Utils/Template.hpp"
 
-//default traversal order is breadth-first
-template<class NodeTy, class LeafTy, class ContTy>
-class BinTreeIterBase :
-	public WrappedIterator<BinTreeIterBase<NodeTy, LeafTy, ContTy>, size_t, NodeTy>
+template<class N> class BinTree;
+
+template<class N>
+class BinTreeIterBase
 {
-    using Base = WrappedIterator<BinTreeIterBase<NodeTy, LeafTy, ContTy>, size_t, NodeTy>;
-    using Base::it;
-    friend Base;
+protected:
+    size_t pos;
+    using NodeT = std::remove_const_t<N>;
+    using ContTy = std::vector<NodeT>;
+    ContTy* nodes;
+    
+    BinTreeIterBase(size_t pos, ContTy* t) : pos(pos), nodes(t) {}
+    //the interface enforces constness
+    BinTreeIterBase(size_t pos, const ContTy* t) : BinTreeIterBase(pos, const_cast<ContTy*>(t)) {}
+    
+    template<class N1> friend class BinTree;
+    
 public:
-	NodeTy& operator*()
-	{
-		return tree->nodes[it];
-	}
-	using Base::operator*;
+    BinTreeIterBase() = default;
+    
+	N& operator*()
+    {
+        //support inserting this way
+        if (nodes->size() <= pos)
+            nodes->resize(pos + 1);
+        return (*nodes)[pos];
+    }
+    
+    N* operator->() { return &**this; }
 
-	void ToLeft() { it = 2 * it + 1; }
-	void ToRight() { it = 2 * it + 2; }
-	void ToParent() { it = (it-1)/2; }
+	void ToLeft() { pos = 2 * pos + 1; }
+	void ToRight() { pos = 2 * pos + 2; }
+	void ToParent() { pos = (pos-1)/2; }
 	BinTreeIterBase Left() const { auto ret = *this; ret.ToLeft(); return ret; }
 	BinTreeIterBase Right() const { auto ret = *this; ret.ToRight(); return ret; }
-	BinTreeIterBase Parent() const { auto ret = *this; ret.ToParent(); return ret; }
-	bool Bottom() const { return Left() >= tree->end(); }
-	bool Top() const { return it == 0; }
+    BinTreeIterBase Parent() const { auto ret = *this; ret.ToParent(); return ret; }
+    explicit operator bool() const { return pos < nodes->size() && (*nodes)[pos]; }
+    bool Bottom() const { return !Left() && !Right(); }
+	bool Top() const { return pos == 0; }
 	size_t Depth() const
 	{
 		auto iter = *this;
@@ -35,124 +52,90 @@ public:
 		while (!iter.Top()) { iter.ToParent(); ++lvl; }
 		return lvl;
 	}
-
-	LeafTy& Leaf() const
-	{
-		return tree->leaves[it - tree->nodes.size() / 2];
-	}
-
-private:
-	friend ContTy;
-	ContTy* tree;
-
-	BinTreeIterBase(size_t pos, ContTy* t)
-		: Base(pos), tree(t)
-	{}
+    
+    bool operator==(BinTreeIterBase other) { return pos == other.pos; }
+    bool operator!=(BinTreeIterBase other) { return pos != other.pos; }
+        
+    BinTreeIterBase& operator++()
+    {
+        //skip empty nodes
+        while (pos < nodes->size() && !*this) ++pos;
+        return *this;
+    }
+    BinTreeIterBase& operator--()
+    {
+        while (pos < 0 && !*this) --pos;
+        return *this;
+    }
+    
+    BinTreeIterBase operator++(int)
+    {
+        auto ret = *this;
+        ++*this;
+        return ret;
+    }
+    BinTreeIterBase operator--(int)
+    {
+        auto ret = *this;
+        --*this;
+        return ret;
+    }
 };
 
-template<class NodeTy, class LeafTy,
-class NodeAlloc = std::allocator<NodeTy>, class LeafAlloc = std::allocator<LeafTy>>
+template<class N>
 class BinTree
 {
 public:
+    using value_type = nullable_t<N>;
+    
 	BinTree() = default;
 	BinTree(const BinTree&) = default;
 	BinTree(BinTree&&) = default;
 	BinTree& operator=(BinTree other)
 	{
 		std::swap(nodes, other.nodes);
-		std::swap(leaves, other.leaves);
 		return *this;
 	}
 
-	using iterator = BinTreeIterBase<NodeTy, LeafTy, BinTree>;
-	using const_iterator = BinTreeIterBase<const NodeTy, const LeafTy, const BinTree>;
+	using iterator = BinTreeIterBase<value_type>;
+	using const_iterator = BinTreeIterBase<const value_type>;
 
-	iterator begin() { return{ 0, this }; }
-	const_iterator begin() const { return{ 0, this }; }
-	const_iterator cbegin() { return{ 0, this }; }
+	iterator begin() { return{ 0, &nodes }; }
+	const_iterator begin() const { return{ 0, &nodes }; }
+	const_iterator cbegin() const { return{ 0, &nodes }; }
 
-	iterator end() { return{ nodes.size(), this }; }
-	const_iterator end() const { return{ nodes.size(), this }; }
-	const_iterator cend() { return{ nodes.size(), this }; }
-
-	template<typename State, typename F, typename G>
-	static BinTree TopDown(size_t height, NodeTy root, State init, F makeNode, G makeLeaf)
-	{
-		BinTree ret;
-		auto& nodes = ret.nodes;
-		auto& leaves = ret.leaves;
-
-		size_t numNodes = (1 << height) - 1;
-
-		nodes.reserve(numNodes);
-
-		std::deque<State> states;
-		states.push_back(std::move(init));
-		nodes.push_back(std::move(root));
-
-		size_t numInnerNodes = (1 << (height - 1)) - 1;
-		for (size_t i = 0; i < numInnerNodes; ++i)
-		{
-			std::tuple<NodeTy, State, NodeTy, State> tup
-				= makeNode(std::move(states.front()), nodes[i]);
-			states.pop_front();
-
-			nodes.emplace_back(std::move(std::get<0>(tup)));
-			states.emplace_back(std::move(std::get<1>(tup)));
-			nodes.emplace_back(std::move(std::get<2>(tup)));
-			states.emplace_back(std::move(std::get<3>(tup)));
-		}
-
-		size_t numLeaves = 1 << (height - 1);
-		leaves.reserve(numLeaves);
-
-		for (size_t i = numInnerNodes; i < numNodes; ++i)
-		{
-			leaves.emplace_back(makeLeaf(std::move(states.front()), nodes[i]));
-			states.pop_front();
-		}
-
-		return ret;
-	}
-	/*
-	template<typename F, typename G>
-	static BinTree BottomUp(std::vector<LeafTy, LeafAlloc> leaves, F makeBottomNode, G makeInnerNode)
-	{
-		BinTree ret;
-		auto& nodes = ret.nodes();
-		ret.leaves = std::move(leaves);
-
-		size_t numLeaves = leaves.size();
-		size_t height = 1;
-		while (1 << (height - 1) < numLeaves) ++height;
-		
-		size_t numNodes = (1 << height) - 1;
-		nodes.resize(numNodes); //Note: this is different from TopDown
-		size_t numInnerNodes = (1 << (height - 1)) - 1;
-
-		for (size_t i = numLeaves - 1; i >= 0; --i)
-			nodes[i + numInnerNodes] = makeBottomNode(ret.leaves[i]);
-
-		for (size_t i = numInnerNodes; i >= 0; --i)
-			nodes[i] = makeInnerNode(nodes[2 * i + 1], nodes[2 * i + 2]);
-
-		return ret;
-	}*/
-
-	size_t Height() const
-	{
-		size_t h = 0;
-		while ((1_sz << h) < nodes.size()) ++h;
-		return h;
-	}
+	iterator end() { return{ nodes.size(), &nodes }; }
+	const_iterator end() const { return{ nodes.size(), &nodes }; }
+	const_iterator cend() const { return{ nodes.size(), &nodes }; }
+    
+    void insert(iterator pos, value_type node)
+    {
+        if (nodes.size() <= pos.pos)
+            nodes.resize(pos.pos + 1);
+        nodes[pos.pos] = node;
+    }
+    
+    void reserve(size_t height)
+    {
+        nodes.reserve((1 << height) - 1);
+    }
+    
+    size_t size() const
+    {
+        size_t s = 0;
+        for (auto& n : nodes) if (n) ++s;
+        return s;
+    }
+    
+    size_t capacity() const
+    {
+        return nodes.capacity();
+    }
 
 private:
-	friend iterator;
-	friend const_iterator;
+    template<class N1> friend class BinTreeIterBase;
 
-	std::vector<NodeTy, NodeAlloc> nodes;
-	std::vector<LeafTy, LeafAlloc> leaves;
+	std::vector<value_type> nodes;
 };
 
 #endif

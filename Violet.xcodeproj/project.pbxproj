@@ -39,6 +39,7 @@
 		373FC7A41B3AF9CC00AEBB25 /* TextElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC79E1B3AF9CC00AEBB25 /* TextElements.cpp */; };
 		37A842741B6E9F5E00908276 /* Console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37A842721B6E9F5E00908276 /* Console.cpp */; };
 		37A842761B70210100908276 /* scripts in Resources */ = {isa = PBXBuildFile; fileRef = 37A842751B70210100908276 /* scripts */; };
+		37A842791B7A82D300908276 /* BroadPhase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37A842771B7A82D300908276 /* BroadPhase.cpp */; };
 		37C8E08A1B55BFA000713DAC /* gl_core_3_3.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E0881B55BFA000713DAC /* gl_core_3_3.c */; };
 		37C8E08D1B55BFB100713DAC /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E08B1B55BFB100713DAC /* sqlite3.c */; };
 		37C8E0901B55BFC600713DAC /* native_text.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E08E1B55BFC600713DAC /* native_text.c */; };
@@ -49,7 +50,6 @@
 		B9AA96381A575CB40079F917 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B9AA96371A575CB40079F917 /* AppDelegate.m */; };
 		B9AA963C1A575CB40079F917 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B9AA963B1A575CB40079F917 /* Images.xcassets */; };
 		B9AA963F1A575CB50079F917 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9AA963D1A575CB50079F917 /* MainMenu.xib */; };
-		B9AA969B1A575DE00079F917 /* AABB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9AA965F1A575DE00079F917 /* AABB.cpp */; };
 		B9AA969C1A575DE00079F917 /* Mesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9AA96621A575DE00079F917 /* Mesh.cpp */; };
 		B9AA969F1A575DE00079F917 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9AA96681A575DE00079F917 /* Main.cpp */; };
 		B9AA96A21A575DE00079F917 /* Mobile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9AA966C1A575DE00079F917 /* Mobile.cpp */; };
@@ -138,6 +138,9 @@
 		37A842721B6E9F5E00908276 /* Console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Console.cpp; path = Editor/Console.cpp; sourceTree = "<group>"; };
 		37A842731B6E9F5E00908276 /* Console.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Console.hpp; path = Editor/Console.hpp; sourceTree = "<group>"; };
 		37A842751B70210100908276 /* scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = scripts; sourceTree = SOURCE_ROOT; };
+		37A842771B7A82D300908276 /* BroadPhase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BroadPhase.cpp; path = Physics/BroadPhase.cpp; sourceTree = "<group>"; };
+		37A842781B7A82D300908276 /* BroadPhase.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = BroadPhase.hpp; path = Physics/BroadPhase.hpp; sourceTree = "<group>"; };
+		37A8427A1B7E981F00908276 /* variant.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = variant.hpp; sourceTree = "<group>"; };
 		37C8E0881B55BFA000713DAC /* gl_core_3_3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gl_core_3_3.c; path = Libs/GL/gl_core_3_3.c; sourceTree = SOURCE_ROOT; };
 		37C8E0891B55BFA000713DAC /* gl_core_3_3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl_core_3_3.h; path = Libs/GL/gl_core_3_3.h; sourceTree = SOURCE_ROOT; };
 		37C8E08B1B55BFB100713DAC /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3.c; path = Libs/sqlite/sqlite3.c; sourceTree = "<group>"; };
@@ -161,8 +164,6 @@
 		B9AA965B1A575DE00079F917 /* l_bag.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = l_bag.hpp; sourceTree = "<group>"; };
 		B9AA965C1A575DE00079F917 /* l_map.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = l_map.hpp; sourceTree = "<group>"; };
 		B9AA965D1A575DE00079F917 /* WrappedIterator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WrappedIterator.hpp; sourceTree = "<group>"; };
-		B9AA965F1A575DE00079F917 /* AABB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AABB.cpp; sourceTree = "<group>"; };
-		B9AA96601A575DE00079F917 /* AABB.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AABB.hpp; sourceTree = "<group>"; };
 		B9AA96611A575DE00079F917 /* Collide.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Collide.hpp; sourceTree = "<group>"; };
 		B9AA96621A575DE00079F917 /* Mesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mesh.cpp; sourceTree = "<group>"; };
 		B9AA96631A575DE00079F917 /* Mesh.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Mesh.hpp; sourceTree = "<group>"; };
@@ -233,6 +234,8 @@
 		373FC7631B3AF90100AEBB25 /* Physics */ = {
 			isa = PBXGroup;
 			children = (
+				37A842771B7A82D300908276 /* BroadPhase.cpp */,
+				37A842781B7A82D300908276 /* BroadPhase.hpp */,
 				373FC7851B3AF9AB00AEBB25 /* NarrowPhase.cpp */,
 				373FC7861B3AF9AB00AEBB25 /* NarrowPhase.hpp */,
 				373FC7871B3AF9AB00AEBB25 /* RigidBody.cpp */,
@@ -415,6 +418,7 @@
 				B9AA965B1A575DE00079F917 /* l_bag.hpp */,
 				B9AA965C1A575DE00079F917 /* l_map.hpp */,
 				B9AA965D1A575DE00079F917 /* WrappedIterator.hpp */,
+				37A8427A1B7E981F00908276 /* variant.hpp */,
 			);
 			path = Containers;
 			sourceTree = "<group>";
@@ -424,14 +428,12 @@
 			children = (
 				373FC7561B3AF8CE00AEBB25 /* OBB.cpp */,
 				373FC7571B3AF8CE00AEBB25 /* OBB.hpp */,
-				373FC7581B3AF8CE00AEBB25 /* Shapes.cpp */,
-				B9AA965F1A575DE00079F917 /* AABB.cpp */,
-				B9AA96601A575DE00079F917 /* AABB.hpp */,
 				B9AA96611A575DE00079F917 /* Collide.hpp */,
 				373FC7551B3AF8CE00AEBB25 /* Collide.cpp */,
 				B9AA96621A575DE00079F917 /* Mesh.cpp */,
 				B9AA96631A575DE00079F917 /* Mesh.hpp */,
 				B9AA96641A575DE00079F917 /* Shapes.hpp */,
+				373FC7581B3AF8CE00AEBB25 /* Shapes.cpp */,
 			);
 			path = Geometry;
 			sourceTree = "<group>";
@@ -574,7 +576,6 @@
 				373FC7831B3AF99E00AEBB25 /* Persist.cpp in Sources */,
 				37D376D01B3B4571001EAA62 /* Viewport.cpp in Sources */,
 				37C8E08D1B55BFB100713DAC /* sqlite3.c in Sources */,
-				B9AA969B1A575DE00079F917 /* AABB.cpp in Sources */,
 				37C8E08A1B55BFA000713DAC /* gl_core_3_3.c in Sources */,
 				B9AA96B41A575DE00079F917 /* Window.cpp in Sources */,
 				373FC78A1B3AF9AB00AEBB25 /* RigidBody.cpp in Sources */,
@@ -600,6 +601,7 @@
 				373FC7931B3AF9BA00AEBB25 /* Utils.cpp in Sources */,
 				373FC7A11B3AF9CC00AEBB25 /* Layout.cpp in Sources */,
 				373FC7761B3AF99200AEBB25 /* Object.cpp in Sources */,
+				37A842791B7A82D300908276 /* BroadPhase.cpp in Sources */,
 				373FC7501B3AF8C100AEBB25 /* Assets.cpp in Sources */,
 				373092881B41DBB000C832FE /* DebugBoxes.cpp in Sources */,
 				373FC7511B3AF8C100AEBB25 /* ComponentEdit.cpp in Sources */,

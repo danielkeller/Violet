@@ -142,7 +142,7 @@ void UI::BeginFrame(const Window& w, Events& e)
 
 LayoutStack& UI::CurLayout()
 {
-	static LayoutStack layout({ 0, 0 });
+    static LayoutStack layout({ Vector2i{0, 0}, Vector2i{0, 0}});
 	return layout;
 }
 

@@ -24,6 +24,7 @@ inline Vector3f TriNormal(const Triangle& t)
 using Mesh = std::vector<Triangle, Eigen::aligned_allocator<Triangle>>;
 
 Vector3f centroid(const Mesh& m);
+Vector3f centroid(Mesh::const_iterator begin, Mesh::const_iterator end);
 
 using Eigen::AlignedBox3f;
 Matrix4f BoxMat(const AlignedBox3f& box);
@@ -36,7 +37,7 @@ struct OBB
 	OBB(const AlignedBox3f& aabb, const Matrix4f& xfrm);
 	OBB(const OBB&, const OBB&);
 	OBB(const OBB&, const OBB&, const Matrix3f&);
-	OBB(const Mesh&);
+    OBB(Mesh::const_iterator begin, Mesh::const_iterator end);
 
 	Matrix3f axes;
 	Vector3f origin;

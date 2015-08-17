@@ -11,17 +11,7 @@
 #include <queue>
 #include <random>
 
-using Iter = NarrowPhase::TreeTy::TreeTy::const_iterator;
-using IterPair = std::pair<Iter, Iter>;
-
-struct TotalVolCmp
-{
-	bool operator()(const IterPair& l, const IterPair& r)
-	{
-		return l.first->squaredVolume() + l.second->squaredVolume()
-			< r.first->squaredVolume() + r.second->squaredVolume();
-	}
-};
+//fixme: 1-tri meshes
 
 std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 {
@@ -32,69 +22,73 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 	Matrix4f aInv = AffineInverse(position[a].get().ToMatrix());
 	Matrix4f bpos = position[b].get().ToMatrix();
 	Matrix4f bInv = AffineInverse(position[b].get().ToMatrix());
-
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	gen.seed(0);
-	std::uniform_real_distribution<float> dis(0, 1);
 	
 	auto it = data.at(a).Tree().begin();
 	while (!it.Left().Left().Bottom()) it.ToLeft();
-	
-	std::vector<IterPair> leavesToCheck;
 
-	std::priority_queue<IterPair, std::vector<IterPair>, TotalVolCmp> queue;
-	queue.push({ data.at(a).Tree().begin(), data.at(b).Tree().begin() });
-
-	while (!queue.empty())
+    nodesToCheck.clear(); //avoid reallocation
+	nodesToCheck.push_back({ data.at(a).Tree().begin(), data.at(b).Tree().begin() });
+    
+    std::vector<Contact> ret;
+    
+	while (!nodesToCheck.empty())
 	{
-		auto pair = queue.top();
-		queue.pop();
+        Iter aIt, bIt;
+        std::tie(aIt, bIt) = nodesToCheck.back();
+		nodesToCheck.pop_back();
 		
-		if (ConservativeOBBvsOBB(
-			apos * OBBMat(*pair.first), InvOBBMat(*pair.first) * aInv,
-			bpos * OBBMat(*pair.second), InvOBBMat(*pair.second) * bInv))
+        if (aIt->is<Triangle>()) //leaf vs leaf
+        {
+            Triangle aWorld = TransformTri(aIt->get<Triangle>(), apos);
+            Triangle bWorld = TransformTri(bIt->get<Triangle>(), bpos);
+            auto pair = ContactPoint(aWorld, bWorld);
+            if (pair.second)
+            {
+                //TODO: first-contact early out
+                ret.push_back({ pair.first,
+                    TriNormal(aWorld).normalized(), TriNormal(bWorld).normalized() });
+                
+                debug.PushVector(pair.first, ret.back().aNormal, { 1, .5f, 1 });
+                debug.PushVector(pair.first, ret.back().bNormal, { 0, 1, 1 });
+            }
+        }
+		else if (ConservativeOBBvsOBB( //inner vs inner
+			apos * OBBMat(aIt->get<OBB>()), InvOBBMat(aIt->get<OBB>()) * aInv,
+			bpos * OBBMat(bIt->get<OBB>()), InvOBBMat(bIt->get<OBB>()) * bInv))
 		{
-			if (!pair.first.Bottom() && 
-				(pair.second.Bottom() || pair.first->volume() > pair.second->volume()))
+            //Cases: Box Box, Tri Box, Tri Tri
+            
+			if (aIt.Left()->is<OBB>() &&
+				(bIt.Left()->is<Triangle>() || aIt->get<OBB>().volume() > bIt->get<OBB>().volume()))
 			{
-				queue.push({ pair.first.Left(), pair.second });
-				queue.push({ pair.first.Right(), pair.second });
+				nodesToCheck.push_back({ aIt.Left(), bIt });
+				nodesToCheck.push_back({ aIt.Right(), bIt });
 			}
-			else if (!pair.second.Bottom())
+			else if (bIt.Left()->is<OBB>())
 			{
-				queue.push({ pair.first, pair.second.Left() });
-				queue.push({ pair.first, pair.second.Right() });
+				nodesToCheck.push_back({ aIt, bIt.Left() });
+				nodesToCheck.push_back({ aIt, bIt.Right() });
 			}
-			else
-			{
-				leavesToCheck.push_back(pair);
+			else //each has at least one triangle
+            {
+                nodesToCheck.push_back({aIt.Left(), bIt.Left()});
+                
+                if (aIt.Right()->is<Triangle>())
+                    nodesToCheck.push_back({aIt.Right(), bIt.Left()});
+                else
+                    nodesToCheck.push_back({aIt.Right(), bIt});
+                
+                if (bIt.Right()->is<Triangle>())
+                {
+                    nodesToCheck.push_back({aIt.Left(), bIt.Right()});
+                    if (aIt.Right()->is<Triangle>())
+                        nodesToCheck.push_back({aIt.Right(), bIt.Right()});
+                }
+                else
+                    nodesToCheck.push_back({aIt, bIt.Right()});
 				
-                debug.PushInst({ apos * OBBMat(*pair.first),  Vector3f{ 1, .5f, 0 } });
-                debug.PushInst({ bpos * OBBMat(*pair.second), Vector3f{ 0, 1, 0 } });
-			}
-		}
-	}
-	
-	std::vector<Contact> ret;
-
-	for (const auto& leafPair : leavesToCheck)
-	{
-		for (const auto& aTri : leafPair.first.Leaf())
-		{
-			Triangle aWorld = TransformTri(aTri, apos);
-			for (const auto& bTri : leafPair.second.Leaf())
-			{
-				Triangle bWorld = TransformTri(bTri, bpos);
-				auto pair = ContactPoint(aWorld, bWorld);
-				if (pair.second)
-				{
-					ret.push_back({ pair.first,
-						TriNormal(aWorld).normalized(), TriNormal(bWorld).normalized() });
-
-                    debug.PushVector(pair.first, ret.back().aNormal, { 1, .5f, 1 });
-                    debug.PushVector(pair.first, ret.back().bNormal, { 0, 1, 1 });
-				}
+                debug.PushInst({ apos * OBBMat(aIt->get<OBB>()), Vector3f{ 1, .5f, 0 } });
+                debug.PushInst({ bpos * OBBMat(bIt->get<OBB>()), Vector3f{ 0, 1, 0 } });
 			}
 		}
 	}

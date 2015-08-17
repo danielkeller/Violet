@@ -19,7 +19,7 @@ namespace magic_detail
 	template<class T, class Key>
 	getter_t<T> make_getter()
 	{
-		return [](key_ty key) { assert(false && "get called on set-only accessor"); return T{}; };
+		return [](key_ty) { assert(false && "get called on set-only accessor"); return T{}; };
 	}
 
 	//plain callable
@@ -27,7 +27,7 @@ namespace magic_detail
 		class T = decltype(std::declval<Getter>()())>
 	getter_t<T> make_getter(Getter g)
 	{
-		return [g] (key_ty key) { return g(); };
+		return [g] (key_ty) { return g(); };
 	}
 
 	//callable taking key

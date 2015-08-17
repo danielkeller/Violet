@@ -12,10 +12,18 @@ static const float ZERO_SIZE = 0.001f;
 
 Vector3f centroid(const Mesh & m)
 {
-	auto rCenter = MapRange(m, static_cast<Vector3f(*)(const Triangle&)>(centroid));
-	return
-		std::accumulate(rCenter.begin(), rCenter.end(), Vector3f(0, 0, 0))
-		/ float(m.size());
+    return centroid(m.begin(), m.end());
+}
+
+Vector3f centroid(Mesh::const_iterator begin, Mesh::const_iterator end)
+{
+    Vector3f sum = std::accumulate(begin, end, Vector3f{0, 0, 0},
+    [] (const Vector3f& v, const Triangle& t) -> Vector3f
+    {
+        return v + centroid(t);
+    });
+    
+    return sum / (end - begin);
 }
 
 Triangle TransformTri(const Triangle& t, const Matrix4f& mat)
@@ -152,16 +160,16 @@ OBB::OBB(const OBB& l, const OBB& r)
 	*this = { l, r, es.eigenvectors() };
 }
 
-OBB::OBB(const Mesh& m)
+OBB::OBB(Mesh::const_iterator begin, Mesh::const_iterator end)
 {
-	if (m.size() == 0)
+	if (begin == end)
 	{
 		axes = -ZERO_SIZE * Matrix3f::Identity(); //make it inside out (i guess)
 		origin = Vector3f::Zero();
 		return;
 	}
 
-	Vector3f centerOfMass = centroid(m);
+	Vector3f centerOfMass = centroid(begin, end);
 	Matrix3f inertiaTensor = Matrix3f::Zero();
 
 	auto addPt = [&](const Vector3f& pt, float mass)
@@ -176,7 +184,7 @@ OBB::OBB(const Mesh& m)
 		inertiaTensor(2, 1) -= lpos.y()*lpos.z() * mass;
 	};
 
-	for (const auto& tri : m)
+	for (const auto& tri : make_range(begin, end))
 	{
 		float area = TriNormal(tri).norm() / 6.f;
 		addPt(tri.col(0), area);
@@ -192,7 +200,7 @@ OBB::OBB(const Mesh& m)
 	Eigen::Vector3f min{ maxflt, maxflt, maxflt };
 	Eigen::Vector3f max = -min;
 
-	for (const auto& tri : m)
+	for (const auto& tri : make_range(begin, end))
 	{
 		min = min.cwiseMin((axes.transpose() * tri).rowwise().minCoeff());
 		max = max.cwiseMax((axes.transpose() * tri).rowwise().maxCoeff());

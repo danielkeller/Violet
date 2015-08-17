@@ -14,7 +14,7 @@ public:
 	OBBTree(std::string file);
 	std::string Name() const;
 
-	using TreeTy = BinTree<OBB, Mesh>;
+	using TreeTy = BinTree<variant<OBB, Triangle>>;
 	const TreeTy& Tree() const;
 
 	using PersistCategory = ResourcePersistTag;

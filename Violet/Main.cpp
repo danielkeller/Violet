@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Window.hpp"
 #include "Rendering/Render.hpp"
-#include "Geometry/AABB.hpp"
 #include "Utils/Profiling.hpp"
 #include "Editor/Edit.hpp"
 #include "Core/Time.hpp"

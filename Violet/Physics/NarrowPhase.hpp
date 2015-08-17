@@ -2,7 +2,6 @@
 #define NARROW_PHASE_HPP
 
 #include "Core/Component.hpp"
-#include "Geometry/AABB.hpp"
 #include "Geometry/OBB.hpp"
 #include <unordered_map>
 
@@ -41,8 +40,12 @@ private:
 
 	Position& position;
 	std::unordered_map<Object, TreeTy> data;
-
+    
+    using Iter = NarrowPhase::TreeTy::TreeTy::const_iterator;
+    using IterPair = std::pair<Iter, Iter>;
+    
     mutable DebugBoxes debug;
+    mutable std::vector<IterPair> nodesToCheck;
 };
 
 MAKE_PERSIST_TRAITS(NarrowPhase, Object, NarrowPhase::TreeTy)

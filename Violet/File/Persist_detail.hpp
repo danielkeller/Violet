@@ -116,9 +116,10 @@ namespace Persist_detail
 		template<typename Other>
 		std::vector<std::string> Prepare(const std::vector<Other>& val, VectorPersistTag)
 		{
-			auto strings = MapRange(val,
+            std::vector<std::string> ret;
+            std::transform(val.begin(), val.end(), std::back_inserter(ret),
 				[this](const Other& v) {return Prepare(v, cat_t<Other>()); });
-			return{ strings.begin(), strings.end() };
+            return ret;
 		}
 
 		template<typename Other>
