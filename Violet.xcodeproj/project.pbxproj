@@ -26,7 +26,7 @@
 		373FC7821B3AF99E00AEBB25 /* Filesystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC77A1B3AF99E00AEBB25 /* Filesystem.cpp */; };
 		373FC7831B3AF99E00AEBB25 /* Persist.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC77D1B3AF99E00AEBB25 /* Persist.cpp */; };
 		373FC7841B3AF99E00AEBB25 /* Wavefront.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC77F1B3AF99E00AEBB25 /* Wavefront.cpp */; };
-		373FC7891B3AF9AB00AEBB25 /* NarrowPhase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC7851B3AF9AB00AEBB25 /* NarrowPhase.cpp */; };
+		373FC7891B3AF9AB00AEBB25 /* Collision.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC7851B3AF9AB00AEBB25 /* Collision.cpp */; };
 		373FC78A1B3AF9AB00AEBB25 /* RigidBody.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC7871B3AF9AB00AEBB25 /* RigidBody.cpp */; };
 		373FC7911B3AF9BA00AEBB25 /* EigenLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC78B1B3AF9BA00AEBB25 /* EigenLib.cpp */; };
 		373FC7921B3AF9BA00AEBB25 /* Scripting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC78D1B3AF9BA00AEBB25 /* Scripting.cpp */; };
@@ -39,7 +39,6 @@
 		373FC7A41B3AF9CC00AEBB25 /* TextElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 373FC79E1B3AF9CC00AEBB25 /* TextElements.cpp */; };
 		37A842741B6E9F5E00908276 /* Console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37A842721B6E9F5E00908276 /* Console.cpp */; };
 		37A842761B70210100908276 /* scripts in Resources */ = {isa = PBXBuildFile; fileRef = 37A842751B70210100908276 /* scripts */; };
-		37A842791B7A82D300908276 /* BroadPhase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37A842771B7A82D300908276 /* BroadPhase.cpp */; };
 		37C8E08A1B55BFA000713DAC /* gl_core_3_3.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E0881B55BFA000713DAC /* gl_core_3_3.c */; };
 		37C8E08D1B55BFB100713DAC /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E08B1B55BFB100713DAC /* sqlite3.c */; };
 		37C8E0901B55BFC600713DAC /* native_text.c in Sources */ = {isa = PBXBuildFile; fileRef = 37C8E08E1B55BFC600713DAC /* native_text.c */; };
@@ -111,8 +110,8 @@
 		373FC77E1B3AF99E00AEBB25 /* Persist.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Persist.hpp; path = File/Persist.hpp; sourceTree = "<group>"; };
 		373FC77F1B3AF99E00AEBB25 /* Wavefront.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Wavefront.cpp; path = File/Wavefront.cpp; sourceTree = "<group>"; };
 		373FC7801B3AF99E00AEBB25 /* Wavefront.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Wavefront.hpp; path = File/Wavefront.hpp; sourceTree = "<group>"; };
-		373FC7851B3AF9AB00AEBB25 /* NarrowPhase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NarrowPhase.cpp; path = Physics/NarrowPhase.cpp; sourceTree = "<group>"; };
-		373FC7861B3AF9AB00AEBB25 /* NarrowPhase.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = NarrowPhase.hpp; path = Physics/NarrowPhase.hpp; sourceTree = "<group>"; };
+		373FC7851B3AF9AB00AEBB25 /* Collision.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Collision.cpp; path = Physics/Collision.cpp; sourceTree = "<group>"; };
+		373FC7861B3AF9AB00AEBB25 /* Collision.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Collision.hpp; path = Physics/Collision.hpp; sourceTree = "<group>"; };
 		373FC7871B3AF9AB00AEBB25 /* RigidBody.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RigidBody.cpp; path = Physics/RigidBody.cpp; sourceTree = "<group>"; };
 		373FC7881B3AF9AB00AEBB25 /* RigidBody.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = RigidBody.hpp; path = Physics/RigidBody.hpp; sourceTree = "<group>"; };
 		373FC78B1B3AF9BA00AEBB25 /* EigenLib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EigenLib.cpp; path = Script/EigenLib.cpp; sourceTree = "<group>"; };
@@ -138,9 +137,8 @@
 		37A842721B6E9F5E00908276 /* Console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Console.cpp; path = Editor/Console.cpp; sourceTree = "<group>"; };
 		37A842731B6E9F5E00908276 /* Console.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Console.hpp; path = Editor/Console.hpp; sourceTree = "<group>"; };
 		37A842751B70210100908276 /* scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = scripts; sourceTree = SOURCE_ROOT; };
-		37A842771B7A82D300908276 /* BroadPhase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BroadPhase.cpp; path = Physics/BroadPhase.cpp; sourceTree = "<group>"; };
-		37A842781B7A82D300908276 /* BroadPhase.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = BroadPhase.hpp; path = Physics/BroadPhase.hpp; sourceTree = "<group>"; };
 		37A8427A1B7E981F00908276 /* variant.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = variant.hpp; sourceTree = "<group>"; };
+		37A9DBC21B864F010078FB2D /* AABB.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AABB.hpp; sourceTree = "<group>"; };
 		37C8E0881B55BFA000713DAC /* gl_core_3_3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gl_core_3_3.c; path = Libs/GL/gl_core_3_3.c; sourceTree = SOURCE_ROOT; };
 		37C8E0891B55BFA000713DAC /* gl_core_3_3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl_core_3_3.h; path = Libs/GL/gl_core_3_3.h; sourceTree = SOURCE_ROOT; };
 		37C8E08B1B55BFB100713DAC /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3.c; path = Libs/sqlite/sqlite3.c; sourceTree = "<group>"; };
@@ -234,10 +232,8 @@
 		373FC7631B3AF90100AEBB25 /* Physics */ = {
 			isa = PBXGroup;
 			children = (
-				37A842771B7A82D300908276 /* BroadPhase.cpp */,
-				37A842781B7A82D300908276 /* BroadPhase.hpp */,
-				373FC7851B3AF9AB00AEBB25 /* NarrowPhase.cpp */,
-				373FC7861B3AF9AB00AEBB25 /* NarrowPhase.hpp */,
+				373FC7851B3AF9AB00AEBB25 /* Collision.cpp */,
+				373FC7861B3AF9AB00AEBB25 /* Collision.hpp */,
 				373FC7871B3AF9AB00AEBB25 /* RigidBody.cpp */,
 				373FC7881B3AF9AB00AEBB25 /* RigidBody.hpp */,
 			);
@@ -434,6 +430,7 @@
 				B9AA96631A575DE00079F917 /* Mesh.hpp */,
 				B9AA96641A575DE00079F917 /* Shapes.hpp */,
 				373FC7581B3AF8CE00AEBB25 /* Shapes.cpp */,
+				37A9DBC21B864F010078FB2D /* AABB.hpp */,
 			);
 			path = Geometry;
 			sourceTree = "<group>";
@@ -562,7 +559,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				373FC7891B3AF9AB00AEBB25 /* NarrowPhase.cpp in Sources */,
+				373FC7891B3AF9AB00AEBB25 /* Collision.cpp in Sources */,
 				B9AA96A81A575DE00079F917 /* Texture.cpp in Sources */,
 				37C8E0901B55BFC600713DAC /* native_text.c in Sources */,
 				373FC7841B3AF99E00AEBB25 /* Wavefront.cpp in Sources */,
@@ -601,7 +598,6 @@
 				373FC7931B3AF9BA00AEBB25 /* Utils.cpp in Sources */,
 				373FC7A11B3AF9CC00AEBB25 /* Layout.cpp in Sources */,
 				373FC7761B3AF99200AEBB25 /* Object.cpp in Sources */,
-				37A842791B7A82D300908276 /* BroadPhase.cpp in Sources */,
 				373FC7501B3AF8C100AEBB25 /* Assets.cpp in Sources */,
 				373092881B41DBB000C832FE /* DebugBoxes.cpp in Sources */,
 				373FC7511B3AF8C100AEBB25 /* ComponentEdit.cpp in Sources */,

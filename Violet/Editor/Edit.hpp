@@ -10,8 +10,7 @@
 
 class Render;
 class RenderPasses;
-class NarrowPhase;
-class BroadPhase;
+class Collision;
 class RigidBody;
 class Persist;
 struct Events;
@@ -23,7 +22,7 @@ class Edit : public Component
 {
 public:
 	Edit(Render& r, RenderPasses& rp, Position& position, ObjectName& objName,
-		NarrowPhase& narrowPhase, BroadPhase& broadPhase, RigidBody& rigidBody, ComponentManager& mgr,
+		Collision& collision, RigidBody& rigidBody, ComponentManager& mgr,
 		Persist& persist);
 
     void Editable(Object o);
@@ -59,9 +58,6 @@ private:
 	RenderEditor renderEdit;
 	CollisionEditor collEdit;
 	RigidBodyEditor rbEdit;
-    
-    UI::TextButton addPB;
-    BroadPhase& broadPhase;
 
 	//Object
 	UI::TextButton newObject, delObject;

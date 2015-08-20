@@ -77,18 +77,18 @@ private:
 	AssetsBar assets;
 };
 
-class NarrowPhase;
+class Collision;
 
 class CollisionEditor : public ComponentEditor
 {
 public:
-	CollisionEditor(NarrowPhase& narrowPhase, Render& render);
+	CollisionEditor(Collision& collision, Render& render);
     
 private:
     void add(Object selected);
     bool edit(Object selected);
     
-	NarrowPhase& narrowPhase;
+	Collision& collision;
     Render& render;
     UI::CheckBox debug;
 };

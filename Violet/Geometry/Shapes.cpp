@@ -114,7 +114,7 @@ OBB operator*(const Transform& xfrm, OBB obb)
 AlignedBox3f OBB::Bound() const
 {
     Vector3f diag = axes.cwiseAbs() * extent;
-    return { origin + diag, origin - diag};
+    return { origin - diag, origin + diag};
 }
 
 OBB::OBB(const AlignedBox3f& aabb)

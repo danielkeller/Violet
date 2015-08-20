@@ -2,7 +2,7 @@
 #include "RigidBody.hpp"
 
 #include "Position.hpp"
-#include "NarrowPhase.hpp"
+#include "Collision.hpp"
 #include "File/Persist.hpp"
 
 #include <iostream>
@@ -14,7 +14,7 @@ static const float simDt = std::chrono::duration<float>{ Time::dt }.count();
 //a collision between two free objects, it's the translation and rotation
 //of both that moves the objects away from each other.
 //TODO: two-object case
-GenCoord GenContact(const Contact& c, const Vector3f& objPos)
+GenCoord GenContactB(const Contact& c, const Vector3f& objPos)
 {
 	//the derivative along n of the rotation of a vector v w.r.t the rotataton
 	//angle theta, evaluated at theta=0, is ||v|| sin(alpha), where alpha is the
@@ -22,6 +22,11 @@ GenCoord GenContact(const Contact& c, const Vector3f& objPos)
 	//normal in rotation coordinates is in cross(v, n), and n is already normalized.
 	return (GenCoord() << c.bNormal, c.bNormal.cross(objPos - c.point)
 		).finished().normalized();
+}
+GenCoord GenContactA(const Contact& c, const Vector3f& objPos)
+{
+    return (GenCoord() << c.aNormal, c.aNormal.cross(objPos - c.point)
+            ).finished().normalized();
 }
 
 struct Derivative
@@ -95,6 +100,8 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 	using Index = Eigen::MatrixXf::Index;
 	//number of rows, degrees of freeedom
 	Index m = 6;
+    
+    auto& contacts = collision.Contacts();
 
 	for (auto& obj : data)
 	{
@@ -106,12 +113,15 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		state.position = xfrm.pos;
 		state.orientation = xfrm.rot;
 
-		auto contacts = narrowPhase.QueryAll(obj.first);
-
 		//see definition of GenContact
-		std::vector<GenCoord> genContacts(contacts.size());
-		std::transform(contacts.begin(), contacts.end(), genContacts.begin(),
-			[&](Contact& c) {return GenContact(c, state.position.block<3,1>(0,0));});
+		std::vector<GenCoord> genContacts;
+        for (auto& c : contacts)
+        {
+            if (obj.first == c.a)
+                genContacts.push_back(GenContactB(c, state.position.block<3,1>(0,0)));
+            else if (obj.first == c.b)
+                genContacts.push_back(GenContactA(c, state.position.block<3,1>(0,0)));
+        }
 
 		//first handle the contact impulses (since their force is infinite)
 		for (const auto& c : genContacts)
@@ -202,6 +212,8 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
 		next:
 			;
 		}
+        
+        //Second pass will probably be very neccesary when there are more objects
 
 		GenCoord normalForce = GenCoord::Zero();
 		for (Index j = 0; j < k; ++j)
@@ -240,9 +252,9 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
     debug.End();
 }
 
-RigidBody::RigidBody(Position& position, NarrowPhase& narrowPhase,
+RigidBody::RigidBody(Position& position, Collision& collision,
     RenderPasses& passes)
-	: paused(false), position(position), narrowPhase(narrowPhase), debug(passes)
+	: paused(false), position(position), collision(collision), debug(passes)
 {}
 
 void RigidBody::Load(const Persist& persist)

@@ -8,7 +8,7 @@
 #include "Utils/DebugBoxes.hpp"
 
 class Position;
-class NarrowPhase;
+class Collision;
 
 //TODO: "physics mesh" component
 
@@ -32,7 +32,7 @@ struct State
 class RigidBody : public Component
 {
 public:
-	RigidBody(Position&, NarrowPhase&, RenderPasses&);
+	RigidBody(Position&, Collision&, RenderPasses&);
 	void Add(Object o, float mass, float inertia);
 	void PhysTick(Time::clock::duration simTime);
     
@@ -41,7 +41,7 @@ public:
 
 private:
 	Position& position;
-	NarrowPhase& narrowPhase;
+	Collision& collision;
 	l_unordered_map<Object, State> data;
 
 	void Load(const Persist&);

@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "NarrowPhase.hpp"
+#include "Collision.hpp"
 #include "File/Persist.hpp"
 #include "Position.hpp"
 #include "Geometry/Collide.hpp"
 
-#include "Utils/Math.hpp"
+#include "Utils/Template.hpp"
 #include "Rendering/RenderPasses.hpp"
 
 #include <iostream>
@@ -13,18 +13,19 @@
 
 //fixme: 1-tri meshes
 
-std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
+void Collision::NarrowPhase(Object a, Object b)
 {
-	if (!data.count(a) || !data.count(b))
-		return{};
-
 	Transform apos = position[a].get();
 	Transform bpos = position[b].get();
 
     nodesToCheck.clear(); //avoid reallocation
 	nodesToCheck.push_back({ data.at(a).Tree().begin(), data.at(b).Tree().begin() });
     
-    std::vector<Contact> ret;
+    //if (ConservativeOBBvsOBB(apos * data.at(a).Tree().begin()->get<OBB>(), bpos * data.at(b).Tree().begin()->get<OBB>()))
+    {
+        debug.PushInst({ (apos * data.at(a).Tree().begin()->get<OBB>()).matrix(), Vector3f{ 1, 1, 1 } });
+        debug.PushInst({ (bpos * data.at(b).Tree().begin()->get<OBB>()).matrix(), Vector3f{ 1, 1, 1 } });
+    }
     
 	while (!nodesToCheck.empty())
 	{
@@ -40,11 +41,11 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
             if (pair.second)
             {
                 //TODO: first-contact early out
-                ret.push_back({ pair.first,
+                result.push_back({ a, b, pair.first,
                     TriNormal(aWorld).normalized(), TriNormal(bWorld).normalized() });
                 
-                debug.PushVector(pair.first, ret.back().aNormal, { 1, .5f, 1 });
-                debug.PushVector(pair.first, ret.back().bNormal, { 0, 1, 1 });
+                debug.PushVector(pair.first, result.back().aNormal, { 1, .5f, 1 });
+                debug.PushVector(pair.first, result.back().bNormal, { 0, 1, 1 });
             }
         }
 		else if (ConservativeOBBvsOBB(apos * aIt->get<OBB>(), bpos * bIt->get<OBB>()))
@@ -85,61 +86,83 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 			}
 		}
 	}
-
-	return ret;
 }
 
-std::vector<Contact> NarrowPhase::QueryAll(Object a) const
+AlignedBox3f Loosen(const AlignedBox3f& box)
+{
+    Vector3f size = box.sizes() * .1f; //magic fudge factor
+    return{ box.min() - size, box.max() + size };
+}
+
+void Collision::PhysTick()
 {
     debug.Begin();
-
-	std::vector<Contact> ret;
-	for (const auto& obj : data)
-		if (obj.first != a)
-		{
-			auto contacts = Query(a, obj.first);
-			ret.insert(ret.begin(), contacts.begin(), contacts.end());
-		}
-
-    debug.End();
+    result.clear();
     
-	return ret;
+    //rejigger leaves that don't fit their object
+    for (auto& pair : broadLeaves)
+    {
+        if (!pair.second->box.contains(Bound(pair.first)))
+        {
+            broadTree.erase(pair.second);
+            pair.second = broadTree.insert(Loosen(Bound(pair.first)), pair.first);
+        }
+    }
+    
+    //don't do the same collision test two ways
+    std::unordered_set<std::pair<Object, Object>> toTest;
+    
+    for (auto& pair : data)
+    {
+        AlignedBox3f query = Bound(pair.first);
+        for (auto it = broadTree.query(query); it != broadTree.query_end(); ++it)
+            if (*it != pair.first)
+                toTest.insert({std::min(*it, pair.first), std::max(*it, pair.first)});
+    }
+    
+    for (auto& pair : toTest)
+        NarrowPhase(pair.first, pair.second);
+    
+    debug.End();
 }
 
-NarrowPhase::NarrowPhase(Position& position, RenderPasses& passes)
-	: position(position), debug(passes)
-{}
-
-AlignedBox3f NarrowPhase::Bound(Object obj)
+AlignedBox3f Collision::Bound(Object obj) const
 {
     return (*position[obj] * data.at(obj).Tree().begin()->get<OBB>()).Bound();
 }
 
-void NarrowPhase::Add(Object obj, std::string mesh)
+Collision::Collision(Position& position, RenderPasses& passes)
+	: position(position), debug(passes)
+{}
+
+void Collision::Add(Object obj, OBBTree mesh)
 {
     if (!data.count(obj))
-        data.emplace(obj, mesh);
+    {
+        data.emplace(obj, std::move(mesh));
+        auto it = broadTree.insert(Bound(obj), obj);
+        broadLeaves.try_emplace(obj, it);
+    }
 }
 
-void NarrowPhase::Load(const Persist& persist)
+void Collision::Load(const Persist& persist)
 {
-	for (const auto& dat : persist.GetAll<NarrowPhase>())
-        if (!data.count(std::get<0>(dat)))
-            data.emplace(std::get<0>(dat), std::get<1>(dat));
+	for (const auto& dat : persist.GetAll<Collision>())
+        Add(std::get<0>(dat), std::move(std::get<1>(dat)));
 }
 
-void NarrowPhase::Save(Object obj, Persist& persist) const
+void Collision::Save(Object obj, Persist& persist) const
 {
 	if (Has(obj))
-		persist.Set<NarrowPhase>(obj, data.at(obj));
+		persist.Set<Collision>(obj, data.at(obj));
 	else
-		persist.Delete<NarrowPhase>(obj);
+		persist.Delete<Collision>(obj);
 }
 
-MAP_COMPONENT_BOILERPLATE(NarrowPhase, data)
+MAP_COMPONENT_BOILERPLATE(Collision, data)
 
 template<>
-const char* PersistSchema<NarrowPhase>::name = "narrowphase";
+const char* PersistSchema<Collision>::name = "collision";
 template<>
-Columns PersistSchema<NarrowPhase>::cols = { "object", "obb" };
+Columns PersistSchema<Collision>::cols = { "object", "mesh" };
 

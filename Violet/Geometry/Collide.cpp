@@ -71,11 +71,11 @@ bool ConservativeIntersects(const AlignedBox3f& a, const Triangle& tri)
 //See Real Time Collision Detection p 102
 bool ConservativeOBBvsOBB(const OBB& l, const OBB& r)
 {
-    Matrix3f rot = l.axes * r.axes.transpose();
+    Matrix3f rot = l.axes.transpose() * r.axes;
     Matrix3f absRot = rot.cwiseAbs();
-    Vector3f dist = l.axes * (r.origin - l.origin);
+    Vector3f dist = l.axes.transpose() * (r.origin - l.origin);
     
-    //They don't overlap if on some axis the distance between them is less than
+    //They don't overlap if on some axis the distance between them is greater than
     //the sum of the radii
     
     //l's axes

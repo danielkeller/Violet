@@ -9,8 +9,7 @@
 #include "UI/PixelDraw.hpp"
 #include "Editor/Console.hpp"
 
-#include "Physics/NarrowPhase.hpp"
-#include "Physics/BroadPhase.hpp"
+#include "Physics/Collision.hpp"
 #include "Physics/RigidBody.hpp"
 
 #include "Script/Scripting.hpp"
@@ -43,11 +42,10 @@ try
 	Position position;
 	Render r(position);
 	RenderPasses passes(position, w, r);
-	NarrowPhase narrowPhase(position, passes);
-    BroadPhase broadPhase(passes, narrowPhase);
-	RigidBody rigidBody(position, narrowPhase, passes);
+	Collision collision(position, passes);
+	RigidBody rigidBody(position, collision, passes);
 
-	Edit edit(r, passes, position, objName, narrowPhase, broadPhase, rigidBody, mgr, persist);
+	Edit edit(r, passes, position, objName, collision, rigidBody, mgr, persist);
 
     Scripting script(mgr);
     Console console(script, persist);
@@ -55,7 +53,7 @@ try
 	mgr.Register(&position);
 	mgr.Register(&r);
 	mgr.Register(&edit);
-	mgr.Register(&narrowPhase);
+	mgr.Register(&collision);
 	mgr.Register(&rigidBody);
 	mgr.Load(persist); //load the default file
 
@@ -80,6 +78,7 @@ try
 		edit.PhysTick(camera);
 
         //physics step
+        collision.PhysTick();
 		rigidBody.PhysTick(t.SimTime());
 		script.PhysTick();
 
@@ -114,30 +113,3 @@ catch (std::exception &ex)
 #endif
 	return EXIT_FAILURE;
 }
-
-/*
-	Object teapotObj = objName["teapot"];
-	Object teapot2Obj = objName["teapot2"];
- 
-	if (!persist.Exists<Render>(teapotObj) || !persist.Exists<Render>(teapot2Obj))
-	{
-         Material capsuleMat{ "capsule", { "assets/simple" }, { "assets/capsule.png" } };
-         capsuleMat.Save(persist);
-         
-         r.Create(teapotObj, capsuleMat, "assets/teapot.obj", Mobilty::Yes);
-         r.Create(teapot2Obj, capsuleMat, "assets/triangle.obj", Mobilty::No);
-         
-         edit.Editable(teapotObj);
-         edit.Editable(teapot2Obj);
-         narrowPhase.Add(teapotObj, "assets/teapot.obj");
-         narrowPhase.Add(teapot2Obj, "assets/triangle.obj");
-         //rigidBody.Add(teapotObj, 1, 1);
-         
-         mgr.Save(teapotObj, persist); mgr.Save(teapot2Obj, persist);
-	}
-	
-	//AABBTree teapotAabb("assets/capsule.obj");
-	//Object aabbObj;
-	//ShowAABB aabb(teapotAabb);
-	//r.Create(aabbObj, { "aabb", aabb.shaderProgram }, aabb.vertData);
-*/

@@ -78,10 +78,11 @@ inline std::size_t hash_combine()
 	return 0;
 }
 
-template <class... Args>
-inline std::size_t hash_combine(std::size_t& first, Args... args)
+template <class T, class... Args>
+inline std::size_t hash_combine(const T& first, Args... args)
 {
-	return first ^ hash_combine(args...) + 0x9e3779b9 + (first << 6) + (first >> 2);
+    size_t h = std::hash<T>()(first);
+    return h ^ hash_combine(args...) + 0x9e3779b9 + (h << 6) + (h >> 2);
 }
 
 template<class... Types>
@@ -91,6 +92,15 @@ struct std::hash<std::tuple<Types...>>
 	{
 		return invoke(hash_combine, tup);
 	}
+};
+
+template<class A, class B>
+struct std::hash<std::pair<A, B>>
+{
+    size_t operator()(const std::pair<A, B>& pair)
+    {
+        return hash_combine(pair.first, pair.second);
+    }
 };
 
 #endif

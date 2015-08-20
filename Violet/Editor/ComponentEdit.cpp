@@ -3,7 +3,7 @@
 
 #include "UI/Text.hpp"
 #include "Edit.hpp"
-#include "Physics/NarrowPhase.hpp"
+#include "Physics/Collision.hpp"
 #include "Physics/RigidBody.hpp"
 
 void ComponentEditor::Draw(Persist& persist, Object selected)
@@ -192,20 +192,20 @@ void RenderEditor::add(Object selected)
 		"assets/capsule.obj");
 }
 
-CollisionEditor::CollisionEditor(NarrowPhase& narrowPhase, Render& render)
-	: ComponentEditor("collision", narrowPhase), narrowPhase(narrowPhase), render(render)
+CollisionEditor::CollisionEditor(Collision& collision, Render& render)
+	: ComponentEditor("collision", collision), collision(collision), render(render)
     , debug("debug view", LB_WIDTH)
 {}
 
 void CollisionEditor::add(Object selected)
 {
 	auto tup = render.Info(selected);
-	narrowPhase.Add(selected, std::get<1>(tup).Name());
+	collision.Add(selected, std::get<1>(tup).Name());
 }
 
 bool CollisionEditor::edit(Object)
 {
-    debug.Draw(narrowPhase.Debug());
+    debug.Draw(collision.Debug());
     return false;
 }
 
