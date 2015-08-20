@@ -67,25 +67,13 @@ AlignedBox3f Bound(const Mesh& m)
 
 float OBB::volume() const
 {
-	return axes.colwise().norm().prod();
+	return extent.prod() * 8.f;
 }
 
-float OBB::squaredVolume() const
+Matrix4f OBB::matrix() const
 {
-	return axes.colwise().squaredNorm().prod();
-}
-
-Matrix4f OBBMat(const OBB& obb)
-{
-	return (Matrix4f() << obb.axes, obb.origin, Vector4f{ 0,0,0,1 }.transpose()).finished();
-}
-
-Matrix4f InvOBBMat(const OBB& obb)
-{
-	Matrix3f RotSclInv = RotationScaleInverse(obb.axes);
-	return (Matrix4f(4, 4) << RotSclInv
-		, -RotSclInv * obb.origin //translation
-		, 0, 0, 0, 1).finished();
+    Matrix3f halfBox = axes * Eigen::AlignedScaling3f{ extent };
+    return (Matrix4f() << halfBox * 2.f, origin - halfBox.rowwise().sum(), Vector4f{ 0,0,0,1 }.transpose()).finished();
 }
 
 Matrix3f InertiaTensor(const OBB& obb, Vector3f centerOfMass)
@@ -94,7 +82,7 @@ Matrix3f InertiaTensor(const OBB& obb, Vector3f centerOfMass)
 
 	auto addPt = [&](const Vector3f& boxPos)
 	{
-		Vector3f lpos = obb.origin + obb.axes * boxPos - centerOfMass;
+		Vector3f lpos = obb.origin + 2 * Eigen::DiagonalMatrix<float, 3>{obb.extent} * obb.axes * boxPos - centerOfMass;
 
 		ret(0, 0) += (lpos.y()*lpos.y() + lpos.z()*lpos.z());
 		ret(1, 1) += (lpos.x()*lpos.x() + lpos.z()*lpos.z());
@@ -115,67 +103,25 @@ Matrix3f InertiaTensor(const OBB& obb, Vector3f centerOfMass)
 	return ret * obb.volume(); //mass
 }
 
-OBB OBB::operator*(const Transform& xfrm) const
+OBB operator*(const Transform& xfrm, OBB obb)
 {
-    OBB ret = *this;
-    ret.axes = xfrm.rot.matrix() * ret.axes;
-    ret.axes *= xfrm.scale;
-    ret.origin = xfrm.pos + xfrm.rot.matrix() * ret.origin;
-    return ret;
+    obb.axes = xfrm.rot.matrix() * obb.axes;
+    obb.origin = xfrm.pos + xfrm.rot.matrix() * obb.origin;
+    obb.extent *= xfrm.scale;
+    return obb;
 }
 
 AlignedBox3f OBB::Bound() const
 {
-    return {axes.cwiseMin(0).rowwise().sum() + origin,
-        axes.cwiseMax(0).rowwise().sum() + origin};
+    Vector3f diag = axes.cwiseAbs() * extent;
+    return { origin + diag, origin - diag};
 }
 
 OBB::OBB(const AlignedBox3f& aabb)
-	: axes(Eigen::DiagonalMatrix<float, 3, 3>{aabb.sizes()}.toDenseMatrix())
-	, origin(aabb.min())
+    : axes(Matrix3f::Identity())
+	, origin(aabb.center())
+    , extent(aabb.sizes() / 2.f)
 {}
-
-OBB::OBB(const AlignedBox3f& aabb, const Matrix4f& xfrm)
-	: OBB(aabb)
-{
-	axes = xfrm.block<3, 3>(0, 0) * axes;
-	origin = xfrm.block<3, 1>(0, 3) + xfrm.block<3, 3>(0, 0)*origin;
-}
-
-//newAxes must be orthogonal
-OBB::OBB(const OBB& l, const OBB& r, const Matrix3f& newAxes)
-{
-	Matrix3f ourl = newAxes.transpose() * l.axes;
-	Matrix3f ourr = newAxes.transpose() * r.axes;
-	Vector3f lOrig = newAxes.transpose() * l.origin;
-	Vector3f rOrig = newAxes.transpose() * r.origin;
-
-	Vector3f lMax = ourl.cwiseMax(0).rowwise().sum() + lOrig;
-	Vector3f rMax = ourr.cwiseMax(0).rowwise().sum() + rOrig;
-	Vector3f lMin = ourl.cwiseMin(0).rowwise().sum() + lOrig;
-	Vector3f rMin = ourr.cwiseMin(0).rowwise().sum() + rOrig;
-
-	origin = newAxes * lMin.cwiseMin(rMin);
-	axes = newAxes * Eigen::AlignedScaling3f{ lMax.cwiseMax(rMax) - lMin.cwiseMin(rMin) };
-}
-
-OBB::OBB(const OBB& l, const OBB& r)
-{
-	float lMass = l.volume(), rMass = r.volume();
-	Vector3f lCenter = l.origin + l.axes*Vector3f{ .5f, .5f, .5f };
-	Vector3f rCenter = r.origin + r.axes*Vector3f{ .5f, .5f, .5f };
-
-	Vector3f centerOfMass = (lCenter*lMass + rCenter*rMass) / (lMass + rMass);
-
-	Eigen::SelfAdjointEigenSolver<Matrix3f> es;
-
-	Matrix3f vertInertiaTensor = InertiaTensor(l, centerOfMass)
-		+ InertiaTensor(r, centerOfMass);
-
-	es.computeDirect(vertInertiaTensor); //faster than compute()
-
-	*this = { l, r, es.eigenvectors() };
-}
 
 OBB::OBB(Mesh::const_iterator begin, Mesh::const_iterator end)
 {
@@ -223,8 +169,6 @@ OBB::OBB(Mesh::const_iterator begin, Mesh::const_iterator end)
 		max = max.cwiseMax((axes.transpose() * tri).rowwise().maxCoeff());
 	}
 
-	origin = axes * min;
-
-	Vector3f extents = (max - min).cwiseMax(ZERO_SIZE);
-	axes *= Eigen::AlignedScaling3f{ extents };
+    extent = (max - min).cwiseMax(ZERO_SIZE) / 2.f;
+    origin = axes * (min + extent);
 }

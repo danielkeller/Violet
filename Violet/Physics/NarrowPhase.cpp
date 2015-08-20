@@ -18,13 +18,8 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 	if (!data.count(a) || !data.count(b))
 		return{};
 
-	Matrix4f apos = position[a].get().ToMatrix();
-	Matrix4f aInv = AffineInverse(position[a].get().ToMatrix());
-	Matrix4f bpos = position[b].get().ToMatrix();
-	Matrix4f bInv = AffineInverse(position[b].get().ToMatrix());
-	
-	auto it = data.at(a).Tree().begin();
-	while (!it.Left().Left().Bottom()) it.ToLeft();
+	Transform apos = position[a].get();
+	Transform bpos = position[b].get();
 
     nodesToCheck.clear(); //avoid reallocation
 	nodesToCheck.push_back({ data.at(a).Tree().begin(), data.at(b).Tree().begin() });
@@ -39,8 +34,8 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
 		
         if (aIt->is<Triangle>()) //leaf vs leaf
         {
-            Triangle aWorld = TransformTri(aIt->get<Triangle>(), apos);
-            Triangle bWorld = TransformTri(bIt->get<Triangle>(), bpos);
+            Triangle aWorld = TransformTri(aIt->get<Triangle>(), apos.ToMatrix());
+            Triangle bWorld = TransformTri(bIt->get<Triangle>(), bpos.ToMatrix());
             auto pair = ContactPoint(aWorld, bWorld);
             if (pair.second)
             {
@@ -52,9 +47,7 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
                 debug.PushVector(pair.first, ret.back().bNormal, { 0, 1, 1 });
             }
         }
-		else if (ConservativeOBBvsOBB( //inner vs inner
-			apos * OBBMat(aIt->get<OBB>()), InvOBBMat(aIt->get<OBB>()) * aInv,
-			bpos * OBBMat(bIt->get<OBB>()), InvOBBMat(bIt->get<OBB>()) * bInv))
+		else if (ConservativeOBBvsOBB(apos * aIt->get<OBB>(), bpos * bIt->get<OBB>()))
 		{
             //Cases: Box Box, Tri Box, Tri Tri
             
@@ -87,8 +80,8 @@ std::vector<Contact> NarrowPhase::Query(Object a, Object b) const
                 else
                     nodesToCheck.push_back({aIt, bIt.Right()});
 				
-                debug.PushInst({ apos * OBBMat(aIt->get<OBB>()), Vector3f{ 1, .5f, 0 } });
-                debug.PushInst({ bpos * OBBMat(bIt->get<OBB>()), Vector3f{ 0, 1, 0 } });
+                debug.PushInst({ (apos * aIt->get<OBB>()).matrix(), Vector3f{ 1, .5f, 0 } });
+                debug.PushInst({ (bpos * bIt->get<OBB>()).matrix(), Vector3f{ 0, 1, 0 } });
 			}
 		}
 	}
@@ -119,7 +112,7 @@ NarrowPhase::NarrowPhase(Position& position, RenderPasses& passes)
 
 AlignedBox3f NarrowPhase::Bound(Object obj)
 {
-    return (data.at(obj).Tree().begin()->get<OBB>() * *position[obj]).Bound();
+    return (*position[obj] * data.at(obj).Tree().begin()->get<OBB>()).Bound();
 }
 
 void NarrowPhase::Add(Object obj, std::string mesh)

@@ -127,7 +127,7 @@ void RigidBody::PhysTick(Time::clock::duration simTime)
         //now handle free work penalty impulses
         if (state.badWork > 0)
         {
-            std::cerr << state.badWork << '\n';
+            //std::cerr << state.badWork << '\n';
             
             if (!state.momentum.isZero(.001f))
                 state.momentum = state.momentum.normalized() * std::sqrt(std::max(

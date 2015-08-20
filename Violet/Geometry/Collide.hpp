@@ -40,7 +40,7 @@ inline bool Intersects(const AlignedBox3f& a, const AlignedBox3f& b)
 
 bool ConservativeIntersects(const AlignedBox3f& a, const Triangle& b);
 
-bool ConservativeOBBvsOBB(const Matrix4f& l, const Matrix4f& lInv, const Matrix4f& r, const Matrix4f& rInv);
+bool ConservativeOBBvsOBB(const OBB& l, const OBB& r);
 
 //if second is false, first is indeterminate
 std::pair<Vector3f, bool> ContactPoint(const Triangle& l, const Triangle& r);

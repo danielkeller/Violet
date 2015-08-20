@@ -68,20 +68,26 @@ bool ConservativeIntersects(const AlignedBox3f& a, const Triangle& tri)
 		).any();
 }
 
-bool ConservativeOBBvsOBB1(const Matrix4f& lInv, const Matrix4f& r)
+//See Real Time Collision Detection p 102
+bool ConservativeOBBvsOBB(const OBB& l, const OBB& r)
 {
-	using Eigen::Array3f;
-	Matrix4f rToL = lInv * r;
-	Array3f pt = rToL.block<3, 1>(0, 3);
-	Eigen::Array33f frame = rToL.block<3, 3>(0, 0);
-
-	return (frame.cwiseMax(0).rowwise().sum() + pt > Array3f::Zero()).all() //all max > 0
-		&& (frame.cwiseMin(0).rowwise().sum() + pt < Array3f::Ones()).all(); //all min < 1
-}
-
-bool ConservativeOBBvsOBB(const Matrix4f& l, const Matrix4f& lInv, const Matrix4f& r, const Matrix4f& rInv)
-{
-	return ConservativeOBBvsOBB1(lInv, r) && ConservativeOBBvsOBB1(rInv, l);
+    Matrix3f rot = l.axes * r.axes.transpose();
+    Matrix3f absRot = rot.cwiseAbs();
+    Vector3f dist = l.axes * (r.origin - l.origin);
+    
+    //They don't overlap if on some axis the distance between them is less than
+    //the sum of the radii
+    
+    //l's axes
+    if (((l.extent + absRot * r.extent).array() < dist.cwiseAbs().array()).any())
+        return false;
+    
+    Vector3f dist1 = rot.transpose() * dist;
+    //r's axes
+    if (((absRot.transpose() * l.extent + r.extent).array() < dist1.cwiseAbs().array()).any())
+        return false;
+    
+    return true;
 }
 
 std::tuple<Vector3f, Vector3f, bool> TriPlaneIntersect(

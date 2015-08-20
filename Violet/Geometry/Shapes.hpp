@@ -36,22 +36,20 @@ struct Transform;
 struct OBB
 {
 	OBB(const AlignedBox3f& aabb);
-	OBB(const AlignedBox3f& aabb, const Matrix4f& xfrm);
-	OBB(const OBB&, const OBB&);
-	OBB(const OBB&, const OBB&, const Matrix3f&);
     OBB(Mesh::const_iterator begin, Mesh::const_iterator end);
 
 	Matrix3f axes;
 	Vector3f origin;
+    Vector3f extent;
 	float volume() const;
-	float squaredVolume() const;
     
-    OBB operator*(const Transform& xfrm) const;
     AlignedBox3f Bound() const;
+    
+    Matrix4f matrix() const;
 };
 
-Matrix4f OBBMat(const OBB& obb);
-Matrix4f InvOBBMat(const OBB& obb);
+OBB operator*(const Transform& xfrm, OBB obb);
+
 OBB MergeFace(const OBB&, const OBB&);
 
 #endif
