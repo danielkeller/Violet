@@ -93,11 +93,11 @@ public:
         : which(var_get<none>(data))
     {}
 
-    template<class T>
-    variant(const T& val)
-        : which(var_get<T>(data))
+    template<class T> //, class = std::enable_if_t<!std::is_same<std::remove_reference_t<T>, variant>::value>>
+    variant(T&& val)
+        : which(var_get<std::remove_reference_t<T>>(data))
     {
-        construct(val);
+        construct(std::forward<T>(val));
     }
     
     variant(const variant& other)

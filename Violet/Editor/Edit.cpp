@@ -8,8 +8,10 @@
 #include "UI/Text.hpp"
 #include "UI/Layout.hpp"
 
+#include "Physics/BroadPhase.hpp"
+
 Edit::Edit(Render& r, RenderPasses& rp, Position& position,
-	ObjectName& objName, NarrowPhase& narrowPhase, RigidBody& rigidBody,
+	ObjectName& objName, NarrowPhase& narrowPhase, BroadPhase& broadPhase, RigidBody& rigidBody,
 	ComponentManager& mgr, Persist& persist)
 	: enabled(true)
 	, rp(rp), position(position), objName(objName), mgr(mgr), persist(persist)
@@ -19,6 +21,8 @@ Edit::Edit(Render& r, RenderPasses& rp, Position& position,
 
 	, objectNameEdit(LB_WIDTH)
 	, posEdit(position), renderEdit(r), collEdit(narrowPhase, r), rbEdit(rigidBody)
+
+    , addPB("add broad phase", LB_WIDTH), broadPhase(broadPhase)
 
 	, newObject("+", MOD_WIDTH), delObject("-", MOD_WIDTH)
 	, objectSelect(LB_WIDTH)
@@ -141,6 +145,10 @@ void Edit::PhysTick(Object camera)
 		renderEdit.Draw(persist, selected);
 		collEdit.Draw(persist, selected);
 		rbEdit.Draw(persist, selected);
+        
+        if (addPB.Draw())
+            broadPhase.Add(selected);
+        
 		l.PutSpace(UI::LINEH);
 	}
 

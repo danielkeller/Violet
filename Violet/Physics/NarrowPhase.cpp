@@ -117,6 +117,11 @@ NarrowPhase::NarrowPhase(Position& position, RenderPasses& passes)
 	: position(position), debug(passes)
 {}
 
+AlignedBox3f NarrowPhase::Bound(Object obj)
+{
+    return (data.at(obj).Tree().begin()->get<OBB>() * *position[obj]).Bound();
+}
+
 void NarrowPhase::Add(Object obj, std::string mesh)
 {
     if (!data.count(obj))

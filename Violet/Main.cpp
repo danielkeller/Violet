@@ -10,6 +10,7 @@
 #include "Editor/Console.hpp"
 
 #include "Physics/NarrowPhase.hpp"
+#include "Physics/BroadPhase.hpp"
 #include "Physics/RigidBody.hpp"
 
 #include "Script/Scripting.hpp"
@@ -43,9 +44,10 @@ try
 	Render r(position);
 	RenderPasses passes(position, w, r);
 	NarrowPhase narrowPhase(position, passes);
+    BroadPhase broadPhase(passes, narrowPhase);
 	RigidBody rigidBody(position, narrowPhase, passes);
 
-	Edit edit(r, passes, position, objName, narrowPhase, rigidBody, mgr, persist);
+	Edit edit(r, passes, position, objName, narrowPhase, broadPhase, rigidBody, mgr, persist);
 
     Scripting script(mgr);
     Console console(script, persist);

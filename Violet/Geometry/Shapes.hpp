@@ -30,6 +30,8 @@ using Eigen::AlignedBox3f;
 Matrix4f BoxMat(const AlignedBox3f& box);
 Matrix4f InvBoxMat(const AlignedBox3f& box);
 
+struct Transform;
+
 //Transform?
 struct OBB
 {
@@ -43,6 +45,9 @@ struct OBB
 	Vector3f origin;
 	float volume() const;
 	float squaredVolume() const;
+    
+    OBB operator*(const Transform& xfrm) const;
+    AlignedBox3f Bound() const;
 };
 
 Matrix4f OBBMat(const OBB& obb);

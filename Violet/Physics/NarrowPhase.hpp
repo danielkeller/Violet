@@ -27,6 +27,8 @@ public:
 	//FIXME: broadphase
 	std::vector<Contact> QueryAll(Object a) const;
 
+    AlignedBox3f Bound(Object obj);
+    
     using TreeTy = OBBTree;
     
     bool& Debug() { return debug.enabled; }
@@ -46,6 +48,8 @@ private:
     
     mutable DebugBoxes debug;
     mutable std::vector<IterPair> nodesToCheck;
+    
+    friend class BroadPhase;
 };
 
 MAKE_PERSIST_TRAITS(NarrowPhase, Object, NarrowPhase::TreeTy)

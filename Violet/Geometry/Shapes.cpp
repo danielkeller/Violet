@@ -4,6 +4,8 @@
 #include "Containers/WrappedIterator.hpp"
 #include "Utils/Math.hpp"
 
+#include "Position.hpp"
+
 #include <numeric>
 #include "Eigen/Eigenvalues"
 
@@ -111,6 +113,21 @@ Matrix3f InertiaTensor(const OBB& obb, Vector3f centerOfMass)
 	addPt({ 0.5f, 1, .5f });
 
 	return ret * obb.volume(); //mass
+}
+
+OBB OBB::operator*(const Transform& xfrm) const
+{
+    OBB ret = *this;
+    ret.axes = xfrm.rot.matrix() * ret.axes;
+    ret.axes *= xfrm.scale;
+    ret.origin = xfrm.pos + xfrm.rot.matrix() * ret.origin;
+    return ret;
+}
+
+AlignedBox3f OBB::Bound() const
+{
+    return {axes.cwiseMin(0).rowwise().sum() + origin,
+        axes.cwiseMax(0).rowwise().sum() + origin};
 }
 
 OBB::OBB(const AlignedBox3f& aabb)
