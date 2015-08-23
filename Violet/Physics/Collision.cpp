@@ -23,8 +23,8 @@ void Collision::NarrowPhase(Object a, Object b)
     
     //if (ConservativeOBBvsOBB(apos * data.at(a).Tree().begin()->get<OBB>(), bpos * data.at(b).Tree().begin()->get<OBB>()))
     {
-        debug.PushInst({ (apos * data.at(a).Tree().begin()->get<OBB>()).matrix(), Vector3f{ 1, 1, 1 } });
-        debug.PushInst({ (bpos * data.at(b).Tree().begin()->get<OBB>()).matrix(), Vector3f{ 1, 1, 1 } });
+        //debug.PushInst({ (apos * data.at(a).Tree().begin()->get<OBB>()).matrix(), Vector3f{ 1, 1, 1 } });
+        //debug.PushInst({ (bpos * data.at(b).Tree().begin()->get<OBB>()).matrix(), Vector3f{ 1, 1, 1 } });
     }
     
 	while (!nodesToCheck.empty())
@@ -44,8 +44,8 @@ void Collision::NarrowPhase(Object a, Object b)
                 result.push_back({ a, b, pair.first,
                     TriNormal(aWorld).normalized(), TriNormal(bWorld).normalized() });
                 
-                debug.PushVector(pair.first, result.back().aNormal, { 1, .5f, 1 });
-                debug.PushVector(pair.first, result.back().bNormal, { 0, 1, 1 });
+                //debug.PushVector(pair.first, result.back().aNormal, { 1, .5f, 1 });
+                //debug.PushVector(pair.first, result.back().bNormal, { 0, 1, 1 });
             }
         }
 		else if (ConservativeOBBvsOBB(apos * aIt->get<OBB>(), bpos * bIt->get<OBB>()))
@@ -80,18 +80,25 @@ void Collision::NarrowPhase(Object a, Object b)
                 }
                 else
                     nodesToCheck.push_back({aIt, bIt.Right()});
-				
-                debug.PushInst({ (apos * aIt->get<OBB>()).matrix(), Vector3f{ 1, .5f, 0 } });
-                debug.PushInst({ (bpos * bIt->get<OBB>()).matrix(), Vector3f{ 0, 1, 0 } });
+				/*
+                Matrix aDbgM = (bpos * bIt->get<OBB>()).matrix();
+                Matrix4f aDbg;
+                aDbg << aDbgM(0, 0), aDbgM(0, 1), aDbgM(0, 2), aDbgM(0, 3),
+                    aDbgM(1, 0), aDbgM(1, 1), aDbgM(1, 2), aDbgM(1, 3),
+                    aDbgM(2, 0), aDbgM(2, 1), aDbgM(2, 2), aDbgM(2, 3),
+                    0, 0, 0, 1;
+                
+                debug.PushInst({ aDbg, Vector3f{ 1, .5f, 0 } });*/
+                //debug.PushInst({ (bpos * bIt->get<OBB>()).matrix(), Vector3f{ 0, 1, 0 } });
 			}
 		}
 	}
 }
 
-AlignedBox3f Loosen(const AlignedBox3f& box)
+Box3 Loosen(const Box3& box)
 {
-    Vector3f size = box.sizes() * .1f; //magic fudge factor
-    return{ box.min() - size, box.max() + size };
+    Vector3 size = box.size() * .1f; //magic fudge factor
+    return{ box.min - size, box.max + size };
 }
 
 void Collision::PhysTick()
@@ -114,7 +121,7 @@ void Collision::PhysTick()
     
     for (auto& pair : data)
     {
-        AlignedBox3f query = Bound(pair.first);
+        Box3 query = Bound(pair.first);
         for (auto it = broadTree.query(query); it != broadTree.query_end(); ++it)
             if (*it != pair.first)
                 toTest.insert({std::min(*it, pair.first), std::max(*it, pair.first)});
@@ -126,14 +133,16 @@ void Collision::PhysTick()
     debug.End();
 }
 
-AlignedBox3f Collision::Bound(Object obj) const
+Box3 Collision::Bound(Object obj) const
 {
     return (*position[obj] * data.at(obj).Tree().begin()->get<OBB>()).Bound();
 }
 
 Collision::Collision(Position& position, RenderPasses& passes)
 	: position(position), debug(passes)
-{}
+{
+    //debug.enabled = true;
+}
 
 void Collision::Add(Object obj, OBBTree mesh)
 {

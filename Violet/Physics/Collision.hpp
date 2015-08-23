@@ -55,7 +55,7 @@ private:
     
     //Other:
     Position& position;
-    AlignedBox3f Bound(Object obj) const;
+    Box3 Bound(Object obj) const;
     std::vector<Contact> result;
     mutable DebugBoxes debug;
 };

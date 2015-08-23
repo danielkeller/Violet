@@ -67,29 +67,29 @@ AlignedBox3f Bound(const Mesh& m)
 
 float OBB::volume() const
 {
-	return extent.prod() * 8.f;
+	return product(extent) * 8.f;
 }
-
-Matrix4f OBB::matrix() const
+/*
+Matrix3 OBB::matrix() const
 {
-    Matrix3f halfBox = axes * Eigen::AlignedScaling3f{ extent };
-    return (Matrix4f() << halfBox * 2.f, origin - halfBox.rowwise().sum(), Vector4f{ 0,0,0,1 }.transpose()).finished();
-}
+    Matrix3 halfBox = axes.scale(extent);
+    return affine(halfBox * 2, origin - halfBox.col[0] - halfBox.col[1] - halfBox.col[2]);
+}*/
 
-Matrix3f InertiaTensor(const OBB& obb, Vector3f centerOfMass)
+Matrix3f InertiaTensor(const OBB& obb, Vector3 centerOfMass)
 {
-	Matrix3f ret = Matrix3f::Zero();
+    Matrix3f ret = Matrix3f::Zero();
 
-	auto addPt = [&](const Vector3f& boxPos)
+	auto addPt = [&](const Vector3& boxPos)
 	{
-		Vector3f lpos = obb.origin + 2 * Eigen::DiagonalMatrix<float, 3>{obb.extent} * obb.axes * boxPos - centerOfMass;
+		Vector3 lpos = obb.origin + obb.axes.scale(obb.extent) * boxPos * 2 - centerOfMass;
 
-		ret(0, 0) += (lpos.y()*lpos.y() + lpos.z()*lpos.z());
-		ret(1, 1) += (lpos.x()*lpos.x() + lpos.z()*lpos.z());
-		ret(2, 2) += (lpos.x()*lpos.x() + lpos.y()*lpos.y());
-		ret(1, 0) -= lpos.x()*lpos.y();
-		ret(2, 0) -= lpos.x()*lpos.z();
-		ret(2, 1) -= lpos.y()*lpos.z();
+		ret(0, 0) += (lpos.y*lpos.y + lpos.z*lpos.z);
+		ret(1, 1) += (lpos.x*lpos.x + lpos.z*lpos.z);
+		ret(2, 2) += (lpos.x*lpos.x + lpos.y*lpos.y);
+		ret(1, 0) -= lpos.x*lpos.y;
+		ret(2, 0) -= lpos.x*lpos.z;
+		ret(2, 1) -= lpos.y*lpos.z;
 	};
 
 	//box faces
@@ -105,30 +105,33 @@ Matrix3f InertiaTensor(const OBB& obb, Vector3f centerOfMass)
 
 OBB operator*(const Transform& xfrm, OBB obb)
 {
-    obb.axes = xfrm.rot.matrix() * obb.axes;
-    obb.origin = xfrm.pos + xfrm.rot.matrix() * obb.origin;
+    Quat q{xfrm.rot.w(), xfrm.rot.x(), xfrm.rot.y(), xfrm.rot.z()};
+    Matrix3 mq = q.matrix();
+    obb.axes = mq * obb.axes;
+    Vector3 p{xfrm.pos.x(), xfrm.pos.y(), xfrm.pos.z()};
+    obb.origin = p + mq * obb.origin;
     obb.extent *= xfrm.scale;
     return obb;
 }
 
-AlignedBox3f OBB::Bound() const
+Box3 OBB::Bound() const
 {
-    Vector3f diag = axes.cwiseAbs() * extent;
+    Vector3 diag = abs(axes) * extent;
     return { origin - diag, origin + diag};
 }
 
-OBB::OBB(const AlignedBox3f& aabb)
-    : axes(Matrix3f::Identity())
+OBB::OBB(const Box3& aabb)
+    : axes(Identity())
 	, origin(aabb.center())
-    , extent(aabb.sizes() / 2.f)
+    , extent(aabb.size() / 2)
 {}
 
 OBB::OBB(Mesh::const_iterator begin, Mesh::const_iterator end)
 {
 	if (begin == end)
 	{
-		axes = -ZERO_SIZE * Matrix3f::Identity(); //make it inside out (i guess)
-		origin = Vector3f::Zero();
+		axes = -ZERO_SIZE * Identity(); //make it inside out (i guess)
+		origin = 0;
 		return;
 	}
 
@@ -157,18 +160,19 @@ OBB::OBB(Mesh::const_iterator begin, Mesh::const_iterator end)
 
 	Eigen::SelfAdjointEigenSolver<Matrix3f> es;
 	es.computeDirect(inertiaTensor);
-	axes = es.eigenvectors();
+    axes = ToM(es.eigenvectors());
 
 	float maxflt = std::numeric_limits<float>::max();
-	Eigen::Vector3f min{ maxflt, maxflt, maxflt };
-	Eigen::Vector3f max = -min;
+	Vector3 bot{ maxflt, maxflt, maxflt };
+	Vector3 top = -bot;
 
 	for (const auto& tri : make_range(begin, end))
 	{
-		min = min.cwiseMin((axes.transpose() * tri).rowwise().minCoeff());
-		max = max.cwiseMax((axes.transpose() * tri).rowwise().maxCoeff());
+        Matrix3 triM = Transpose3(axes) * ToM(tri);
+        bot = min(bot, min(triM.col));
+        top = max(top, max(triM.col));
 	}
 
-    extent = (max - min).cwiseMax(ZERO_SIZE) / 2.f;
-    origin = axes * (min + extent);
+    extent = max((top - bot), Vector3{ZERO_SIZE, ZERO_SIZE, ZERO_SIZE}) / 2.f;
+    origin = axes * (bot + extent);
 }

@@ -139,6 +139,7 @@
 		37A842751B70210100908276 /* scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = scripts; sourceTree = SOURCE_ROOT; };
 		37A8427A1B7E981F00908276 /* variant.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = variant.hpp; sourceTree = "<group>"; };
 		37A9DBC21B864F010078FB2D /* AABB.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AABB.hpp; sourceTree = "<group>"; };
+		37A9DBC31B87BCDE0078FB2D /* Vector.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Vector.hpp; sourceTree = "<group>"; };
 		37C8E0881B55BFA000713DAC /* gl_core_3_3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gl_core_3_3.c; path = Libs/GL/gl_core_3_3.c; sourceTree = SOURCE_ROOT; };
 		37C8E0891B55BFA000713DAC /* gl_core_3_3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl_core_3_3.h; path = Libs/GL/gl_core_3_3.h; sourceTree = SOURCE_ROOT; };
 		37C8E08B1B55BFB100713DAC /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3.c; path = Libs/sqlite/sqlite3.c; sourceTree = "<group>"; };
@@ -431,6 +432,7 @@
 				B9AA96641A575DE00079F917 /* Shapes.hpp */,
 				373FC7581B3AF8CE00AEBB25 /* Shapes.cpp */,
 				37A9DBC21B864F010078FB2D /* AABB.hpp */,
+				37A9DBC31B87BCDE0078FB2D /* Vector.hpp */,
 			);
 			path = Geometry;
 			sourceTree = "<group>";

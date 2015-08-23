@@ -40,21 +40,21 @@ void OBBTree::Resource::RecTree(TreeTy::iterator it, Mesh::iterator begin, Mesh:
         *it = OBB{begin, end};
     
     //Get longest axis
-    Vector3f::Index longestAxisIndex;
-    it->get<OBB>().axes.colwise().norm().maxCoeff(&longestAxisIndex);
+    int longestAxisIndex;
+    max(it->get<OBB>().extent, longestAxisIndex);
     
-    Vector3f meshCentroid = centroid(begin, end);
+    Vector3 meshCentroid = ToV(centroid(begin, end));
     
     auto axInd = longestAxisIndex;
     auto middle = begin;
     
     while (true)
     {
-        Vector3f ax = it->get<OBB>().axes.col(axInd).normalized();
+        Vector3 ax = it->get<OBB>().axes.col[axInd];
         
         middle = std::partition(begin, end, [=](const Triangle& t)
         {
-            return ::centroid(t).dot(ax) < meshCentroid.dot(ax);
+            return dot(ToV(centroid(t)), ax) < dot(meshCentroid, ax);
         });
         
         axInd = (axInd + 1) % 3;

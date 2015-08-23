@@ -3,6 +3,8 @@
 
 #include <array>
 
+#include "Geometry/Vector.hpp"
+
 using LineSegment = std::pair<float, float>;
 
 using Triangle = Eigen::Matrix3f;
@@ -35,17 +37,17 @@ struct Transform;
 //Transform?
 struct OBB
 {
-	OBB(const AlignedBox3f& aabb);
+	OBB(const Box3& aabb);
     OBB(Mesh::const_iterator begin, Mesh::const_iterator end);
 
-	Matrix3f axes;
-	Vector3f origin;
-    Vector3f extent;
+	Matrix3 axes;
+	Vector3 origin;
+    Vector3 extent;
 	float volume() const;
     
-    AlignedBox3f Bound() const;
+    Box3 Bound() const;
     
-    Matrix4f matrix() const;
+    Matrix3 matrix() const;
 };
 
 OBB operator*(const Transform& xfrm, OBB obb);

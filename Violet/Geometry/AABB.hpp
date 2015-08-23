@@ -13,11 +13,11 @@ public:
     using iterator = Node*;
     struct query_iterator;
     
-    iterator insert(AlignedBox3f box, T val);
+    iterator insert(Box3 box, T val);
     void erase(iterator);
     
     //iterator must not outlive query
-    query_iterator query(const AlignedBox3f& query) const {return{ tree.get(), &query };}
+    query_iterator query(const Box3& query) const {return{ tree.get(), &query };}
     query_iterator query_end() const { return{}; }
     
 private:
@@ -31,20 +31,21 @@ private:
 template<class T>
 struct AABBTree<T>::Node
 {
-    AlignedBox3f box;
+    Box3
+    box;
     Node* parent;
     
     using Ptr = std::unique_ptr<Node>;
     using Children = std::pair<Ptr, Ptr>;
     variant<Children, T> data;
     
-    Node(AlignedBox3f box, Node* parent, Ptr l, Ptr r)
+    Node(Box3 box, Node* parent, Ptr l, Ptr r)
         : box(box), parent(parent), data(Children{std::move(l), std::move(r)})
     {
         left()->parent = this;
         right()->parent = this;
     }
-    Node(AlignedBox3f box, Node* parent, T leaf)
+    Node(Box3 box, Node* parent, T leaf)
         : box(box), parent(parent), data(leaf)
     {}
     
@@ -62,10 +63,10 @@ struct AABBTree<T>::query_iterator : public std::iterator<std::forward_iterator_
     using value_type = T;
     
     const Node* current;
-    const AlignedBox3f* query;
+    const Box3* query;
     
     query_iterator() : current(nullptr) {}
-    query_iterator(const Node* c, const AlignedBox3f* q) : current(c), query(q) {search();}
+    query_iterator(const Node* c, const Box3* q) : current(c), query(q) {search();}
     BASIC_EQUALITY(query_iterator, current);
     
     query_iterator& operator++();
@@ -79,7 +80,7 @@ private:
 };
 
 template<class T>
-auto AABBTree<T>::insert(AlignedBox3f box, T val) -> iterator
+auto AABBTree<T>::insert(Box3 box, T val) -> iterator
 {
     NodePtr node = std::make_unique<Node>(box, nullptr, val);
     iterator ret = node.get();
@@ -90,10 +91,10 @@ auto AABBTree<T>::insert(AlignedBox3f box, T val) -> iterator
     return ret;
 }
 
-inline float Area(const AlignedBox3f& box)
+inline float Area(const Box3& box)
 {
-    Vector3f dims = box.sizes();
-    return dims.x() * (dims.y() + dims.z()) + dims.y() * dims.z();
+    Vector3 dims = box.size();
+    return dims.x * (dims.y + dims.z) + dims.y * dims.z;
 }
 
 template<class T>
@@ -178,7 +179,7 @@ void AABBTree<T>::query_iterator::backup()
             return;
         }
         else if (current == current->parent->left().get()
-                 && !query->intersection(current->parent->right()->box).isEmpty())
+                 && query->intersects(current->parent->right()->box))
         {
             //switch to the right child
             current = current->parent->right().get();
@@ -195,9 +196,9 @@ void AABBTree<T>::query_iterator::search()
     //descend as far as possible, to the left first
     while (current && !current->leaf())
     {
-        if (!query->intersection(current->left()->box).isEmpty())
+        if (query->intersects(current->left()->box))
             current = current->left().get();
-        else if (!query->intersection(current->right()->box).isEmpty())
+        else if (query->intersects(current->right()->box))
             current = current->right().get();
         else //stuck, try the next subtree
             backup();
