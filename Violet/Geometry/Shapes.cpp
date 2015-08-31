@@ -30,9 +30,7 @@ Vector3f centroid(Mesh::const_iterator begin, Mesh::const_iterator end)
 
 Triangle TransformTri(const Triangle& t, const Matrix4f& mat)
 {
-	Eigen::Matrix<float, 4, 3> triExt;
-	triExt << t, 1, 1, 1;
-	return (mat * triExt).block<3, 3>(0, 0);
+    return (mat.block<3, 3>(0, 0) * t).colwise() + mat.block<3, 1>(0, 3);
 }
 
 Matrix4f BoxMat(const AlignedBox3f& box)
