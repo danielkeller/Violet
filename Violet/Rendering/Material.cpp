@@ -23,8 +23,30 @@ struct Material::Resource : public ::Resource<Resource, Id>
 	std::vector<Tex> textures;
 };
 
+std::shared_ptr<Material::Resource> defaultMat()
+{
+    static UBO defaultUBO{ "assets/simple", "Material" };
+    STATIC
+    {
+        defaultUBO["lightPos"] = Vector3f{5, 5, 5};
+        defaultUBO["ambient"] = Vector3f{.2, .2, .2};
+        defaultUBO["diffuse"] = Vector3f{.75, .8, .8};
+        defaultUBO["specular"] = Vector3f{1, .95, .95};
+        defaultUBO["objColor"] = Vector4f{1, 1, 1, 1};
+        defaultUBO["specExp"] = 8.f;
+    }
+    static std::shared_ptr<Material::Resource> defaultMat =
+        Material::Resource::MakeShared(0, "Default", "assets/simple",
+        std::move(defaultUBO), std::vector<Tex>{{"assets/capsule.png"}});
+    return defaultMat;
+}
+
+Material::Material()
+    : resource(Resource::FindResource(0) ? Resource::FindResource(0) : defaultMat())
+{}
+
 Material::Material(Id id, Persist& persist)
-	: Material(Resource::FindResource(id) ? Resource::FindResource(id)
+	: resource(Resource::FindResource(id) ? Resource::FindResource(id)
 		: invoke(Resource::MakeShared<Material::Id, std::string,
 			ShaderProgram, UBO::BufferTy, std::vector<Tex>>,
 			persist.Get<Material>(id)))

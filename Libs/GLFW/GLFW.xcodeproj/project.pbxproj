@@ -45,10 +45,6 @@
 		37A6C1861B3AFDA300AD5A8B /* nsgl_context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nsgl_context.h; path = src/nsgl_context.h; sourceTree = "<group>"; };
 		37A6C1871B3AFDA300AD5A8B /* nsgl_context.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = nsgl_context.m; path = src/nsgl_context.m; sourceTree = "<group>"; };
 		37A6C1951B3AFDA300AD5A8B /* window.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = window.c; path = src/window.c; sourceTree = "<group>"; };
-		37A6C1D51B3AFE6400AD5A8B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
-		37A6C1D71B3AFE6A00AD5A8B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
-		37A6C1D91B3AFE7600AD5A8B /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
-		37A6C1DB1B3AFE8A00AD5A8B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		37A6C1DE1B3AFEC300AD5A8B /* GLFW */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GLFW; path = include/GLFW; sourceTree = "<group>"; };
 		37D376C91B3B2E13001EAA62 /* deps */ = {isa = PBXFileReference; lastKnownFileType = folder; path = deps; sourceTree = "<group>"; };
 		37D376D31B3B46E2001EAA62 /* posix_tls.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = posix_tls.c; path = src/posix_tls.c; sourceTree = "<group>"; };
@@ -71,10 +67,6 @@
 			children = (
 				37D376C91B3B2E13001EAA62 /* deps */,
 				37A6C1DD1B3AFEB700AD5A8B /* include */,
-				37A6C1DB1B3AFE8A00AD5A8B /* OpenGL.framework */,
-				37A6C1D91B3AFE7600AD5A8B /* CoreVideo.framework */,
-				37A6C1D71B3AFE6A00AD5A8B /* Cocoa.framework */,
-				37A6C1D51B3AFE6400AD5A8B /* IOKit.framework */,
 				37A6C16D1B3AFD6700AD5A8B /* src */,
 				373FC7BD1B3AFBFD00AEBB25 /* Products */,
 			);

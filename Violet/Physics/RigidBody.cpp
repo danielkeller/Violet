@@ -153,7 +153,7 @@ void RigidBody::integrate(State& state, Time::clock::duration t, F forces)
 
 void RigidBody::PhysTick(Time::clock::duration simTime)
 {
-    if (paused)
+    if (paused || !data.size())
         return;
     
     debug.Begin();

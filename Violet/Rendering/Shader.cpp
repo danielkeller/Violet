@@ -416,11 +416,24 @@ UBO::Proxy::operator uint32_t() const
 	return mat(1,1);
 }
 
-UBO::Proxy& UBO::Proxy::operator=(const uint32_t& v)
+UBO::Proxy& UBO::Proxy::operator=(uint32_t v)
 {
 	Eigen::Matrix<uint32_t, 1, 1> mat;
 	mat << v;
 	return *this = mat;
+}
+
+UBO::Proxy::operator float() const
+{
+    Eigen::Matrix<float, 1, 1> mat = *this;
+    return mat(1,1);
+}
+
+UBO::Proxy& UBO::Proxy::operator=(float v)
+{
+    Eigen::Matrix<float, 1, 1> mat;
+    mat << v;
+    return *this = mat;
 }
 
 UBO::Proxy UBO::Proxy::operator[](GLuint offset)

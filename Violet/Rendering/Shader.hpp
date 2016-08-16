@@ -156,8 +156,10 @@ struct UBO::Proxy
 	}
 
 	operator std::uint32_t() const;
-	Proxy& operator=(const std::uint32_t&);
-
+    Proxy& operator=(std::uint32_t);
+    operator float() const;
+    Proxy& operator=(float);
+    
 	Proxy operator[](GLuint offset);
 
 	template<typename Scalar>

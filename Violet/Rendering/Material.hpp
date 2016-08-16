@@ -12,9 +12,11 @@ class Material
 	struct Resource;
 	std::shared_ptr<Resource> resource;
 	Material(std::shared_ptr<Resource>);
+    friend std::shared_ptr<Material::Resource> defaultMat();
 public:
 	using Id = std::int64_t;
 
+    Material(); //default material
 	Material(Id, Persist&);
 	Material(const Material&) = default;
 	Material(const std::string& name, ShaderProgram);

@@ -120,8 +120,8 @@ void Edit::PhysTick(Object camera)
 	UI::LayoutStack& l = UI::CurLayout() = { e.view.screenBox, UI::Layout::Dir::Right };
 
 	enabled = !slide.Draw(LB_WIDTH);
-
-	renderEdit.DrawPicker(selected, persist);
+    
+    renderEdit.DrawPicker(selected, persist);
 
 	//left bar
 	l.PushNext(UI::Layout::Dir::Down);
@@ -151,6 +151,8 @@ void Edit::PhysTick(Object camera)
 	{
 		Object n;
 		Editable(n);
+        newSelect = n;
+        objectNameEdit.focus.StealFocus();
 		Save(n, persist);
 	}
 
@@ -176,8 +178,6 @@ void Edit::PhysTick(Object camera)
 	if (selected != newSelect)
 	{
 		selected = newSelect;
-
-		renderEdit.ClosePicker();
 
 		if (selected != Object::none)
 			curObjectName = objName[selected];

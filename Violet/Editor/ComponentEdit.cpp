@@ -125,7 +125,10 @@ RenderEditor::RenderEditor(Render& render)
 
 void RenderEditor::DrawPicker(Object selected, Persist& persist)
 {
-	if (currentPicker != AssetPicker::None)
+    if (selected == Object::none)
+        currentPicker = AssetPicker::None;
+    
+    if (currentPicker != AssetPicker::None)
 	{
 		auto tup = render.Info(selected);
 		auto old = tup;
@@ -187,9 +190,7 @@ bool RenderEditor::edit(Object selected)
 
 void RenderEditor::add(Object selected)
 {
-	render.Create(selected,
-		{ "Default", { "assets/simple" }, "assets/capsule.png" },
-		"assets/capsule.obj");
+	render.Create(selected, Material{}, "assets/capsule.obj");
 }
 
 CollisionEditor::CollisionEditor(Collision& collision, Render& render)

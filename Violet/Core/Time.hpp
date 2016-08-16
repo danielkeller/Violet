@@ -10,7 +10,7 @@ using millifloat = std::chrono::duration<float, std::milli>;
 class Time
 {
 public:
-    using clock = std::chrono::system_clock;
+    using clock = std::chrono::steady_clock;
     
     Time();
     
